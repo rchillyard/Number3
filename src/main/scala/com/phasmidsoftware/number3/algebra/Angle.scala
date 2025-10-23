@@ -5,7 +5,9 @@
 package com.phasmidsoftware.number3.algebra
 
 import algebra.Group
-import com.phasmidsoftware.number.core.inner.Value
+import cats.Show
+import com.phasmidsoftware.number.core.inner.Rational.convertDouble
+import com.phasmidsoftware.number.core.inner.{Rational, Value}
 
 /**
  * Represents an angle measured in radians.
@@ -18,7 +20,70 @@ import com.phasmidsoftware.number.core.inner.Value
  * @param radians the numeric representation of the angle in radians
  *                which is used in mathematical operations.
  */
-case class Angle(radians: Number) extends Group[Angle] {
+case class Angle(radians: Number) extends Group[Angle] with Number {
+  /**
+   * Compares the current `Number` instance with another `Number` instance exactly.
+   *
+   * This method performs a comparison of two `Number` instances only if both numbers are exact.
+   * It is expected to throw an exception or return undefined behavior if used inappropriately
+   * with numbers that are not exact, depending on the implementation in the subtype.
+   *
+   * @param that the `Number` to compare against
+   * @return an integer value:
+   *         - a negative value if this `Number` is less than `that`
+   *         - zero if this `Number` is equal to `that`
+   *         - a positive value if this `Number` is greater than `that`
+   */
+  def compareExact(that: Number): Int = that match {
+    case Angle(o) =>
+      radians.compare(o)
+    case _ =>
+      throw new UnsupportedOperationException(s"Angle.compareExact: $this, $that")
+  }
+
+  /**
+   * Converts the current number to a representation of the specified type `T`, if possible.
+   *
+   * This method attempts to convert the number to a type `T` that has implicit evidence
+   * of `Ordering`. If the conversion is successful, it returns an `Option` containing the
+   * resulting typed value. If the conversion is not valid or not possible for the given
+   * type `T`, it returns `None`.
+   *
+   * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
+   */
+  def convert[T <: Number](t: T): Option[T] = t match {
+    case _: FuzzyNumber =>
+      radians.approximation.asInstanceOf[Option[T]]
+    case _ =>
+      None
+  }
+
+  /**
+   * Determines if the current number is equal to zero.
+   *
+   * @return true if the number is zero, false otherwise
+   */
+  def isZero: Boolean = radians.isZero
+
+  /**
+   * Method to determine if this NumberLike object is exact.
+   * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+   *
+   * @return true if this NumberLike object is exact in the context of No factor, else false.
+   */
+  def isExact: Boolean = radians.isExact
+
+  /**
+   * Method to render this NumberLike in a presentable manner.
+   *
+   * @return a String
+   */
+  def render: String = {
+    val prefix = radians.render
+    val suffix = "𝛑"
+    (if (prefix == "1") "" else prefix) + suffix
+  }
+
   /**
    * Provides the identity element for the `Angle` group, representing an angle of zero radians.
    *
@@ -32,13 +97,25 @@ case class Angle(radians: Number) extends Group[Angle] {
   /**
    * Computes the additive inverse of the given angle.
    *
-   * @param a The angle to be negated.
+   * @param a a prototype of the result.
    * @return A new angle representing the additive inverse of the input angle.
    */
   def inverse(a: Angle): Angle = radians match {
-    case RationalNumber(r) => Angle(RationalNumber(r.invert))
-    case _ => ??? // TODO implement me
+    case RationalNumber(r) =>
+      Angle(RationalNumber(r.negate))
+    case FuzzyNumber(x, f) =>
+      Angle(FuzzyNumber(-x, f))
   }
+
+  /**
+   * Computes the additive inverse of the current `Angle` instance.
+   *
+   * This method negates the current angle, returning a new `Angle` instance
+   * with the opposite value, relative to `Angle.zero`.
+   *
+   * @return a new `Angle` instance representing the additive inverse of the current angle.
+   */
+  def unary_- : Angle = this.inverse(Angle.zero)
 
   /**
    * Combines two `Angle` instances by adding their respective radians.
@@ -52,6 +129,19 @@ case class Angle(radians: Number) extends Group[Angle] {
       Angle(RationalNumber.zero plus(x1, x2))
     case _ => throw new UnsupportedOperationException("Angle.combine")
   }
+
+  /**
+   * Adds the specified `Angle` to the current `Angle` instance.
+   *
+   * This method combines the current angle with the provided angle
+   * by adding their respective radians, returning a new `Angle` instance
+   * representing the sum.
+   *
+   * @param a the `Angle` to be added to the current `Angle`
+   * @return a new `Angle` representing the sum of the current `Angle` and the specified `Angle`
+   */
+  def plus(a: Angle): Angle =
+    combine(this, a)
 }
 
 object Angle {
@@ -66,4 +156,49 @@ object Angle {
     }
     new Angle(rational)
   }
+
+  /**
+   * Represents the additive identity for angles.
+   *
+   * This value denotes an angle of zero radians, serving as the identity element in
+   * the group structure of angles. It is constructed using the `Angle` companion object
+   * initialized with the additive identity of `RationalNumber`.
+   */
+  val zero: Angle = Angle(RationalNumber.zero)
+
+  /**
+   * Represents an angle equivalent to mathematical π radians.
+   *
+   * The value `pi` is an instance of the `Angle` class initialized with the
+   * `RationalNumber.one`, which corresponds to the rational representation of π
+   * in the specific context of the `Angle` implementation.
+   */
+  val pi: Angle = Angle(RationalNumber.one)
+
+  /**
+   * Alias for the `pi` value, representing an angle equivalent to mathematical π radians.
+   *
+   * This value is a symbolic representation of π radians, reused from the `Angle.pi` value.
+   * It is denoted by the Greek mathematical symbol 𝛑 and can be used interchangeably with `pi`.
+   */
+  val 𝛑: Angle = pi
+
+  /**
+   * Represents an angle equivalent to π/2 radians.
+   *
+   * `pi_2` is a constant instance of the `Angle` class initialized using
+   * a `RationalNumber` constructed with a value of 1/2. This corresponds
+   * to π/2 radians in mathematical terms.
+   */
+  val pi_2: Angle = Angle(RationalNumber(Rational.half))
+
+  /**
+   * Provides an implicit `Show` instance for the `Angle` class, enabling conversion
+   * of an `Angle` instance to a string representation using its `render` method.
+   *
+   * This allows the `Angle` class to integrate seamlessly with libraries or frameworks
+   * requiring a `Show` typeclass instance for displaying or logging purposes.
+   */
+  implicit val showAngle: Show[Angle] = Show.show(_.render)
+
 }

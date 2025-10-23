@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
-import scala.reflect.ClassTag
+import com.phasmidsoftware.number3.core.NumberLike
 
 /**
  * Represents a numeric entity that can be compared, approximated, and converted to other types.
@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
  * provide definitions for essential numeric operations such as exact comparison and conversions
  * to approximate or concrete values.
  */
-trait Number extends Ordered[Number] {
+trait Number extends Ordered[Number] with NumberLike {
   /**
    * Compares the current `Number` instance with another `Number` instance.
    *
@@ -55,16 +55,17 @@ trait Number extends Ordered[Number] {
   def compareExact(that: Number): Int
 
   /**
-   * Converts the current number to a representation of the specified type `T`, if possible.
+   * Attempts to convert the given number of type `T` to another value of the same type,
+   * encapsulated in an `Option`.
    *
-   * This method attempts to convert the number to a type `T` that has implicit evidence
-   * of `Ordering`. If the conversion is successful, it returns an `Option` containing the
-   * resulting typed value. If the conversion is not valid or not possible for the given
-   * type `T`, it returns `None`.
+   * The method takes a number of type `T` as input, where `T` is a subtype of `Number`,
+   * and performs a conversion operation. If the conversion is successful, it returns
+   * `Some` containing the converted value. Otherwise, it returns `None`.
    *
-   * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
+   * @param t a prototype of the required output.
+   * @return an `Option` containing the converted value of type `T` if the conversion is successful, or `None` otherwise
    */
-  def convert[T: ClassTag]: Option[T]
+  def convert[T <: Number](t: T): Option[T]
 
   /**
    * Provides an approximation of the current number, if applicable.
@@ -77,14 +78,7 @@ trait Number extends Ordered[Number] {
    * @return an `Option[FuzzyNumber]` containing the approximate representation
    *         of the number, or `None` if no approximation is available.
    */
-  def approximation: Option[FuzzyNumber] = convert[FuzzyNumber]
-
-  /**
-   * Determines if the number is represented exactly without any approximation.
-   *
-   * @return true if the number is exact, false otherwise
-   */
-  def isExact: Boolean
+  def approximation: Option[FuzzyNumber] = convert(FuzzyNumber.zero)
 
   /**
    * Determines if the current number is equal to zero.

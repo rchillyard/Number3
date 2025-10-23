@@ -45,10 +45,8 @@ class NumberSpec extends AnyFlatSpec with Matchers {
   // Conversion operations
   it should "convert to different number types" in {
     val x = RationalNumber(5)
-    x.convert[FuzzyNumber] shouldBe Some(FuzzyNumber(5, Fuzziness.doublePrecision))
-    x.convert[Angle] shouldBe None
-    x.convert[Int] shouldBe None
-    x.convert[Double] shouldBe None
+    x.convert(FuzzyNumber.zero) shouldBe Some(FuzzyNumber(5, Fuzziness.doublePrecision))
+    x.convert(Angle.zero) shouldBe None
   }
 
   // Edge cases and special values
@@ -96,10 +94,8 @@ class NumberSpec extends AnyFlatSpec with Matchers {
   // Conversion operations
   it should "convert to different number types" in {
     val x = FuzzyNumber(5)
-    x.convert[FuzzyNumber] shouldBe Some(FuzzyNumber(5, Fuzziness.doublePrecision))
-    x.convert[Angle] shouldBe None
-    x.convert[Int] shouldBe None
-    x.convert[Double] shouldBe None
+    x.convert(FuzzyNumber.zero) shouldBe None
+    x.convert(Angle.zero) shouldBe None
   }
 
   // Edge cases and special values

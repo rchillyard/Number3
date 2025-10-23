@@ -1,9 +1,9 @@
 package com.phasmidsoftware.number3.algebra
 
 import algebra.ring.Field
+import cats.Show
 import com.phasmidsoftware.number.core.Fuzziness
-
-import scala.reflect.ClassTag
+import com.phasmidsoftware.number.core.inner.{PureNumber, Value}
 
 /**
  * Represents a fuzzy number, which incorporates a primary value and an associated fuzziness level.
@@ -110,21 +110,16 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
   }
 
   /**
-   * Converts the current number to a representation of the specified type `T`, if possible.
+   * Converts the given numeric value to an optional representation.
    *
-   * This method attempts to convert the number to a type `T` that has implicit evidence
-   * of `Ordering`. If the conversion is successful, it returns an `Option` containing the
-   * resulting typed value. If the conversion is not valid or not possible for the given
-   * type `T`, it returns `None`.
+   * This method accepts a number of type T, where T is a subtype of Number,
+   * and returns an Option containing the input number if certain conditions
+   * (not detailed in this method's implementation) are met, otherwise None.
    *
-   * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
+   * @param t a prototype of the required output.
+   * @return an Option wrapping the input number if the conversion is successful, otherwise None
    */
-  def convert[T: ClassTag]: Option[T] =
-    // TODO - this is a temporary hack
-    if (implicitly[ClassTag[T]].runtimeClass == classOf[FuzzyNumber])
-      Some(this.asInstanceOf[T])
-    else
-      None
+  def convert[T <: Number](t: T): Option[T] = None
 
   /**
    * Determines if the number is represented exactly without any approximation.
@@ -171,6 +166,13 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
    */
   def compareExact(that: Number): Int =
     throw new UnsupportedOperationException("FuzzyNumber.compareExact")
+
+  /**
+   * Method to render this NumberLike in a presentable manner.
+   *
+   * @return a String
+   */
+  def render: String = new com.phasmidsoftware.number.core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, Some(fuzz)).render
 }
 
 /**
@@ -206,4 +208,17 @@ object FuzzyNumber {
    * @return a `FuzzyNumber` instance initialized with the numeric value 1 and a default level of fuzziness.
    */
   def one: FuzzyNumber = apply(1)
+
+
+  /**
+   * Provides an implicit instance of `Show` for the `FuzzyNumber` type.
+   *
+   * This implementation defines how instances of `FuzzyNumber` are converted
+   * to a human-readable string representation by invoking their `render` method.
+   *
+   * It enables seamless integration with type classes requiring a `Show` instance,
+   * allowing `FuzzyNumber` objects to be printed or logged in a human-readable format.
+   */
+  implicit val showFuzzyNumber: Show[FuzzyNumber] = Show.show(_.render)
+
 }

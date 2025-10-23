@@ -1,10 +1,9 @@
 package com.phasmidsoftware.number3.algebra
 
 import algebra.ring.Field
+import cats.Show
 import com.phasmidsoftware.number.core.Fuzziness
 import com.phasmidsoftware.number.core.inner.Rational
-
-import scala.reflect.ClassTag
 
 /**
  * Represents a rational number and provides arithmetic operations
@@ -39,20 +38,21 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Number
   }
 
   /**
-   * Converts the current number to a representation of the specified type `T`, if possible.
+   * Converts the given number to an instance of the specified type, if possible.
    *
-   * This method attempts to convert the number to a type `T` that has implicit evidence
-   * of `Ordering`. If the conversion is successful, it returns an `Option` containing the
-   * resulting typed value. If the conversion is not valid or not possible for the given
-   * type `T`, it returns `None`.
+   * The method attempts to convert the input into a `FuzzyNumber` if it matches the specific type constraint,
+   * or returns `None` otherwise.
    *
-   * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
+   * @param t a prototype of the required output.
+   * @tparam T the type of the number, which must be a subtype of `Number`
+   * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible
    */
-  def convert[T: ClassTag]: Option[T] =
-    if (implicitly[ClassTag[T]].runtimeClass == classOf[FuzzyNumber])
+  def convert[T <: Number](t: T): Option[T] = t match {
+    case _: FuzzyNumber =>
       Some(FuzzyNumber(r.toDouble, Fuzziness.doublePrecision).asInstanceOf[T])
-    else
+    case _ =>
       None
+  }
 
 
   /**
@@ -145,6 +145,13 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Number
    * @return true if the number is zero, false otherwise
    */
   def isZero: Boolean = r.isZero
+
+  /**
+   * Method to render this NumberLike in a presentable manner.
+   *
+   * @return a String
+   */
+  def render: String = r.render
 }
 
 /**
@@ -163,6 +170,16 @@ object RationalNumber {
    * @return a new `RationalNumber` instance representing the given `Rational`
    */
   def apply(r: Rational): RationalNumber = new RationalNumber(r)
+
+  /**
+   * Provides an implicit `Show` instance for `RationalNumber`.
+   *
+   * This implicit instance utilizes the `render` method of `RationalNumber`
+   * to define how instances of `RationalNumber` are represented as a string.
+   * It integrates with the `Show` typeclass to allow consistent string representation
+   * of rational numbers.
+   */
+  implicit val showRationalNumber: Show[RationalNumber] = Show.show(_.render)
 
   /**
    * Returns the additive identity for `RationalNumber`.

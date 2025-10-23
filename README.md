@@ -22,7 +22,7 @@ In version 1, we have a type called Field with subtypes Complex, Real, and Algeb
 Format
 In Number version 1, numbers are represented as a Value and a Factor. This factor allows us to represent pure number, radians, square roots, logarithms, etc. The plan is to replace this factor mechanism with explicit numeric types, the first of which is Angle representing radians.
 RationalNumber
-This type extends Number with Field[RationalNumber] (where Field is algebra.ring.Field).
+This type extends Number with Field\[RationalNumber] (where Field is algebra.ring.Field).
 Angle
-Angle extends Group[Angle] with Number, such that it defines the “circle group” S¹ (-𝛑 to 𝛑). Also known as ℝ/2πℤ., i.e., the real numbers modulo 2π. [Actually, as of now, it doesn’t extend Number but may later.]
+Angle extends Group\[Angle] with Number, such that it defines the “circle group” S¹ (-𝛑 to 𝛑). Also known as ℝ/2πℤ., i.e., the real numbers modulo 2π. \[Actually, as of now, it doesn’t extend Number but may later.]
 
