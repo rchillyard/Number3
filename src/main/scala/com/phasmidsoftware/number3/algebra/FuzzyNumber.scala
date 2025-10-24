@@ -2,8 +2,8 @@ package com.phasmidsoftware.number3.algebra
 
 import algebra.ring.Field
 import cats.Show
-import com.phasmidsoftware.number.core.Fuzziness
 import com.phasmidsoftware.number.core.inner.{PureNumber, Value}
+import com.phasmidsoftware.number.core.{Fuzziness, NumberException}
 
 /**
  * Represents a fuzzy number, which incorporates a primary value and an associated fuzziness level.
@@ -76,7 +76,12 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
   def plus(x: FuzzyNumber, y: FuzzyNumber): FuzzyNumber = {
     val value = x.value + y.value
     val maybeFuzz: Option[Fuzziness[Double]] = Fuzziness.combine(x.value, y.value, relative = false, independent = true)(Some(x.fuzz) -> Some(y.fuzz))
-    FuzzyNumber(value, maybeFuzz.get) // NOTE that if the logic is wrong, this will throw an exception!
+    maybeFuzz match {
+      case Some(fuzz) =>
+        FuzzyNumber(value, fuzz)
+      case None =>
+        throw NumberException(s"FuzzyNumber.plus: invalid fuzziness: ${x.fuzz} + ${y.fuzz} = $maybeFuzz")
+    }
   }
 
   /**
@@ -106,7 +111,12 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
   def times(x: FuzzyNumber, y: FuzzyNumber): FuzzyNumber = {
     val value = x.value * y.value
     val maybeFuzz: Option[Fuzziness[Double]] = Fuzziness.combine(x.value, y.value, relative = true, independent = true)(Some(x.fuzz) -> Some(y.fuzz))
-    FuzzyNumber(value, maybeFuzz.get) // NOTE that if the logic is wrong, this will throw an exception!
+    maybeFuzz match {
+      case Some(fuzz) =>
+        FuzzyNumber(value, fuzz)
+      case None =>
+        throw NumberException(s"FuzzyNumber.times: invalid fuzziness: ${x.fuzz} + ${y.fuzz} = $maybeFuzz")
+    }
   }
 
   /**
@@ -184,11 +194,11 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
    * @param that the `Number` to be added to the current instance
    * @return a new `Number` representing the result of adding the current instance and `that`
    */
-  def doPlus(that: Number): Number = that match {
+  def doPlus(that: Number): Option[Number] = that match {
     case f@FuzzyNumber(_, _) =>
-      this.plus(this, f)
+      Some(this.plus(this, f))
     case n =>
-      this doPlus n.convert(this).get
+      n.convert(this) map (x => this.plus(this, x))
   }
 }
 

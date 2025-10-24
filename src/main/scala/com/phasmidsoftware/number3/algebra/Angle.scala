@@ -165,9 +165,9 @@ case class Angle(radians: Number) extends Additive[Angle] with CommutativeGroup[
    * @param that the `Number` instance to add to the current `Number` instance
    * @return a `Number` instance representing the result of the addition
    */
-  def doPlus(that: Number): Number = that match {
+  def doPlus(that: Number): Option[Number] = that match {
     case a: Angle =>
-      this + a
+      Some(this + a)
     case x =>
       x doPlus this
   }

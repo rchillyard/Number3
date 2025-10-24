@@ -193,10 +193,12 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
    * @param that the `Number` to be added to this instance
    * @return a `Number` representing the result of the addition
    */
-  def doPlus(that: Number): Number = that match {
-    case r@RationalNumber(_) => this + r
-    case a@Angle(_) => this doPlus a.convert(FuzzyNumber.zero).get
-    case f@FuzzyNumber(_, _) => f doPlus this.convert(FuzzyNumber.zero).get
+  def doPlus(that: Number): Option[Number] = that match {
+    case r@RationalNumber(_) => Some(this + r)
+    case a@Angle(_) =>
+      a.convert(FuzzyNumber.zero).flatMap(this.doPlus)
+    case f@FuzzyNumber(_, _) =>
+      this.convert(FuzzyNumber.zero).flatMap(f => f.doPlus(that))
   }
 }
 

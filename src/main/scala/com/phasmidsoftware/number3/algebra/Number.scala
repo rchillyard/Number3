@@ -1,6 +1,8 @@
 package com.phasmidsoftware.number3.algebra
 
+import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number3.core.NumberLike
+import com.phasmidsoftware.number3.misc.FP
 
 /**
  * Represents a numeric entity that can be compared, approximated, and converted to other types.
@@ -33,7 +35,7 @@ trait Number extends Ordered[Number] with NumberLike {
         x <- approximation
         y <- that.approximation
       } yield x compare y
-      maybeInt.get // NOTE this may throw an exception if the logic is wrong!
+      FP.recover(maybeInt)(NumberException("Number.compare: Logic error"))
     }
     else // XXX this is exact and that is not exact
       -that.compare(this)
@@ -81,15 +83,16 @@ trait Number extends Ordered[Number] with NumberLike {
   def approximation: Option[FuzzyNumber] = convert(FuzzyNumber.zero)
 
   /**
-   * Performs addition of the current `Number` instance with another `Number` instance.
+   * Performs an addition operation between the current `Number` instance and another `Number`.
    *
-   * This method calculates the sum of the current `Number` instance and the given `that` instance,
-   * and returns a new `Number` representing the result of the addition.
+   * This method calculates the sum of the current `Number` and the provided `that` `Number`.
+   * If the operation is successful, it returns an `Option` containing the resulting `Number`.
+   * Otherwise, it returns `None` to indicate that the operation could not be performed.
    *
-   * @param that the `Number` instance to add to the current instance
-   * @return a new `Number` instance representing the result of the addition
+   * @param that the `Number` to be added to the current `Number`
+   * @return an `Option[Number]` containing the result of the addition, or `None` if the operation fails
    */
-  def doPlus(that: Number): Number
+  def doPlus(that: Number): Option[Number]
 
   /**
    * Determines if the current number is equal to zero.
@@ -107,8 +110,12 @@ trait Number extends Ordered[Number] with NumberLike {
    * @param n the multiplier, an integer value by which the current `Number` instance is to be multiplied
    * @return a new `Number` instance representing the result of the multiplication
    */
-  def *(n: Int): Number =
-    (1 until n).foldLeft[Number](this) { (a, _) => this doPlus a }
+  def *(n: Int): Option[Number] =
+    (1 until n).foldLeft[Option[Number]](Some(this)) {
+      case (Some(a), _) =>
+        this doPlus a
+      case (None, _) => None
+    }
 
 }
 
