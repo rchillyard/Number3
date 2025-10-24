@@ -4,23 +4,25 @@
 
 package com.phasmidsoftware.number3.algebra
 
-import algebra.Group
 import cats.Show
+import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.inner.Rational.convertDouble
-import com.phasmidsoftware.number.core.inner.{Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
 
 /**
- * Represents an angle measured in radians.
+ * A case class representing an angle in radians.
  *
- * The `Angle` class models an angle as a numeric value in radians, providing
- * operations to combine angles, compute inverses, and access the identity element
- * in the context of group theory.
+ * The `Angle` class models an angle and its associated operations,
+ * enabling addition, inversion, comparison, and rendering of angles.
+ * An `Angle` is expressed in terms of radians and supports exactness
+ * checks, conversions, and a variety of mathematical operations.
  *
- * @constructor Creates an `Angle` with the specified value in radians.
- * @param radians the numeric representation of the angle in radians
- *                which is used in mathematical operations.
+ * @param radians a non-Angle numerical value representing the angle in radians
  */
-case class Angle(radians: Number) extends Group[Angle] with Number {
+case class Angle(radians: Number) extends Additive[Angle] with CommutativeGroup[Angle] with Number {
+
+  require(!radians.isInstanceOf[Angle], "Angle must not be based on an Angle")
+
   /**
    * Compares the current `Number` instance with another `Number` instance exactly.
    *
@@ -115,7 +117,8 @@ case class Angle(radians: Number) extends Group[Angle] with Number {
    *
    * @return a new `Angle` instance representing the additive inverse of the current angle.
    */
-  def unary_- : Angle = this.inverse(Angle.zero)
+  def unary_- : Angle =
+    this.inverse(Angle.zero)
 
   /**
    * Combines two `Angle` instances by adding their respective radians.
@@ -127,7 +130,8 @@ case class Angle(radians: Number) extends Group[Angle] with Number {
   def combine(x: Angle, y: Angle): Angle = (x, y) match {
     case (Angle(x1@RationalNumber(_)), Angle(x2@RationalNumber(_))) =>
       Angle(RationalNumber.zero plus(x1, x2))
-    case _ => throw new UnsupportedOperationException("Angle.combine")
+    case _ =>
+      throw new UnsupportedOperationException("Angle.combine")
   }
 
   /**
@@ -140,22 +144,55 @@ case class Angle(radians: Number) extends Group[Angle] with Number {
    * @param a the `Angle` to be added to the current `Angle`
    * @return a new `Angle` representing the sum of the current `Angle` and the specified `Angle`
    */
-  def plus(a: Angle): Angle =
+  def +(a: Angle): Angle =
     combine(this, a)
+
+  /**
+   * Subtracts the specified `Angle` from the current `Angle` instance.
+   *
+   * This method computes the difference by adding the additive inverse
+   * of the specified `Angle` to the current `Angle`, effectively implementing subtraction.
+   *
+   * @param a the `Angle` to subtract from the current `Angle`
+   * @return an instance of `Additive[Angle]` representing the result of the subtraction
+   */
+  def -(a: Angle): Additive[Angle] = this + -a
+
+  /**
+   * Performs an addition operation between the current `Number` instance and another `Number` instance.
+   * Depending on the type of `that`, delegates the operation appropriately.
+   *
+   * @param that the `Number` instance to add to the current `Number` instance
+   * @return a `Number` instance representing the result of the addition
+   */
+  def doPlus(that: Number): Number = that match {
+    case a: Angle =>
+      this + a
+    case x =>
+      x doPlus this
+  }
 }
 
+/**
+ * Companion object for the `Angle` class, providing factory methods, constants,
+ * and utility functionalities related to angles.
+ */
 object Angle {
-  def apply(r: RationalNumber): Angle = {
-    val value: Value = Value.fromRational(r.r)
-    val z: Value = com.phasmidsoftware.number.core.inner.Radian.modulate(value)
-    val rational: RationalNumber = z match {
-      case Right(x) => RationalNumber(x)
-      case Left(Right(x)) => RationalNumber(x)
-      case Left(Left(Some(x))) => RationalNumber(x)
-      case Left(Left(None)) => RationalNumber.zero // TODO - this should be an error
-    }
-    new Angle(rational)
-  }
+  /**
+   * Converts the given rational number to an `Angle` instance by performing modulation and necessary computations.
+   *
+   * @param r the input `RationalNumber` representing the rational value to be converted into an angle
+   * @return an `Angle` instance corresponding to the given rational value
+   */
+  def apply(r: RationalNumber): Angle =
+    new Angle(
+      Radian.modulate(Value.fromRational(r.r)) match {
+        case Right(x) => RationalNumber(x)
+        case Left(Right(x)) => RationalNumber(x)
+        case Left(Left(Some(x))) => RationalNumber(x)
+        case Left(Left(None)) => RationalNumber.zero // TODO - this should be an error
+      }
+    )
 
   /**
    * Represents the additive identity for angles.
@@ -200,5 +237,4 @@ object Angle {
    * requiring a `Show` typeclass instance for displaying or logging purposes.
    */
   implicit val showAngle: Show[Angle] = Show.show(_.render)
-
 }

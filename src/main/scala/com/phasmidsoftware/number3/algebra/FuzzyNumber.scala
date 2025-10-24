@@ -173,6 +173,23 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
    * @return a String
    */
   def render: String = new com.phasmidsoftware.number.core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, Some(fuzz)).render
+
+  /**
+   * Adds the current `Number` instance to another `Number`.
+   *
+   * This method performs addition between the current `Number` and the provided `that` `Number`.
+   * The implementation takes into account the internal properties of the two `Number` instances
+   * and combines them accordingly.
+   *
+   * @param that the `Number` to be added to the current instance
+   * @return a new `Number` representing the result of adding the current instance and `that`
+   */
+  def doPlus(that: Number): Number = that match {
+    case f@FuzzyNumber(_, _) =>
+      this.plus(this, f)
+    case n =>
+      this doPlus n.convert(this).get
+  }
 }
 
 /**

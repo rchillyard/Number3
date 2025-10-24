@@ -3,9 +3,8 @@ package com.phasmidsoftware.number3.algebra
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class NumberSpec extends AnyFlatSpec with Matchers {
-
-  behavior of "Number"
+class FuzzyNumberSpec extends AnyFlatSpec with Matchers {
+  behavior of "FuzzyNumber"
 
   // Basic arithmetic operations
   ignore should "perform addition correctly" in {

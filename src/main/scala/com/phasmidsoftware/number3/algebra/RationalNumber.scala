@@ -16,7 +16,7 @@ import com.phasmidsoftware.number.core.inner.Rational
  *              rational value `r`.
  * @param r the underlying rational value
  */
-case class RationalNumber(r: Rational) extends Field[RationalNumber] with Number with MaybeInvertible[RationalNumber] {
+case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additive[RationalNumber] with Number with MaybeInvertible[RationalNumber] {
   /**
    * Compares the current `Number` instance with another `Number` instance exactly.
    *
@@ -152,6 +152,52 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Number
    * @return a String
    */
   def render: String = r.render
+
+  /**
+   * Adds the specified `T` to this `T` instance.
+   *
+   * @param t an instance of `T` to be added to this `T`
+   * @return a new `T` representing the sum of this `T` and the given `T`
+   */
+  def +(t: RationalNumber): RationalNumber = plus(this, t)
+
+  /**
+   * Computes the additive inverse of this instance.
+   *
+   * This method returns a new instance representing the negation of this value,
+   * as defined in the additive structure of the type `T`.
+   *
+   * @return a new instance of type `T` that is the additive inverse of this instance
+   */
+  def unary_- : RationalNumber = negate(this)
+
+  /**
+   * Subtracts the specified `RationalNumber` from this `RationalNumber`.
+   *
+   * This method computes the difference between the current `RationalNumber` instance
+   * and the given `RationalNumber` by adding the additive inverse of the operand.
+   *
+   * @param t the `RationalNumber` to be subtracted from this instance
+   * @return a new `RationalNumber` representing the result of the subtraction
+   */
+  def -(t: RationalNumber): RationalNumber = this + -t
+
+  /**
+   * Adds the given `Number` to this `Number` and returns the result.
+   *
+   * This method performs addition based on the specific type of the input `Number`.
+   * - If the input is a `RationalNumber`, it adds the two instances.
+   * - If the input is an `Angle`, it converts it to a `FuzzyNumber` with a zero prototype and performs addition.
+   * - If the input is a `FuzzyNumber`, it performs addition with the current instance converted to a `FuzzyNumber` with a zero prototype.
+   *
+   * @param that the `Number` to be added to this instance
+   * @return a `Number` representing the result of the addition
+   */
+  def doPlus(that: Number): Number = that match {
+    case r@RationalNumber(_) => this + r
+    case a@Angle(_) => this doPlus a.convert(FuzzyNumber.zero).get
+    case f@FuzzyNumber(_, _) => f doPlus this.convert(FuzzyNumber.zero).get
+  }
 }
 
 /**

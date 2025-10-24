@@ -81,11 +81,35 @@ trait Number extends Ordered[Number] with NumberLike {
   def approximation: Option[FuzzyNumber] = convert(FuzzyNumber.zero)
 
   /**
+   * Performs addition of the current `Number` instance with another `Number` instance.
+   *
+   * This method calculates the sum of the current `Number` instance and the given `that` instance,
+   * and returns a new `Number` representing the result of the addition.
+   *
+   * @param that the `Number` instance to add to the current instance
+   * @return a new `Number` instance representing the result of the addition
+   */
+  def doPlus(that: Number): Number
+
+  /**
    * Determines if the current number is equal to zero.
    *
    * @return true if the number is zero, false otherwise
    */
   def isZero: Boolean
+
+  /**
+   * Performs a multiplication operation on the current `Number` instance by repeated addition.
+   *
+   * This method calculates the result of multiplying the current `Number` instance by an integer `n`
+   * by repeatedly adding the instance to itself `n - 1` times.
+   *
+   * @param n the multiplier, an integer value by which the current `Number` instance is to be multiplied
+   * @return a new `Number` instance representing the result of the multiplication
+   */
+  def *(n: Int): Number =
+    (1 until n).foldLeft[Number](this) { (a, _) => this doPlus a }
+
 }
 
 /**
