@@ -102,7 +102,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
 
   // NOTE: maximum length for an exact number.
   //  Any number with a longer fractional part is assumed to be fuzzy.
-  private val DPExact = 2
+  private val dpExact = 2
 
   private def optionalNumber(ro: Option[ValuableNumber], fo: Option[Factor]): Option[Number] =
     if (ro.isDefined || fo.isDefined)
@@ -112,7 +112,7 @@ abstract class BaseNumberParser extends BaseRationalParser {
         f <- fo.orElse(Some(PureNumber))) yield {
         val z: Option[Fuzziness[Double]] = r match {
           case n@NumberWithFuzziness(_, _, _) => n.fuzz
-          case n@RealNumber(_, _, Some(f), _) if f.length > DPExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
+          case n@RealNumber(_, _, Some(f), _) if f.length > dpExact && !f.endsWith("00") => calculateFuzz(n.exponent.getOrElse("0").toInt, f.length)
           case _ => None
         }
         Number.apply(v, f, z)
