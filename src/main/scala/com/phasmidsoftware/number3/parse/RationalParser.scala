@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number3.parse
 
 import com.phasmidsoftware.number.core.inner.Rational
+
 import scala.util.Try
 
 trait ValuableNumber {
@@ -64,7 +65,7 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
   }
 
   /** An integer, without sign. */
-  def unsignedWholeNumber: Parser[String] = logit("""\d+""".r)("unsignedWholeNumber") //^^ (x => debug(s"unsignedWholeNumber",x))
+  private def unsignedWholeNumber: Parser[String] = logit("""\d+""".r)("unsignedWholeNumber") //^^ (x => debug(s"unsignedWholeNumber",x))
 
   private val E = "[eE]".r
 
@@ -72,7 +73,6 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
 
 object RationalParser extends BaseRationalParser {
   def parse(s: String): Try[Rational] = stringParser(rationalNumber, s).flatMap(_.value)
-
 
   /**
     * Method to parse the components (sign, integerPart, maybeFractionalPart, maybeExponent) of the input string.

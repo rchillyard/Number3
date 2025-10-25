@@ -8,6 +8,7 @@ import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number3.misc.FP
+
 import scala.Option.when
 
 /**
@@ -110,11 +111,11 @@ object ExpressionMonoFunction {
   *                       required is given by `identityL`.
   */
 sealed abstract class ExpressionBiFunction(
-                                              val name: String,
-                                              val f: (Field, Field) => Field,
-                                              val isExact: Boolean,
-                                              val maybeIdentityL: Option[Field],
-                                              val maybeIdentityR: Option[Field]
+                                            val name: String,
+                                            val f: (Field, Field) => Field,
+                                            val isExact: Boolean,
+                                            val maybeIdentityL: Option[Field],
+                                            val maybeIdentityR: Option[Field]
                                           ) extends ExpressionFunction[(Field, Field)] {
 
   /**

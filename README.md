@@ -5,7 +5,7 @@ The purpose of version 2 is to restructure the Number project such that it has a
 Note that this document is a work in progress and will be changed without explicit markers (but Word will track the changes).
 Proposed changes
 Number3
-Currently, development if Number version 2 is being undertaken in the following (temporary) repository: https://github.com/rchillyard/Number3.git
+Currently, development if Number version 2 is being undertaken in the following (temporary) repository: <https://github.com/rchillyard/Number3.git>
 Although it is currently built with Scala 2.13.17, the intention is for all the version 2 code to be in Scala 3 (hence the name of the repository).
 The new code is built on top of Number version 1.2.12 which includes cats.kernel and typelevel.algebra packages.
 Fuzzy Numbers

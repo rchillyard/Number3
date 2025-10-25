@@ -5,6 +5,7 @@ import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.core.inner.{PureNumber, Radian, Rational}
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
+
 import scala.util.{Left, Try}
 
 /**

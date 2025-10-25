@@ -12,6 +12,7 @@ import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number3.expression.Expression.em
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
+
 import java.util.Objects
 import scala.language.implicitConversions
 
@@ -256,7 +257,7 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
   override def equals(other: Any): Boolean = other match {
     case that: FieldExpression =>
       that.canEqual(this) &&
-          value == that.value
+        value == that.value
     case _ =>
       false
   }
@@ -1367,8 +1368,8 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     other match {
       case that: AbstractRoot =>
         that.canEqual(this) &&
-            equ == that.equation &&
-            branch == that.branch
+          equ == that.equation &&
+          branch == that.branch
       case _ =>
         false
     }

@@ -91,7 +91,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     f(Constants.one) shouldBe Constants.one
     f(Constants.half) should ===(Constants.two)
     f(Constants.two) shouldBe Constants.half
-//    f(Constants.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
+    //    f(Constants.e) shouldBe Real(ExactNumber(-1, NatLog)) TODO fix this later
   }
   it should "work for Exp" in {
     val f: ExpressionMonoFunction = Exp
@@ -213,7 +213,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val base = Two
     One.log(base).materialize.asNumber shouldBe Some(Number.zero)
     Two.log(base).materialize.asNumber shouldBe Some(Number.one)
-//    Expression(4).log(base).materialize.asNumber shouldBe Some(Number.two)
+    //    Expression(4).log(base).materialize.asNumber shouldBe Some(Number.two)
   }
   it should "evaluate log e" in {
     val base = ConstE

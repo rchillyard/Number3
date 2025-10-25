@@ -7,10 +7,11 @@ package com.phasmidsoftware.number3.expression
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{Field, Number, Real}
-import com.phasmidsoftware.number3.expression.Expression.{isIdentityFunction, matchSimpler}
-import com.phasmidsoftware.number3.expression.Literal.someLiteral
 import com.phasmidsoftware.number.matchers._
 import com.phasmidsoftware.number.misc.Bumperator
+import com.phasmidsoftware.number3.expression.Expression.{isIdentityFunction, matchSimpler}
+import com.phasmidsoftware.number3.expression.Literal.someLiteral
+
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
@@ -43,7 +44,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
   /**
     * Type alias for a pair of expressions (purpose of this is solely for brevity).
     */
-//  private[expression] type Expressions = Expression ~ Expression
+  //  private[expression] type Expressions = Expression ~ Expression
 
   /**
     * Type alias for a dyadic triple (purpose of this is solely for brevity).
@@ -372,7 +373,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     */
   def complementaryMonadic(f: ExpressionMonoFunction, g: ExpressionMonoFunction): Boolean = (f, g) match {
     case (Exp, Ln) => true
-    case (Ln, Exp) => true  // TESTME
+    case (Ln, Exp) => true // TESTME
     case (Negate, Negate) => true
     case (Reciprocal, Reciprocal) => true
     case _ => false // TESTME

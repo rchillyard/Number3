@@ -7,6 +7,7 @@ package com.phasmidsoftware.number3.mill
 import com.phasmidsoftware.number3.expression.Expression
 import com.phasmidsoftware.number3.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number3.parse.{MillParser, ShuntingYardParser}
+
 import scala.language.postfixOps
 import scala.util.Try
 
@@ -121,7 +122,7 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     * @throws MillException this Mill is empty or some other logic error occurred.
     */
-  def evaluateInternal: (Option[Expression], Mill) = pop match {
+  private def evaluateInternal: (Option[Expression], Mill) = pop match {
     case (Some(Expr(e)), Empty) => (Some(e), Empty)
     case (Some(x), m: Stack) => m.evaluate1(x)
     case (None, _) => throw MillException(s"evaluate: this stack is empty")

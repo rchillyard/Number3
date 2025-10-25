@@ -3,6 +3,7 @@ package com.phasmidsoftware.number3.parse
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Number}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util._
 
 class ComplexParserSpec extends AnyFlatSpec with should.Matchers {
@@ -30,7 +31,7 @@ class ComplexParserSpec extends AnyFlatSpec with should.Matchers {
     parser.doParse("1-i1") should matchPattern { case Success(ComplexCartesian(Number.one, Number.negOne)) => }
     parser.doParse("0-i1") should matchPattern { case Success(ComplexCartesian(Number.zero, Number.negOne)) => }
     parser.doParse("1-ipi") should matchPattern { case Success(ComplexPolar(Number.one, Number.minusPi, 1)) => }
-//    parser.doParse("1-i0.5pi") should matchPattern { case Success(ComplexPolar(Number.one, negate(Number.piBy2), 1)) => }
+    //    parser.doParse("1-i0.5pi") should matchPattern { case Success(ComplexPolar(Number.one, negate(Number.piBy2), 1)) => }
     parser.doParse("0-ipi") should matchPattern { case Success(ComplexPolar(Number.zero, Number.minusPi, 1)) => }
   }
 

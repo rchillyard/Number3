@@ -3,6 +3,7 @@ package com.phasmidsoftware.number3.parse
 import com.phasmidsoftware.number.core.FuzzyNumber.Ellipsis
 import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+
 import scala.util.Try
 
 /**

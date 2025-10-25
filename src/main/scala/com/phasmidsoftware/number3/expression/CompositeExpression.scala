@@ -10,6 +10,7 @@ import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Constant
 import com.phasmidsoftware.number3.expression.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number3.misc.FP
+
 import java.util.Objects
 import scala.language.implicitConversions
 import scala.util.Try
@@ -181,15 +182,15 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     */
   def evaluate(context: Context): Option[Field] =
     x match {
-    case AtomicExpression(field) =>
-      // NOTE: here we catch any exceptions that are thrown by applyExact.
-      // CONSIDER: we should never throw exceptions (see e.g., ComplexPolar.apply).
-      FP.toOption(Try(f.applyExact(field))).flatten
-    case _ =>
-      x.evaluate(context) map f
-  }
+      case AtomicExpression(field) =>
+        // NOTE: here we catch any exceptions that are thrown by applyExact.
+        // CONSIDER: we should never throw exceptions (see e.g., ComplexPolar.apply).
+        FP.toOption(Try(f.applyExact(field))).flatten
+      case _ =>
+        x.evaluate(context) map f
+    }
   // NOTE that the equivalent method for BiFunction is as follows
-//  context.qualifyingField(f.evaluate(a, b)(context))
+  //  context.qualifyingField(f.evaluate(a, b)(context))
 
 
   /**
@@ -277,8 +278,8 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
   override def equals(other: Any): Boolean = other match {
     case that: UniFunction =>
       that.canEqual(this) &&
-          x == that.x &&
-          f == that.f
+        x == that.x &&
+        f == that.f
     case _ =>
       false
   }
@@ -348,7 +349,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case b@BiFunction(r1@QuadraticRoot(_, _), r2@QuadraticRoot(_, _), f) if r1.maybeValue.isEmpty && r2.maybeValue.isEmpty =>
         val so: Option[Solution] = f match {
           case Sum => r1.solution add r2.solution
-//          case Product => r1.solution multiply r2.solution
+          //          case Product => r1.solution multiply r2.solution
           case _ => None
         }
         val eo: Option[Expression] = so map (Algebraic(_))
@@ -438,16 +439,16 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     // NOTE these first two cases are kind of strange! CONSIDER removing them.
     case BiFunction(a, UniFunction(b, Negate), Product) if a == b =>
       // NOTE: duplicate code
-      val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))   // x²
+      val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power)) // x²
       em.Match(UniFunction(xSq, Negate))
-    case BiFunction(UniFunction(a, Negate), b, Product) if a == b =>  // TESTME
+    case BiFunction(UniFunction(a, Negate), b, Product) if a == b => // TESTME
       val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
       em.Match(UniFunction(xSq, Negate))
     // NOTE this case is definitely required
     case b@BiFunction(_, _, _) =>
       ((em.complementaryTermsEliminatorBiFunction |
-          em.matchBiFunctionAsAggregate & em.literalsCombiner) &
-          em.alt(matchSimpler))(b)
+        em.matchBiFunctionAsAggregate & em.literalsCombiner) &
+        em.alt(matchSimpler))(b)
     case b =>
       em.Miss("simplifyComposite", b) // TESTME
   }

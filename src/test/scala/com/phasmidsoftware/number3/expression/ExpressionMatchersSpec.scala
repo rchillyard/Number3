@@ -18,6 +18,7 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.languageFeature.implicitConversions._
 
 /**
@@ -66,9 +67,9 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
   }
 
   after {
-//    if (sb.nonEmpty) println(sb.toString())
-//    if (sbLogger.logLevel != com.phasmidsoftware.matchers.LogOff)
-//      println("===============================\n")
+    //    if (sb.nonEmpty) println(sb.toString())
+    //    if (sbLogger.logLevel != com.phasmidsoftware.matchers.LogOff)
+    //      println("===============================\n")
   }
 
   val em: ExpressionMatchers = Expression.em
@@ -530,8 +531,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     em.factorsMatch(Sum, ConstPi, One) shouldBe false
     em.factorsMatch(Sum, One, Literal(root2)) shouldBe false
     em.factorsMatch(Sum, Literal(root2), One) shouldBe false
-//    em.factorsMatch(Sum, Literal(root2), Literal(root2) * MinusOne) shouldBe false // TODO fix this
-//    em.factorsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this
+    //    em.factorsMatch(Sum, Literal(root2), Literal(root2) * MinusOne) shouldBe false // TODO fix this
+    //    em.factorsMatch(Sum, Literal(root2) * MinusOne, Literal(root2)) shouldBe false // TODO fix this
   }
   it should "match expression Product" in {
     em.factorsMatch(Product, ConstPi, MinusOne) shouldBe true
@@ -541,7 +542,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     em.factorsMatch(Product, MinusOne, Literal(root2)) shouldBe false
   }
   it should "match expression Power" in {
-//        em.factorsMatch(Power, ConstPi, MinusOne) shouldBe true
+    //        em.factorsMatch(Power, ConstPi, MinusOne) shouldBe true
     em.factorsMatch(Power, MinusOne, ConstPi) shouldBe true
     em.factorsMatch(Power, Literal(root3), Two) shouldBe true
     em.factorsMatch(Power, Literal(root2), MinusOne) shouldBe false
@@ -578,12 +579,12 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val expected = ExactNumber(0, Radian)
     val result = target.simplify.materialize
     convertToNumber(result) shouldBe expected
-//    val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
-//    result match {n
-//      case em.Match(x: Field) =>
-//        convertToNumber(x) shouldBe expected
-//      case _ => fail("expected a Field")
-//    }
+    //    val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
+    //    result match {n
+    //      case em.Match(x: Field) =>
+    //        convertToNumber(x) shouldBe expected
+    //      case _ => fail("expected a Field")
+    //    }
   }
   it should "simplify aggregate 2a" in {
     val target: Expression = Aggregate(Sum, Seq(ConstPi, -ConstPi))
@@ -593,11 +594,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val number = convertToNumber(result)
     number.isZero shouldBe true
     //val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
-//    result match {
-//      case em.Match(x: Field) =>
-//        convertToNumber(x).isZero shouldBe true
-//      case _ => fail("expected a Field")
-//    }
+    //    result match {
+    //      case em.Match(x: Field) =>
+    //        convertToNumber(x).isZero shouldBe true
+    //      case _ => fail("expected a Field")
+    //    }
   }
   it should "simplify aggregate 2b" in {
     // NOTE: this does not create a Aggregate but instead creates a BiFunction.
@@ -606,11 +607,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //val result: em.MatchResult[Field] = em.simplifier(target.simplify) map (_.materialize)
     val result = target.simplify.materialize
     convertToNumber(result).isZero shouldBe true
-//    result match {
-//      case em.Match(x: Field) =>
-//        convertToNumber(x).isZero shouldBe true
-//      case _ => fail("expected a Field")
-//    }
+    //    result match {
+    //      case em.Match(x: Field) =>
+    //        convertToNumber(x).isZero shouldBe true
+    //      case _ => fail("expected a Field")
+    //    }
   }
   it should "simplify binary expression 3" in {
     val target: Expression = BiFunction(Literal(root2), Literal(root2) * MinusOne, Sum)
@@ -620,11 +621,11 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
     val result = value1.materialize
     convertToNumber(result) shouldBe Number.zero
-//    val result = value1 map (_.materialize)
-//    result match {
-//      case em.Match(x: Field) => convertToNumber(x) shouldBe Number.zero
-//      case x => fail(s"expected a Match(Field) but got $x")
-//    }
+    //    val result = value1 map (_.materialize)
+    //    result match {
+    //      case em.Match(x: Field) => convertToNumber(x) shouldBe Number.zero
+    //      case x => fail(s"expected a Match(Field) but got $x")
+    //    }
   }
   it should "simplify aggregate 3a" in {
     val target: Expression = Aggregate(Sum, Seq(Literal(root2), Literal(root2) * Constants.minusOne))
@@ -632,10 +633,10 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     //val result = value1 map (_.materialize)
     val result = target.simplify.materialize
     convertToNumber(result) shouldBe Number.zero
-//    result match {
-//      case em.Match(x: Field) => convertToNumber(x) shouldBe Number.zero
-//      case x => fail(s"expected a Match(Field) but got $x")
-//    }
+    //    result match {
+    //      case em.Match(x: Field) => convertToNumber(x) shouldBe Number.zero
+    //      case x => fail(s"expected a Match(Field) but got $x")
+    //    }
   }
   it should "simplify aggregate 4a" in {
     val target: Expression = Aggregate(Sum, Seq(One, ConstE, expression.UniFunction(ConstE, Negate)))
@@ -1023,8 +1024,8 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val xo = Expression.parse("( 3 ∧ ( 2 ∧ -1 ) )")
     val yo = Expression.parse("( ( 3 ∧ ( 2 ∧ -1 ) ) * -1 )")
     val zo = for (x <- xo; y <- yo)
-      yield Expression.matchSimpler(x * y)        // 1st round
-          .flatMap(Expression.matchSimpler)     // 2nd round
+      yield Expression.matchSimpler(x * y) // 1st round
+        .flatMap(Expression.matchSimpler) // 2nd round
     zo should matchPattern { case Some(_) => }
     zo.get shouldBe em.Match(Expression(-3))
   }
@@ -1222,7 +1223,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Expression(2) * 3 * Constants.e * 5) shouldBe em.Match(ConstE * 30)
     // TODO we would like the following to be ConstE * 30
     //    em.simplifier(ConstE * 2 * 3 * 5) shouldBe em.Match(ConstE * 2 * 15)
-//    em.simplifier(Expression(5) * 2 * 3 * Constants.e) shouldBe em.Match(ConstE * 30)
+    //    em.simplifier(Expression(5) * 2 * 3 * Constants.e) shouldBe em.Match(ConstE * 30)
   }
 
   behavior of "two levels"

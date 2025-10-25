@@ -3,6 +3,7 @@ package com.phasmidsoftware.number3.parse
 import com.phasmidsoftware.number.core._
 import com.phasmidsoftware.number3.expression.Expression
 import com.phasmidsoftware.number3.mill._
+
 import scala.annotation.tailrec
 import scala.util.Try
 
@@ -98,6 +99,10 @@ object ShuntingYardParser extends BaseMillParser {
       }
   }
 
+  /**
+    * The ShuntingYard object provides functions for creating and populating instances of the ShuntingYard class.
+    * It is designed to represent infix mathematical expressions and process tokens using the Shunting Yard algorithm.
+    */
   object ShuntingYard {
     /**
       * Create a new, empty, ShuntingYard.
@@ -150,7 +155,7 @@ object ShuntingYardParser extends BaseMillParser {
     *
     * @return Parser[String].
     */
-  def operator: Parser[String] = (dyadicOperator | monadicOperator | anadicOperator | neutralOperator2 | openParenthesis | closeParenthesis) :| "operator"
+  private def operator: Parser[String] = (dyadicOperator | monadicOperator | anadicOperator | neutralOperator2 | openParenthesis | closeParenthesis) :| "operator"
 
   private val openParenthesis: String = "("
 

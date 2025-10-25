@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number3.parse
 
 import com.phasmidsoftware.number.core.inner.Rational
+
 import scala.util.Try
 
 /**

@@ -3,6 +3,7 @@ package com.phasmidsoftware.number3.parse
 import com.phasmidsoftware.number.core.inner.Rational
 import org.scalatest.flatspec
 import org.scalatest.matchers.should
+
 import scala.util._
 
 

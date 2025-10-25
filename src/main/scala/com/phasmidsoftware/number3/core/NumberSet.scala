@@ -7,43 +7,43 @@ package com.phasmidsoftware.number3.core
 import com.phasmidsoftware.number3.algebra.RationalNumber
 
 /**
- * Trait to define the set in which a Number has membership.
- * Examples of sets are Z (the integers) and R (the real numbers).
- */
+  * Trait to define the set in which a Number has membership.
+  * Examples of sets are Z (the integers) and R (the real numbers).
+  */
 sealed trait NumberSet {
   /**
-   * The super-set of this set, if any.
-   */
+    * The super-set of this set, if any.
+    */
   val maybeSuperSet: Option[NumberSet]
 
   /**
-   * The method to be used when trying to determine if x belongs to this set.
-   *
-   * @param x a NumberLike object.
-   * @return true if this is exact && it's a member of all super-sets && it belongs to this set.
-   */
+    * The method to be used when trying to determine if x belongs to this set.
+    *
+    * @param x a NumberLike object.
+    * @return true if this is exact && it's a member of all super-sets && it belongs to this set.
+    */
   def isMember(x: NumberLike): Boolean = isMemberOfSuperSet(x) && belongsToSetExclusively(x)
 
   /**
-   * (Internal) method to determine if x is a member of all super-sets.
-   *
-   * @param x a NumberLike object.
-   * @return true if it's a member of all super-sets.
-   */
-  def isMemberOfSuperSet(x: NumberLike): Boolean = maybeSuperSet forall (_.isMemberOfSuperSet(x))
+    * (Internal) method to determine if x is a member of this set, and of no subsets.
+    *
+    * @param x a NumberLike object.
+    * @return true if it's a member of this set.
+    */
+  def belongsToSetExclusively(x: NumberLike): Boolean
 
   /**
-   * (Internal) method to determine if x is a member of this set, and of no subsets.
-   *
-   * @param x a NumberLike object.
-   * @return true if it's a member of this set.
-   */
-  def belongsToSetExclusively(x: NumberLike): Boolean
+    * (Internal) method to determine if x is a member of all super-sets.
+    *
+    * @param x a NumberLike object.
+    * @return true if it's a member of all super-sets.
+    */
+  private def isMemberOfSuperSet(x: NumberLike): Boolean = maybeSuperSet forall (_.isMemberOfSuperSet(x))
 }
 
 /**
- * The set of complex numbers.
- */
+  * The set of complex numbers.
+  */
 case object C extends NumberSet {
   val maybeSuperSet: Option[NumberSet] = None
 
@@ -51,8 +51,8 @@ case object C extends NumberSet {
 }
 
 /**
- * The set of real numbers.
- */
+  * The set of real numbers.
+  */
 case object R extends NumberSet {
   val maybeSuperSet: Option[NumberSet] = Some(C)
 
@@ -60,8 +60,8 @@ case object R extends NumberSet {
 }
 
 /**
- * The set of Rational numbers.
- */
+  * The set of Rational numbers.
+  */
 case object Q extends NumberSet {
   val maybeSuperSet: Option[NumberSet] = Some(R)
 
@@ -69,8 +69,8 @@ case object Q extends NumberSet {
 }
 
 /**
- * The set of integers.
- */
+  * The set of integers.
+  */
 case object Z extends NumberSet {
   val maybeSuperSet: Option[NumberSet] = Some(Q)
 
@@ -78,8 +78,8 @@ case object Z extends NumberSet {
 }
 
 /**
- * The set of natural numbers, aka the counting numbers.
- */
+  * The set of natural numbers, aka the counting numbers.
+  */
 case object N extends NumberSet {
   val maybeSuperSet: Option[NumberSet] = Some(Z)
 
