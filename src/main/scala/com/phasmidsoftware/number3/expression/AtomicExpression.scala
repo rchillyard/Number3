@@ -23,10 +23,10 @@ import scala.language.implicitConversions
 /** sealed */
 sealed trait AtomicExpression extends Expression {
   /**
-    * Method to determine if this NumberLike object is exact.
+    * Method to determine if this Structure object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No factor, else false.
     */
   def isExact: Boolean =
     evaluateAsIs.exists(_.isExact)
@@ -39,7 +39,7 @@ sealed trait AtomicExpression extends Expression {
   def isAtomic: Boolean = true
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
     *
     * @return an optional `Factor`.
     */
@@ -138,14 +138,14 @@ case object Noop extends AtomicExpression {
   def approximation: Option[Real] = None
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */
   def render: String = "Noop"
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
     *
     * @return an optional `Factor`.
     */
@@ -205,7 +205,7 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     Option.when(value.maybeFactor.isDefined && context.fieldQualifies(value))(value)
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
     *
     * @return an optional `Factor`.
     */
@@ -232,7 +232,7 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
   }
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */
@@ -797,7 +797,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     new AbstractTranscendental(s"${f.name}($name)", com.phasmidsoftware.number3.expression.UniFunction(expression, f).simplify) {}
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
     * Unlike context, a `None` result is not permissive.
     *
     * @return an optional `Factor`.
@@ -805,7 +805,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
   def maybeFactor: Option[Factor] = expression.maybeFactor
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */
@@ -1219,7 +1219,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   }
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
     *
     * @return an optional `Factor`.
     */
@@ -1278,7 +1278,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     }
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */

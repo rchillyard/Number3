@@ -177,7 +177,7 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
     throw new UnsupportedOperationException("FuzzyNumber.compareExact")
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */

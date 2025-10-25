@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number3.algebra
 
 import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number3.core.NumberLike
+import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
 
 /**
@@ -12,7 +12,7 @@ import com.phasmidsoftware.number3.misc.FP
   * provide definitions for essential numeric operations such as exact comparison and conversions
   * to approximate or concrete values.
   */
-trait Number extends Ordered[Number] with NumberLike {
+trait Number extends Ordered[Number] with Structure {
   /**
     * Compares the current `Number` instance with another `Number` instance.
     *

@@ -11,16 +11,16 @@ trait FuzzyEquality {
   type OldNumberLike = com.phasmidsoftware.number.core.NumberLike
 
   /**
-    * An implicit equality implementation for instances of `NumberLike`.
+    * An implicit equality implementation for instances of `Structure`.
     * Provides functionality to determine whether two instances are equal based
     * on their underlying types and properties.
     *
-    * This object is used to enable tailored equality comparisons for `NumberLike` instances
+    * This object is used to enable tailored equality comparisons for `Structure` instances
     * according to their specific types, such as `Expression`, `Solution`, `Rational`, `Field`,
     * or `Number`.
     *
     * Equality checks are delegated to other equivalence implementations (`FieldEquality`
-    * or `NumberEquality`) depending on the runtime type of the given `NumberLike` instance.
+    * or `NumberEquality`) depending on the runtime type of the given `Structure` instance.
     *
     * Implementation Details:
     * - For an `Expression`, it uses the materialized form and delegates to `FieldEquality`.
@@ -103,7 +103,7 @@ trait FuzzyEquality {
     * Implicit object that provides equality logic for the `Number` type within the context of an `Equality[Number]` instance.
     *
     * Defines custom equality behavior for `Number` objects in comparison to various types,
-    * including `Expression`, primitives (`Int`, `Double`), `Rational`, and `NumberLike`.
+    * including `Expression`, primitives (`Int`, `Double`), `Rational`, and `Structure`.
     */
   implicit object NumberEquality extends Equality[Number] {
 

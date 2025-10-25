@@ -8,29 +8,32 @@ import com.phasmidsoftware.number3.algebra
 import com.phasmidsoftware.number3.algebra.FuzzyNumber
 
 /**
-  * Trait to define the behavior of things that are number-like.
-  *
-  * CONSIDER extending Ordered[NumberLike]
+  * Represents an Algebraic Structure.
+  * In common parlance, we might call such an object, a "number" or "quantity" or a mathematical thing.
+  * The subtypes of Structure are fields, groupes, etc.
+  * A `Structure` supports functionality such as exactness evaluation, numeric conversion,
+  * rendering, and set membership analysis.
+  * In general, we cannot order `Structure` objects, but we can compare them for exactness.
   */
-trait NumberLike {
+trait Structure {
 
   /**
-    * Method to determine if this NumberLike object is exact.
+    * Method to determine if this Structure object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No factor, else false.
     */
   def isExact: Boolean
 
   /**
-    * Converts this `NumberLike` object into an optional `java.lang.Number` provided that the conversion can be
+    * Converts this `Structure` object into an optional `java.lang.Number` provided that the conversion can be
     * performed without loss of precision.
     *
-    * The method determines whether the current `NumberLike` object can be represented as a `java.lang.Number`
+    * The method determines whether the current `Structure` object can be represented as a `java.lang.Number`
     * by leveraging the `asNumber` method and further evaluating certain conditions:
-    * - If the `NumberLike` object is an `ExactNumber` and its factor is `PureNumber`, the result
+    * - If the `Structure` object is an `ExactNumber` and its factor is `PureNumber`, the result
     * is converted using `Value.asJavaNumber`.
-    * - If the `NumberLike` object is a `FuzzyNumber` with a `wiggle` value below a specified tolerance,
+    * - If the `Structure` object is a `FuzzyNumber` with a `wiggle` value below a specified tolerance,
     * the result is also converted using `Value.asJavaNumber`.
     * - In all other cases, `None` is returned.
     *
@@ -45,14 +48,14 @@ trait NumberLike {
   }
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */
   def render: String
 
   /**
-    * Method to determine the NumberSet, if any, to which this NumberLike object belongs.
+    * Method to determine the NumberSet, if any, to which this Structure object belongs.
     * NOTE that we don't yet support H, the quaternions.
     *
     * @return Some(numberSet) or None if it doesn't belong to any (for example, it is fuzzy).
@@ -61,7 +64,7 @@ trait NumberLike {
     Seq(C, R, Q, Z, N).find(set => set.isMember(this))
 
   /**
-    * Method to determine if this NumberLike object is a member of the given set.
+    * Method to determine if this Structure object is a member of the given set.
     *
     * @param set the candidate NumberSet.
     * @return true if this is exact and belongs to set.

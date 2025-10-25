@@ -67,15 +67,15 @@ case class Angle(radians: Number) extends Additive[Angle] with CommutativeGroup[
   def isZero: Boolean = radians.isZero
 
   /**
-    * Method to determine if this NumberLike object is exact.
+    * Method to determine if this Structure object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No factor, else false.
     */
   def isExact: Boolean = radians.isExact
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */

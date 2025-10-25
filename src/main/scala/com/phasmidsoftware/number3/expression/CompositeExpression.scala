@@ -29,10 +29,10 @@ sealed trait CompositeExpression extends Expression {
   def isAtomic: Boolean = false
 
   /**
-    * Method to determine if this NumberLike object is exact.
+    * Method to determine if this Structure object is exact.
     * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
-    * @return true if this NumberLike object is exact in the context of No factor, else false.
+    * @return true if this Structure object is exact in the context of No factor, else false.
     */
   def isExact: Boolean =
     evaluateAsIs.exists(_.isExact)
@@ -95,7 +95,7 @@ sealed trait CompositeExpression extends Expression {
   def simplifyComposite: em.AutoMatcher[Expression]
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */
@@ -103,7 +103,7 @@ sealed trait CompositeExpression extends Expression {
     materialize.render
 
   /**
-    * Method to determine what `Factor`, if there is such, this `NumberLike` object is based on.
+    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
     *
     * @return an optional `Factor`.
     */
@@ -942,7 +942,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   }
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */

@@ -147,7 +147,7 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
   def isZero: Boolean = r.isZero
 
   /**
-    * Method to render this NumberLike in a presentable manner.
+    * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */
