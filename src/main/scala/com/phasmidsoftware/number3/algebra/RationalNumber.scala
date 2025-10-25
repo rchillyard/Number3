@@ -30,11 +30,11 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
    *         - zero if this `Number` is equal to `that`
    *         - a positive value if this `Number` is greater than `that`
    */
-  def compareExact(that: Number): Int = that match {
+  def compareExact(that: Number): Option[Int] = that match {
     case RationalNumber(o) =>
-      r.compareTo(o)
+      Some(r.compareTo(o))
     case _ =>
-      throw new UnsupportedOperationException(s"RationalNumber.compareExact: $this, $that")
+      None
   }
 
   /**
@@ -198,7 +198,7 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
     case a@Angle(_) =>
       a.convert(FuzzyNumber.zero).flatMap(this.doPlus)
     case f@FuzzyNumber(_, _) =>
-      this.convert(FuzzyNumber.zero).flatMap(f => f.doPlus(that))
+      this.convert(FuzzyNumber.zero).map(x => f plus(x, f))
   }
 }
 

@@ -28,7 +28,7 @@ trait Number extends Ordered[Number] with NumberLike {
    */
   def compare(that: Number): Int = {
     if (isExact && that.isExact) // XXX both are exact
-      compareExact(that)
+      FP.recover(compareExact(that))(NumberException(s"Angle.compareExact: logic error: $this, $that"))
     else if (!isExact) { // XXX this is not exact
       // NOTE this should be a FuzzyNumber in which case we don't need to approximate it.
       val maybeInt: Option[Int] = for {
@@ -42,19 +42,20 @@ trait Number extends Ordered[Number] with NumberLike {
   }
 
   /**
-   * Compares the current `Number` instance with another `Number` instance exactly.
+   * Compares the current `Number` instance with another `Number` instance for exact equality.
    *
-   * This method performs a comparison of two `Number` instances only if both numbers are exact.
-   * It is expected to throw an exception or return undefined behavior if used inappropriately
-   * with numbers that are not exact, depending on the implementation in the subtype.
+   * This method performs an exact comparison of two `Number` instances. The comparison is successful
+   * only if both numbers are precisely equal and compatible. If the comparison cannot be performed exactly,
+   * it returns `None`.
    *
-   * @param that the `Number` to compare against
-   * @return an integer value:
-   *         - a negative value if this `Number` is less than `that`
-   *         - zero if this `Number` is equal to `that`
-   *         - a positive value if this `Number` is greater than `that`
+   * @param that the `Number` instance to compare with the current instance
+   * @return an `Option[Int]` containing:
+   *         - `Some(-1)` if this `Number` is less than `that`
+   *         - `Some(0)` if this `Number` is equal to `that`
+   *         - `Some(1)` if this `Number` is greater than `that`
+   *         - `None` if an exact comparison is not possible
    */
-  def compareExact(that: Number): Int
+  def compareExact(that: Number): Option[Int]
 
   /**
    * Attempts to convert the given number of type `T` to another value of the same type,

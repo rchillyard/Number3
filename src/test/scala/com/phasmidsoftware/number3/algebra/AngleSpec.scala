@@ -26,13 +26,13 @@ class AngleSpec extends AnyFlatSpec with Matchers {
 
   it should "test compareExact" in {
     val pi = Angle.pi
-    val x: Option[Number] = Angle.pi_2 * 2
-    pi compareExact (x.get) shouldBe 0
+    val xo: Option[Number] = Angle.pi_2 * 2
+    xo flatMap (x => pi compareExact x) shouldBe Some(0)
   }
   it should "test arithmetic operations" in {
-    //    Angle.pi plus Angle.pi shouldBe Angle.zero
-    //    Angle.pi plus -Angle.pi shouldBe Angle.zero
-    //    Angle.pi_2 plus Angle.pi_2 shouldBe Angle.pi
+    Angle.pi + Angle.pi shouldBe Angle.zero
+    Angle.pi + -Angle.pi shouldBe Angle.zero
+    Angle.pi_2 + Angle.pi_2 shouldBe Angle.pi
     Angle.pi_2 + -Angle.pi_2 shouldBe Angle.zero
   }
 }

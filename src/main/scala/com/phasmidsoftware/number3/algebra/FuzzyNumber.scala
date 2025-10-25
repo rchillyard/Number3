@@ -174,7 +174,7 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
    *         - zero if the current `Number` is equal to `that`
    *         - positive if the current `Number` is greater than `that`
    */
-  def compareExact(that: Number): Int =
+  def compareExact(that: Number): Option[Int] =
     throw new UnsupportedOperationException("FuzzyNumber.compareExact")
 
   /**
@@ -200,6 +200,17 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
     case n =>
       n.convert(this) map (x => this.plus(this, x))
   }
+
+  /**
+   * Scales the current `FuzzyNumber` instance by the mathematical constant π (pi).
+   *
+   * This method creates a new `FuzzyNumber` by multiplying the internal value of
+   * the current instance with the constant π.
+   * The fuzziness remains unaffected in the resulting instance.
+   *
+   * @return a new `FuzzyNumber` instance with its value scaled by π
+   */
+  private[algebra] def scaleByPi: FuzzyNumber = copy(value = value * Math.PI)
 }
 
 /**
@@ -236,6 +247,13 @@ object FuzzyNumber {
    */
   def one: FuzzyNumber = apply(1)
 
+  /**
+   * Returns a `FuzzyNumber` representing the mathematical constant π (pi)
+   * with a default level of fuzziness.
+   *
+   * @return a `FuzzyNumber` initialized with the value of π and the default fuzziness level
+   */
+  def pi: FuzzyNumber = apply(Math.PI)
 
   /**
    * Provides an implicit instance of `Show` for the `FuzzyNumber` type.

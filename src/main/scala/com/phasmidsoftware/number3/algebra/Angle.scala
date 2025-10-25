@@ -24,23 +24,21 @@ case class Angle(radians: Number) extends Additive[Angle] with CommutativeGroup[
   require(!radians.isInstanceOf[Angle], "Angle must not be based on an Angle")
 
   /**
-   * Compares the current `Number` instance with another `Number` instance exactly.
+   * Compares the current `Angle` instance with another `Number` to determine their exact order.
    *
-   * This method performs a comparison of two `Number` instances only if both numbers are exact.
-   * It is expected to throw an exception or return undefined behavior if used inappropriately
-   * with numbers that are not exact, depending on the implementation in the subtype.
+   * If the provided `Number` is an `Angle`, this method compares their underlying radian values.
+   * If the provided `Number` is not an `Angle`, the comparison cannot be performed, and `None` is returned.
    *
-   * @param that the `Number` to compare against
-   * @return an integer value:
-   *         - a negative value if this `Number` is less than `that`
-   *         - zero if this `Number` is equal to `that`
-   *         - a positive value if this `Number` is greater than `that`
+   * @param that the `Number` instance to compare with the current `Angle` instance
+   * @return an `Option[Int]`, where `Some(-1)` indicates that the current `Angle` is less than the provided `Angle`,
+   *         `Some(0)` indicates that both angles are equal, `Some(1)` indicates that the current `Angle` is greater,
+   *         and `None` is returned if the comparison cannot be made
    */
-  def compareExact(that: Number): Int = that match {
+  def compareExact(that: Number): Option[Int] = that match {
     case Angle(o) =>
-      radians.compare(o)
+      Some(radians.compare(o))
     case _ =>
-      throw new UnsupportedOperationException(s"Angle.compareExact: $this, $that")
+      None
   }
 
   /**
@@ -55,7 +53,8 @@ case class Angle(radians: Number) extends Additive[Angle] with CommutativeGroup[
    */
   def convert[T <: Number](t: T): Option[T] = t match {
     case _: FuzzyNumber =>
-      radians.approximation.asInstanceOf[Option[T]]
+      val approx: Option[FuzzyNumber] = radians.approximation
+      approx.map { x => x.scaleByPi }.asInstanceOf[Option[T]]
     case _ =>
       None
   }
