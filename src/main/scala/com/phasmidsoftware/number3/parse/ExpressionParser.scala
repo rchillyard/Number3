@@ -228,7 +228,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       *         the string representation of the Factor, separated by a newline,
       *         with the appropriate indentation.
       */
-    def factorShow(t: String ~ Factor, i: Int): String = t._1 + new_line(i) + t._2.show(i + 1)
+    def factorShow(t: String ~ Factor, i: Int): String = s"${t._1}${new_line(i)}${t._2.show(i + 1)}"
 
     /**
       * Constructs and returns a formatted string representation
