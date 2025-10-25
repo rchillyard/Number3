@@ -75,12 +75,11 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
    */
   def plus(x: FuzzyNumber, y: FuzzyNumber): FuzzyNumber = {
     val value = x.value + y.value
-    val maybeFuzz: Option[Fuzziness[Double]] = Fuzziness.combine(x.value, y.value, relative = false, independent = true)(Some(x.fuzz) -> Some(y.fuzz))
-    maybeFuzz match {
+    Fuzziness.combine(x.value, y.value, relative = false, independent = true)(Some(x.fuzz) -> Some(y.fuzz)) match {
       case Some(fuzz) =>
         FuzzyNumber(value, fuzz)
       case None =>
-        throw NumberException(s"FuzzyNumber.plus: invalid fuzziness: ${x.fuzz} + ${y.fuzz} = $maybeFuzz")
+        throw NumberException(s"FuzzyNumber.plus: invalid fuzziness: ${x.fuzz} + ${y.fuzz} = ${Fuzziness.combine(x.value, y.value, relative = false, independent = true)(Some(x.fuzz) -> Some(y.fuzz))}")
     }
   }
 
