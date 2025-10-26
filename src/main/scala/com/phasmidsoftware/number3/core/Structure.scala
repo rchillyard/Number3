@@ -10,12 +10,11 @@ import com.phasmidsoftware.number3.algebra.FuzzyNumber
 /**
   * Represents an Algebraic Structure.
   * In common parlance, we might call such an object, a "number" or "quantity" or a mathematical thing.
-  * The subtypes of Structure are fields, groupes, etc.
   * A `Structure` supports functionality such as exactness evaluation, numeric conversion,
   * rendering, and set membership analysis.
-  * In general, we cannot order `Structure` objects, but we can compare them for exactness.
+  * In general, we cannot order `Structure` objects, but we can test them for exactness.
   */
-trait Structure {
+trait Structure extends com.phasmidsoftware.number3.algebra.Numeric {
 
   /**
     * Method to determine if this Structure object is exact.

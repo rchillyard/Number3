@@ -20,7 +20,7 @@ import com.phasmidsoftware.number3.misc.FP
   *
   * @param radians a non-Angle numerical value representing the angle in radians
   */
-case class Angle(radians: Number) extends Additive[Angle] with CommutativeGroup[Angle] with Number {
+case class Angle(radians: Number) extends Additive[Angle] with Number {
 
   require(!radians.isInstanceOf[Angle], "Angle must not be based on an Angle")
 
@@ -186,8 +186,9 @@ case class Angle(radians: Number) extends Additive[Angle] with CommutativeGroup[
 }
 
 /**
-  * Companion object for the `Angle` class, providing factory methods, constants,
-  * and utility functionalities related to angles.
+  * The `Angle` companion object contains utility methods, predefined constants, and
+  * typeclass instances for working with angles. Angles are represented using
+  * rational numbers and comply with the algebraic structure of a commutative group.
   */
 object Angle {
   /**
@@ -249,4 +250,41 @@ object Angle {
     * requiring a `Show` typeclass instance for displaying or logging purposes.
     */
   implicit val showAngle: Show[Angle] = Show.show(_.render)
+
+  /**
+    * Provides an implicit implementation of a commutative group for the `Angle` type, supporting
+    * group operations such as identity, combination, and inversion.
+    *
+    * This allows `Angle` objects to adhere to the algebraic structure of a commutative group, where
+    * the `combine` operation is associative and commutative, an identity element exists, and
+    * each element has an additive inverse.
+    */
+  implicit object angleIsCommutativeGroup extends CommutativeGroup[Angle] {
+    /**
+      * Provides the identity element for the `Angle` group, representing an angle of zero radians.
+      *
+      * @return an `Angle` instance with zero radians, acting as the identity element in the group structure.
+      */
+    def empty: Angle = Angle.zero
+
+    /**
+      * Combines two `Angle` instances by adding their respective radians.
+      *
+      * @param x the first `Angle` to combine
+      * @param y the second `Angle` to combine
+      * @return a new `Angle` representing the sum of the radians of the two provided `Angle` instances
+      */
+    def combine(x: Angle, y: Angle): Angle = x + y
+
+    /**
+      * Computes the additive inverse of the given `Angle`.
+      *
+      * This method negates the input angle, returning an `Angle` instance
+      * that represents its additive inverse, relative to `Angle.zero`.
+      *
+      * @param x the `Angle` instance to be inverted
+      * @return a new `Angle` instance representing the additive inverse of the input
+      */
+    def inverse(x: Angle): Angle = -x
+  }
 }
