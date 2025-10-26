@@ -14,7 +14,7 @@ import com.phasmidsoftware.number3.misc.FP
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a single `Number` object.
   */
-trait Number extends Ordered[Number] with Structure with Numeric {
+trait Number extends Ordered[Number] with Structure with Valuable {
   /**
     * Compares the current `Number` instance with another `Number` instance.
     *

@@ -7,7 +7,8 @@ package com.phasmidsoftware.number3.algebra
 import cats.Show
 import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.inner.Rational.convertDouble
-import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
+import com.phasmidsoftware.number3.algebra.Angle.angleIsCommutativeGroup
 import com.phasmidsoftware.number3.misc.FP
 
 /**
@@ -17,6 +18,10 @@ import com.phasmidsoftware.number3.misc.FP
   * enabling addition, inversion, comparison, and rendering of angles.
   * An `Angle` is expressed in terms of radians and supports exactness
   * checks, conversions, and a variety of mathematical operations.
+  *
+  * Angle represents the "circle group" which is a compact Abelian (commutative) group under angle addition,
+  * where the addition wraps around the circle.
+  * It is compact in that it is bounded by -𝛑 and 𝛑.
   *
   * @param radians a non-Angle numerical value representing the angle in radians
   */
@@ -76,7 +81,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
   override def isExact: Boolean = radians.isExact
 
   /**
-    * If this `Numeric` is exact, it returns the exact value as a `Double`.
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
     *
@@ -109,19 +114,6 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
   def empty: Angle = Angle(RationalNumber.zero)
 
   /**
-    * Computes the additive inverse of the given angle.
-    *
-    * @param a a prototype of the result.
-    * @return A new angle representing the additive inverse of the input angle.
-    */
-  def inverse(a: Angle): Angle = radians match {
-    case RationalNumber(r) =>
-      Angle(RationalNumber(r.negate))
-    case FuzzyNumber(x, f) =>
-      Angle(FuzzyNumber(-x, f))
-  }
-
-  /**
     * Computes the additive inverse of the current `Angle` instance.
     *
     * This method negates the current angle, returning a new `Angle` instance
@@ -129,8 +121,9 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
     *
     * @return a new `Angle` instance representing the additive inverse of the current angle.
     */
-  def unary_- : Angle =
-    this.inverse(Angle.zero)
+  def unary_- : Angle = {
+    angleIsCommutativeGroup.inverse(this)
+  }
 
   /**
     * Combines two `Angle` instances by adding their respective radians.
@@ -183,6 +176,8 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
     case x =>
       x doPlus this
   }
+
+  def maybeFactor: Option[Factor] = Some(Radian)
 }
 
 /**
@@ -285,6 +280,12 @@ object Angle {
       * @param x the `Angle` instance to be inverted
       * @return a new `Angle` instance representing the additive inverse of the input
       */
-    def inverse(x: Angle): Angle = -x
+    def inverse(a: Angle): Angle = a.radians match {
+      case RationalNumber(r) =>
+        Angle(RationalNumber(r.negate))
+      case FuzzyNumber(x, f) =>
+        Angle(FuzzyNumber(-x, f))
+    }
+
   }
 }

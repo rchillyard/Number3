@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number3.core
 
 import com.phasmidsoftware.number3.algebra
-import com.phasmidsoftware.number3.algebra.FuzzyNumber
+import com.phasmidsoftware.number3.algebra.{FuzzyNumber, Valuable}
 
 /**
   * Represents an Algebraic Structure.
@@ -14,7 +14,7 @@ import com.phasmidsoftware.number3.algebra.FuzzyNumber
   * rendering, and set membership analysis.
   * In general, we cannot order `Structure` objects, but we can test them for exactness.
   */
-trait Structure extends com.phasmidsoftware.number3.algebra.Numeric {
+trait Structure extends Valuable {
 
   /**
     * Method to determine if this Structure object is exact.

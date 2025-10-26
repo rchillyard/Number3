@@ -3,7 +3,7 @@ package com.phasmidsoftware.number3.algebra
 import algebra.ring.Field
 import cats.Show
 import com.phasmidsoftware.number.core.Fuzziness
-import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number3.algebra.RationalNumber.rationalNumberIsField
 
 /**
@@ -13,11 +13,19 @@ import com.phasmidsoftware.number3.algebra.RationalNumber.rationalNumberIsField
   * This class extends `Number` and `Field` to provide additional
   * operations specific to rational numbers.
   *
+  * A "field" notated (F, +, x), is formed from two abelian (commutative) groups:
+  * - the additive group (F, +) in which every element has an (additive) inverse;
+  * - the multiplicative group (F*, x) in which every nonzero element has a (multiplicative) inverse.
+  * Note that the multiplicative group does not include the zero element (zero is the identity of the
+  * additive group but plays no part in the multiplicative group.
+  *
+  * `RationalNumber`, however, is a field that includes both zero and infinity so that it is a complete field.
+  *
   * @constructor Creates a new RationalNumber instance with the given
   *              rational value `r`.
   * @param r the underlying rational value
   */
-case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Number {
+case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Multiplicative[RationalNumber] with Number {
   /**
     * Compares the current `Number` instance with another `Number` instance exactly.
     *
@@ -129,7 +137,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Num
   override def isExact: Boolean = true
 
   /**
-    * If this `Numeric` is exact, it returns the exact value as a `Double`.
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
     *
@@ -186,6 +194,22 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Num
   def -(t: RationalNumber): RationalNumber = this + -t
 
   /**
+    * Multiplies the specified `T` by this `T` instance.
+    *
+    * @param t an instance of `T` to be multiplied by this `T`
+    * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
+    */
+  def *(t: RationalNumber): Multiplicative[RationalNumber] = rf.times(this, t)
+
+  /**
+    * Divides this `T` instance by the specified `T`.
+    *
+    * @param t an instance of `T` to be the divisor
+    * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
+    */
+  def /(t: RationalNumber): Multiplicative[RationalNumber] = rf.div(this, t)
+
+  /**
     * Adds the given `Number` to this `Number` and returns the result.
     *
     * This method performs addition based on the specific type of the input `Number`.
@@ -203,6 +227,16 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Num
     case f@FuzzyNumber(_, _) =>
       this.convert(FuzzyNumber.zero).map(x => f plus(x, f))
   }
+
+  /**
+    * Computes a potential factor for the current `RationalNumber` instance.
+    *
+    * This method attempts to determine a factor related to the instance and returns it wrapped in an `Option`.
+    * If no such factor exists or can be determined, it returns `None`.
+    *
+    * @return an `Option` containing a `Factor` instance if a factor is defined, or `None` if no factor is applicable or computable.
+    */
+  def maybeFactor: Option[Factor] = Some(PureNumber)
 }
 
 /**

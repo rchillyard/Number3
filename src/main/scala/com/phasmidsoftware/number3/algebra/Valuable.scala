@@ -1,19 +1,21 @@
 package com.phasmidsoftware.number3.algebra
 
+import com.phasmidsoftware.number.core.inner.Factor
+
 /**
-  * A trait representing an object this is in some sense numerical.
-  * Numeric does not define an order because sub-class may not be comparable,
+  * A trait representing an object that is in some sense numerical and has a value (or possibly more than one value).
+  * Valuable does not define an order because sub-class may not be comparable,
   * for example, a complex number.
   *
   * The properties exposed by this trait are: isExact, approximation, maybeDouble.
   *
-  * NOTE: this trait has the same name as the `Numeric` typeclass in the Scala library,
+  * NOTE: this trait has the same name as the `Valuable` typeclass in the Scala library,
   * but it is not the same thing.
   */
-trait Numeric {
+trait Valuable {
 
   /**
-    * Yields an approximation of this `Numeric` object, if applicable.
+    * Yields an approximation of this `Valuable` object, if applicable.
     *
     * This method attempts to compute an approximate representation of the number
     * in the form of a `FuzzyNumber`, which encapsulates uncertainty or imprecision
@@ -26,7 +28,7 @@ trait Numeric {
   def approximation: Option[FuzzyNumber]
 
   /**
-    * Determines whether this `Numeric` is exact, i.e., has no approximation.
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
     * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
     *
@@ -40,11 +42,13 @@ trait Numeric {
   def isExact: Boolean = approximation.isEmpty
 
   /**
-    * If this `Numeric` is exact, it returns the exact value as a `Double`.
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
   def maybeDouble: Option[Double]
+
+  def maybeFactor: Option[Factor]
 }

@@ -2,7 +2,7 @@ package com.phasmidsoftware.number3.algebra
 
 import algebra.ring.Ring
 import cats.Show
-import com.phasmidsoftware.number.core.inner.{PureNumber, Value}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Value}
 import com.phasmidsoftware.number.core.{Fuzziness, NumberException}
 
 /**
@@ -138,7 +138,7 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Number {
     Option.when(t.isInstanceOf[FuzzyNumber])(this.asInstanceOf[T])
 
   /**
-    * If this `Numeric` is exact, it returns the exact value as a `Double`.
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
     *
@@ -222,6 +222,8 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Number {
     * @return a new `FuzzyNumber` instance with its value scaled by π
     */
   private[algebra] def scaleByPi: FuzzyNumber = copy(value = value * Math.PI)
+
+  def maybeFactor: Option[Factor] = Some(PureNumber)
 }
 
 /**
@@ -284,6 +286,9 @@ object FuzzyNumber {
     * This object supports arithmetic operations (addition, multiplication, and negation)
     * and the retrieval of constants (`zero` and `one`) for the `FuzzyNumber` type, thus
     * conforming to the requirements of the `Ring` algebraic structure.
+    *
+    * CONSIDER extending Semiring instead (Claude feels that it would be appropriate for fuzzy numbers),
+    * but I don't have a problem with the additive (or multiplicative) inverse.
     */
   implicit object fuzzyNumberIsRing extends Ring[FuzzyNumber] {
     /**
