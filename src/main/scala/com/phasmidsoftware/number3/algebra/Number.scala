@@ -122,25 +122,3 @@ trait Number extends Ordered[Number] with Structure with Numeric {
     }
 
 }
-
-/**
-  * A trait defining a potentially invertible algebraic structure.
-  *
-  * The `MaybeInvertible` trait represents a structure where an inverse element may or may not exist
-  * for a given instance, depending on the specific implementation and its constraints. It provides
-  * a method to retrieve the inverse when it exists.
-  *
-  * @tparam T the type of the elements in the structure that may have an inverse
-  */
-trait MaybeInvertible[T] {
-  /**
-    * Computes the inverse of the current instance if one exists.
-    *
-    * This method calculates the inverse of the current object within the context of the implementing
-    * algebraic structure. The result is returned as an `Option`, where `None` indicates that the
-    * inverse does not exist.
-    *
-    * @return an `Option` wrapping the inverse of type `T`, or `None` if the inverse does not exist.
-    */
-  def inverse: Option[T]
-}

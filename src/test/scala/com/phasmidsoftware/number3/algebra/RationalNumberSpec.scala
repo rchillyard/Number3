@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
+import algebra.ring.Field
 import com.phasmidsoftware.number.core.{AbsoluteFuzz, Fuzziness, Gaussian}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -79,4 +80,15 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers {
     val x = RationalNumber(0)
     x.isZero shouldBe true
   }
+
+  behavior of "Field[RationalNumber]"
+  private val rf: Field[RationalNumber] = implicitly[Field[RationalNumber]]
+
+  it should "plus" in {
+    rf.plus(-RationalNumber(3, 5), RationalNumber(8, 5)) shouldBe RationalNumber.one
+  }
+  it should "negate" in {
+    rf.negate(RationalNumber(3, 5)) shouldBe RationalNumber(-3, 5)
+  }
+
 }

@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
+import cats.kernel.CommutativeGroup
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -34,5 +35,15 @@ class AngleSpec extends AnyFlatSpec with Matchers {
     Angle.pi + -Angle.pi shouldBe Angle.zero
     Angle.pi_2 + Angle.pi_2 shouldBe Angle.pi
     Angle.pi_2 + -Angle.pi_2 shouldBe Angle.zero
+  }
+
+  behavior of "CommutativeGroup[Angle]"
+  private val ac: CommutativeGroup[Angle] = implicitly[CommutativeGroup[Angle]]
+
+  it should "combine" in {
+    ac.combine(-Angle.pi, Angle.pi) shouldBe Angle.zero
+  }
+  it should "inverse" in {
+    ac.inverse(Angle.pi) shouldBe -Angle.pi
   }
 }

@@ -20,7 +20,7 @@ import com.phasmidsoftware.number.core.{Fuzziness, NumberException}
   * @param value the central value of the fuzzy number
   * @param fuzz  the degree of fuzziness or uncertainty characterizing the number
   */
-case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Ring[FuzzyNumber] with Number with MaybeInvertible[FuzzyNumber] {
+case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Number {
   /**
     * Compares the current `FuzzyNumber` instance with another `FuzzyNumber`.
     *
@@ -225,12 +225,13 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Ring[Fuzz
 }
 
 /**
-  * A representation of a number with an associated degree of fuzziness.
+  * Represents a fuzzy number, combining a numeric value with a level of fuzziness.
   *
-  * The `FuzzyNumber` class allows for computations and comparisons that account
-  * for imprecision or uncertainty inherent to the numerical values.
-  * It provides various operations such as arithmetic, comparison, and utility functions
-  * to work with fuzzy numerical representations.
+  * A fuzzy number encapsulates imprecision or uncertainty alongside its value,
+  * and supports arithmetic operations and algebraic structure integration.
+  * Fuzzy numbers are useful in computational scenarios involving uncertainty,
+  * approximate calculations, or tolerances. This object provides factory methods,
+  * constants, and implicit type class instances for working with fuzzy numbers.
   */
 object FuzzyNumber {
   /**
@@ -277,4 +278,53 @@ object FuzzyNumber {
     */
   implicit val showFuzzyNumber: Show[FuzzyNumber] = Show.show(_.render)
 
+  /**
+    * Provides an implicit implementation of the `Ring` typeclass for the `FuzzyNumber` type.
+    *
+    * This object supports arithmetic operations (addition, multiplication, and negation)
+    * and the retrieval of constants (`zero` and `one`) for the `FuzzyNumber` type, thus
+    * conforming to the requirements of the `Ring` algebraic structure.
+    */
+  implicit object fuzzyNumberIsRing extends Ring[FuzzyNumber] {
+    /**
+      * Returns a FuzzyNumber representing the zero value.
+      *
+      * @return the zero equivalent of the FuzzyNumber type
+      */
+    def zero: FuzzyNumber = FuzzyNumber.zero
+
+    /**
+      * Adds two FuzzyNumber instances and returns their sum as a new FuzzyNumber.
+      *
+      * @param x the first FuzzyNumber operand
+      * @param y the second FuzzyNumber operand
+      * @return the sum of the two FuzzyNumber instances
+      */
+    def plus(x: FuzzyNumber, y: FuzzyNumber): FuzzyNumber = x.plus(x, y)
+
+    /**
+      * Multiplies two FuzzyNumber instances and returns the result.
+      *
+      * @param x the first FuzzyNumber instance
+      * @param y the second FuzzyNumber instance
+      * @return the product of the two FuzzyNumber instances
+      */
+    def times(x: FuzzyNumber, y: FuzzyNumber): FuzzyNumber = x.times(x, y)
+
+    /**
+      * Computes the negation of the given fuzzy number.
+      *
+      * @param x the input fuzzy number to negate
+      * @return the negated fuzzy number
+      */
+    def negate(x: FuzzyNumber): FuzzyNumber = x.negate(x)
+
+    /**
+      * Retrieves a constant fuzzy number representing the numerical value of one.
+      *
+      * @return A FuzzyNumber instance corresponding to the value one.
+      */
+    def one: FuzzyNumber = FuzzyNumber.one
+  }
 }
+

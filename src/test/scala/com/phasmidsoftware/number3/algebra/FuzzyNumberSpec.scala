@@ -1,5 +1,7 @@
 package com.phasmidsoftware.number3.algebra
 
+import algebra.ring.Ring
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Gaussian}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -52,4 +54,15 @@ class FuzzyNumberSpec extends AnyFlatSpec with Matchers {
     val x = FuzzyNumber(0)
     x.isZero shouldBe true
   }
+
+  behavior of "Ring[FuzzyNumber]"
+  private val rf: Ring[FuzzyNumber] = implicitly[Ring[FuzzyNumber]]
+
+  it should "plus" in {
+    rf.plus(FuzzyNumber(3), Angle.pi.approximation.get) shouldBe FuzzyNumber(6.141592653589793, AbsoluteFuzz(4.0127375222238153E-16, Gaussian))
+  }
+  it should "negate" in {
+    rf.negate(FuzzyNumber(3)) shouldBe FuzzyNumber(-3)
+  }
+
 }

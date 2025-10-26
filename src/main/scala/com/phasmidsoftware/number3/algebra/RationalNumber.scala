@@ -4,6 +4,7 @@ import algebra.ring.Field
 import cats.Show
 import com.phasmidsoftware.number.core.Fuzziness
 import com.phasmidsoftware.number.core.inner.Rational
+import com.phasmidsoftware.number3.algebra.RationalNumber.rationalNumberIsField
 
 /**
   * Represents a rational number and provides arithmetic operations
@@ -16,7 +17,7 @@ import com.phasmidsoftware.number.core.inner.Rational
   *              rational value `r`.
   * @param r the underlying rational value
   */
-case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additive[RationalNumber] with Number with MaybeInvertible[RationalNumber] {
+case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Number {
   /**
     * Compares the current `Number` instance with another `Number` instance exactly.
     *
@@ -53,7 +54,6 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
     case _ =>
       None
   }
-
 
   /**
     * Computes the additive inverse of the given rational number.
@@ -122,17 +122,6 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
   def zero: RationalNumber = RationalNumber(Rational.zero)
 
   /**
-    * Computes the inverse of the current instance if one exists.
-    *
-    * This method calculates the inverse of the current object within the context of the implementing
-    * algebraic structure. The result is returned as an `Option`, where `None` indicates that the
-    * inverse does not exist.
-    *
-    * @return an `Option` wrapping the inverse of type `T`, or `None` if the inverse does not exist.
-    */
-  def inverse: Option[RationalNumber] = Some(RationalNumber(r.invert))
-
-  /**
     * Determines if the number is represented exactly without any approximation.
     *
     * @return true if the number is exact, false otherwise
@@ -162,13 +151,17 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
     */
   def render: String = r.render
 
+  // CONSIDER why doesn't this work with implicitly...?
+  private val rf: Field[RationalNumber] = rationalNumberIsField
+
   /**
     * Adds the specified `T` to this `T` instance.
     *
     * @param t an instance of `T` to be added to this `T`
     * @return a new `T` representing the sum of this `T` and the given `T`
     */
-  def +(t: RationalNumber): RationalNumber = plus(this, t)
+  def +(t: RationalNumber): RationalNumber =
+    rf.plus(this, t) // CONSIDER why doesn't this work with implicitly...?
 
   /**
     * Computes the additive inverse of this instance.
@@ -178,7 +171,8 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
     *
     * @return a new instance of type `T` that is the additive inverse of this instance
     */
-  def unary_- : RationalNumber = negate(this)
+  def unary_- : RationalNumber =
+    rf.negate(this)
 
   /**
     * Subtracts the specified `RationalNumber` from this `RationalNumber`.
@@ -212,12 +206,9 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
 }
 
 /**
-  * Represents a rational number with various arithmetic and algebraic capabilities.
-  *
-  * The `RationalNumber` class supports mathematical operations such as addition,
-  * subtraction, multiplication, and division, while adhering to the mathematical
-  * properties of rational numbers. It also provides mechanisms for comparison,
-  * negation, inversion, and other numeric operations.
+  * Represents a rational number with basic arithmetic operations and field properties.
+  * This class provides methods and implicit instances for managing rational numbers
+  * and their integration with mathematical abstractions such as the `Field` typeclass.
   */
 object RationalNumber {
   /**
@@ -227,6 +218,25 @@ object RationalNumber {
     * @return a new `RationalNumber` instance representing the given `Rational`
     */
   def apply(r: Rational): RationalNumber = new RationalNumber(r)
+
+  /**
+    * Creates a `RationalNumber` instance from two `Long` values representing the numerator and denominator.
+    *
+    * @param x the numerator of the rational number
+    * @param y the denominator of the rational number
+    * @return a new `RationalNumber` instance representing the fraction x / y
+    */
+  def apply(x: Long, y: Long): RationalNumber = RationalNumber(Rational(x, y))
+
+  /**
+    * Creates a new `RationalNumber` instance from the given `Long` value.
+    *
+    * This method converts the specified `Long` value into a `RationalNumber` representation.
+    *
+    * @param x the `Long` value to be converted into a `RationalNumber`
+    * @return a new `RationalNumber` instance constructed from the given `Long` value.
+    */
+  def apply(x: Long): RationalNumber = RationalNumber(Rational(x))
 
   /**
     * Provides an implicit `Show` instance for `RationalNumber`.
@@ -257,4 +267,63 @@ object RationalNumber {
     * @return a `RationalNumber` instance representing the multiplicative identity `1`.
     */
   def one: RationalNumber = RationalNumber.zero.one
+
+  /**
+    * Provides an implicit implementation of the `Field` type class for the `RationalNumber` type.
+    *
+    * This object defines the standard operations required for `RationalNumber`
+    * to function as a field, including addition, multiplication, division,
+    * and their respective identity and inverse operations. By extending
+    * the `Field` type class, it ensures compliance with field axioms.
+    */
+  implicit object rationalNumberIsField extends Field[RationalNumber] {
+    /**
+      * Returns the zero value of a `RationalNumber`.
+      *
+      * @return the zero value of the `RationalNumber` type
+      */
+    def zero: RationalNumber = RationalNumber.zero
+
+    /**
+      * Retrieves the constant rational number representing one.
+      *
+      * @return A `RationalNumber` instance equal to one.
+      */
+    def one: RationalNumber = RationalNumber.one
+
+    /**
+      * Adds two rational numbers and returns their sum.
+      *
+      * @param x the first rational number
+      * @param y the second rational number
+      * @return the sum of the two rational numbers
+      */
+    def plus(x: RationalNumber, y: RationalNumber): RationalNumber = RationalNumber(x.r + y.r)
+
+    /**
+      * Returns the additive inverse of the given rational number.
+      *
+      * @param x the rational number to negate
+      * @return a rational number representing the additive inverse of the input
+      */
+    def negate(x: RationalNumber): RationalNumber = RationalNumber(-x.r)
+
+    /**
+      * Divides one rational number by another.
+      *
+      * @param x the numerator rational number
+      * @param y the denominator rational number
+      * @return a new RationalNumber representing the result of the division
+      */
+    def div(x: RationalNumber, y: RationalNumber): RationalNumber = RationalNumber(x.r / y.r)
+
+    /**
+      * Multiplies two rational numbers.
+      *
+      * @param x the first rational number
+      * @param y the second rational number
+      * @return the product of the two rational numbers
+      */
+    def times(x: RationalNumber, y: RationalNumber): RationalNumber = RationalNumber(x.r * y.r)
+  }
 }
