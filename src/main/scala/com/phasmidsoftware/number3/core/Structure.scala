@@ -48,7 +48,7 @@ trait Structure {
   }
 
   /**
-    * Method to render this Structure in a presentable manner.
+    * Method to render this Structure for presentation to the user.
     *
     * @return a String
     */

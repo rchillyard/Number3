@@ -43,7 +43,7 @@ class FuzzyNumberSpec extends AnyFlatSpec with Matchers {
   // Conversion operations
   it should "convert to different number types" in {
     val x = FuzzyNumber(5)
-    x.convert(FuzzyNumber.zero) shouldBe None
+    x.convert(FuzzyNumber.zero) shouldBe Some(x)
     x.convert(Angle.zero) shouldBe None
   }
 

@@ -1,21 +1,26 @@
 package com.phasmidsoftware.number3.algebra
 
-import algebra.ring.Field
+import algebra.ring.Ring
 import cats.Show
 import com.phasmidsoftware.number.core.inner.{PureNumber, Value}
 import com.phasmidsoftware.number.core.{Fuzziness, NumberException}
 
 /**
-  * Represents a fuzzy number, which incorporates a primary value and an associated fuzziness level.
+  * Represents a number with a fuzzy or uncertain value, characterized by a `value` and a degree of `fuzziness`.
   *
-  * A fuzzy number can be used in computations that require uncertainty handling or imprecision.
-  * It extends the `Ordered` trait to enable comparisons and conforms to the `Number` interface.
+  * The `FuzzyNumber` class models numerical values where precision is not absolute but rather defined within
+  * a tolerance or range of uncertainty. This is useful in contexts where exact calculations are less meaningful
+  * than approximate ranges.
   *
-  * @constructor Creates a new `FuzzyNumber` with the specified value and fuzziness.
-  * @param value the numeric value contained within this fuzzy number
-  * @param fuzz  the associated fuzziness or uncertainty of the number
+  * This class supports arithmetic operations, comparisons, and transformation between `FuzzyNumber` instances,
+  * taking the fuzziness into account for every operation.
+  *
+  * CONSIDER renaming as Real.
+  *
+  * @param value the central value of the fuzzy number
+  * @param fuzz  the degree of fuzziness or uncertainty characterizing the number
   */
-case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[FuzzyNumber] with Number with MaybeInvertible[FuzzyNumber] {
+case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Ring[FuzzyNumber] with Number with MaybeInvertible[FuzzyNumber] {
   /**
     * Compares the current `FuzzyNumber` instance with another `FuzzyNumber`.
     *
@@ -75,11 +80,12 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
     */
   def plus(x: FuzzyNumber, y: FuzzyNumber): FuzzyNumber = {
     val value = x.value + y.value
-    Fuzziness.combine(x.value, y.value, relative = false, independent = true)(Some(x.fuzz) -> Some(y.fuzz)) match {
+    val combination = Fuzziness.combine(x.value, y.value, relative = false, independent = true)(Some(x.fuzz) -> Some(y.fuzz))
+    combination match {
       case Some(fuzz) =>
         FuzzyNumber(value, fuzz)
       case None =>
-        throw NumberException(s"FuzzyNumber.plus: invalid fuzziness: ${x.fuzz} + ${y.fuzz} = ${Fuzziness.combine(x.value, y.value, relative = false, independent = true)(Some(x.fuzz) -> Some(y.fuzz))}")
+        throw NumberException(s"FuzzyNumber.plus: invalid fuzziness: ${x.fuzz} + ${y.fuzz} = $combination")
     }
   }
 
@@ -128,14 +134,17 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
     * @param t a prototype of the required output.
     * @return an Option wrapping the input number if the conversion is successful, otherwise None
     */
-  def convert[T <: Number](t: T): Option[T] = None
+  def convert[T <: Number](t: T): Option[T] =
+    Option.when(t.isInstanceOf[FuzzyNumber])(this.asInstanceOf[T])
 
   /**
-    * Determines if the number is represented exactly without any approximation.
+    * If this `Numeric` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
     *
-    * @return true if the number is exact, false otherwise
+    * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def isExact: Boolean = false
+  def maybeDouble: Option[Double] = None
 
   /**
     * Determines if the current number is equal to zero.
@@ -177,9 +186,12 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Field[Fuz
     throw new UnsupportedOperationException("FuzzyNumber.compareExact")
 
   /**
-    * Method to render this Structure in a presentable manner.
+    * Renders this `FuzzyNumber` for presentation.
     *
-    * @return a String
+    * This method converts the current `FuzzyNumber` instance into its string representation,
+    * including its value and fuzziness as defined by the internal rendering logic.
+    *
+    * @return a string representation of the `FuzzyNumber`
     */
   def render: String = new com.phasmidsoftware.number.core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, Some(fuzz)).render
 

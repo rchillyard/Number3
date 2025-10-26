@@ -8,6 +8,7 @@ import cats.Show
 import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.inner.Rational.convertDouble
 import com.phasmidsoftware.number.core.inner.{Radian, Rational, Value}
+import com.phasmidsoftware.number3.misc.FP
 
 /**
   * A case class representing an angle in radians.
@@ -72,12 +73,24 @@ case class Angle(radians: Number) extends Additive[Angle] with CommutativeGroup[
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  def isExact: Boolean = radians.isExact
+  override def isExact: Boolean = radians.isExact
 
   /**
-    * Method to render this Structure in a presentable manner.
+    * If this `Numeric` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
     *
-    * @return a String
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  def maybeDouble: Option[Double] =
+    FP.whenever(isExact)(convert(FuzzyNumber.zero) flatMap (_.maybeDouble))
+
+  /**
+    * Renders this `Angle` instance as a string representation of radians in terms of π.
+    *
+    * The method formats the radius equivalent to π, omitting the numeric coefficient if it is 1.
+    *
+    * @return a string representation of the `Angle` in terms of π
     */
   def render: String = {
     val prefix = radians.render

@@ -5,14 +5,16 @@ import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
 
 /**
-  * Represents a numeric entity that can be compared, approximated, and converted to other types.
+  * Represents a numeric element that can be compared, approximated, and converted to other types.
   *
   * The `Number` trait extends functionality for ordered comparison and allows for distinguishing
   * between exact and approximate representations of numbers. Implementations of this trait must
   * provide definitions for essential numeric operations such as exact comparison and conversions
   * to approximate or concrete values.
+  *
+  * Multidimensional mathematical quantities such as Complex cannot be represented by a single `Number` object.
   */
-trait Number extends Ordered[Number] with Structure {
+trait Number extends Ordered[Number] with Structure with Numeric {
   /**
     * Compares the current `Number` instance with another `Number` instance.
     *
@@ -71,7 +73,7 @@ trait Number extends Ordered[Number] with Structure {
   def convert[T <: Number](t: T): Option[T]
 
   /**
-    * Provides an approximation of the current number, if applicable.
+    * Provides an approximation of this number, if applicable.
     *
     * This method attempts to compute an approximate representation of the number
     * in the form of a `FuzzyNumber`, which encapsulates uncertainty or imprecision
@@ -79,9 +81,10 @@ trait Number extends Ordered[Number] with Structure {
     * returns `None`.
     *
     * @return an `Option[FuzzyNumber]` containing the approximate representation
-    *         of the number, or `None` if no approximation is available.
+    *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[FuzzyNumber] = convert(FuzzyNumber.zero)
+  def approximation: Option[FuzzyNumber] =
+    convert(FuzzyNumber.zero)
 
   /**
     * Performs an addition operation between the current `Number` instance and another `Number`.

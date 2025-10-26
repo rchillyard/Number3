@@ -137,7 +137,16 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
     *
     * @return true if the number is exact, false otherwise
     */
-  def isExact: Boolean = true
+  override def isExact: Boolean = true
+
+  /**
+    * If this `Numeric` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
+    *
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  def maybeDouble: Option[Double] = r.maybeDouble
 
   /**
     * Determines if the current number is equal to zero.
@@ -147,7 +156,7 @@ case class RationalNumber(r: Rational) extends Field[RationalNumber] with Additi
   def isZero: Boolean = r.isZero
 
   /**
-    * Method to render this Structure in a presentable manner.
+    * Method to render this RationalNumber for presentable.
     *
     * @return a String
     */
