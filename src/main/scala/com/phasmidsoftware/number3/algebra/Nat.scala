@@ -50,6 +50,14 @@ sealed trait Nat extends Valuable {
   def render: String = asInt.toString
 
   /**
+    * Converts this natural number into its string representation using render.
+    * We do this because large Nat numbers will cause a very long string representation otherwise.
+    *
+    * @return a string representation of this natural number
+    */
+  override def toString: String = render
+
+  /**
     * Yields an approximation of this `Valuable` object, if applicable.
     *
     * This method attempts to compute an approximate representation of the number
@@ -60,7 +68,8 @@ sealed trait Nat extends Valuable {
     * @return an `Option[FuzzyNumber]` containing the approximate representation
     *         of the number, or `None` if no approximation is available.
     */
-  def approximation: Option[FuzzyNumber] = maybeDouble map FuzzyNumber.apply
+  def approximation: Option[FuzzyNumber] =
+    maybeDouble map FuzzyNumber.apply
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -116,6 +125,31 @@ case object Zero extends Nat {
   */
 case class Succ(pred: Nat) extends Nat {
   /**
+    * Compares this `Succ` instance for equality with another object.
+    *
+    * This method determines whether the current `Succ` instance represents
+    * the same natural number as another object, based on their predecessors.
+    * Only instances of type `Succ` are eligible for comparison.
+    *
+    * @param obj the object to compare to this instance
+    * @return true if the specified object is a `Succ` instance and represents the same natural number as this instance; false otherwise
+    */
+  override def equals(obj: Any): Boolean = obj match {
+    case that: Succ =>
+      @tailrec
+      def inner(x: Nat, y: Nat): Boolean = (x, y) match {
+        case (Zero, Zero) => true
+        case (Zero, _) => false
+        case (_, Zero) => false
+        case (Succ(xPred), Succ(yPred)) => inner(xPred, yPred)
+      }
+
+      inner(this.pred, that.pred)
+    case _ =>
+      false
+  }
+
+  /**
     * Adds the specified natural number to this natural number.
     *
     * This method leverages the `natIsSemiring.plus` implementation, which defines
@@ -124,7 +158,8 @@ case class Succ(pred: Nat) extends Nat {
     * @param that the natural number to be added to this instance
     * @return a new natural number representing the sum of this instance and the specified natural number
     */
-  def +(that: Nat): Nat = natIsSemiring.plus(this, that)
+  def +(that: Nat): Nat =
+    natIsSemiring.plus(this, that)
 
   /**
     * Converts this natural number into an integer.
@@ -164,7 +199,7 @@ object Nat {
     *         if `x` is 0, or a `Succ` chain equivalent to `x` if `x` is greater than 0.
     */
   def apply(x: Int): Nat = {
-    assert(x >= 0, "Nat.apply: x must be >= 0")
+    assert(x >= 0, s"Nat.apply: x ($x) must be >= 0")
 
     @tailrec
     def inner(r: Nat)(z: Int): Nat = z match {
@@ -184,8 +219,9 @@ object Nat {
     * - `one`: The smallest positive natural number, represented as the successor of `Zero`.
     * - `plus`: Addition of two natural numbers, defined recursively.
     * - `times`: Multiplication of two natural numbers, defined recursively using addition.
+    * - `compare`: Comparison of two natural numbers, defined recursively.
     */
-  implicit object natIsSemiring extends Semiring[Nat] {
+  implicit object natIsSemiring extends Semiring[Nat] with Ordering[Nat] {
     /**
       * Represents the zero value of a natural number.
       *
@@ -224,7 +260,6 @@ object Nat {
       inner(Zero)(x, y)
     }
 
-
     /**
       * Computes the product of two natural numbers represented using Peano arithmetic.
       *
@@ -249,7 +284,40 @@ object Nat {
           inner(plus(r, w))(zPred, w)
       }
 
-      inner(Zero)(x, y)
+      val ten = Nat(10)
+      // XXX if either `Nat` object is greater than ten (arbitrary),
+      //  then we use `Int` multiplication instead (for performance reasons)
+      if (compare(x, ten) > 0 || compare(y, ten) > 0)
+        Nat(x.asInt * y.asInt)
+      else
+        inner(zero)(x, y)
+    }
+
+    /**
+      * Compares two natural numbers represented using Peano arithmetic.
+      *
+      * The comparison is performed as follows:
+      * - If both numbers are `Zero`, they are considered equal, and the result is 0.
+      * - If one number is `Zero` and the other is not, the result is -1 or 1 depending on the order.
+      * - If both numbers are successors, the comparison is performed recursively on their predecessors.
+      *
+      * @param x the first natural number to be compared
+      * @param y the second natural number to be compared
+      * @return an integer representing the result of the comparison:
+      *         - 0 if `x` and `y` are equal
+      *         - -1 if `x` is less than `y`
+      *         - 1 if `x` is greater than `y`
+      */
+    def compare(x: Nat, y: Nat): Int = {
+      @tailrec
+      def inner(x: Nat, y: Nat): Int = (x, y) match {
+        case (Zero, Zero) => 0
+        case (Zero, _) => -1
+        case (_, Zero) => 1
+        case (Succ(xPred), Succ(yPred)) => inner(xPred, yPred)
+      }
+
+      inner(x, y)
     }
   }
 }
