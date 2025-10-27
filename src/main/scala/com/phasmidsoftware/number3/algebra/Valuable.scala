@@ -15,6 +15,13 @@ import com.phasmidsoftware.number.core.inner.Factor
 trait Valuable {
 
   /**
+    * Method to render this Valuable for presentation to the user.
+    *
+    * @return a String
+    */
+  def render: String
+
+  /**
     * Yields an approximation of this `Valuable` object, if applicable.
     *
     * This method attempts to compute an approximate representation of the number
@@ -50,5 +57,13 @@ trait Valuable {
     */
   def maybeDouble: Option[Double]
 
+  /**
+    * Attempts to yield a factor for the instance, if available.
+    *
+    * A `Factor` is a representation of the underlying numerical domain, for example, `PureNumber`, `Radian`, etc.
+    *
+    * @return an `Option[Factor]` containing the factor representation of this object,
+    *         or `None` if factorization is not applicable or unavailable.
+    */
   def maybeFactor: Option[Factor]
 }

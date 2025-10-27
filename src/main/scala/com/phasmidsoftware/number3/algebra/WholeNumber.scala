@@ -130,6 +130,11 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
       x doPlus this
   }
 
+  /**
+    * Computes the potential factor associated with this instance.
+    *
+    * @return Some(PureNumber)
+    */
   def maybeFactor: Option[Factor] = Some(PureNumber)
 }
 

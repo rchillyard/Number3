@@ -223,6 +223,11 @@ case class FuzzyNumber(value: Double, fuzz: Fuzziness[Double]) extends Number {
     */
   private[algebra] def scaleByPi: FuzzyNumber = copy(value = value * Math.PI)
 
+  /**
+    * Computes the potential factor associated with this instance.
+    *
+    * @return an `Option` containing a `Factor` if available, otherwise `None`
+    */
   def maybeFactor: Option[Factor] = Some(PureNumber)
 }
 

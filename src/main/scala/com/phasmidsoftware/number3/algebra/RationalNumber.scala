@@ -229,12 +229,9 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
   }
 
   /**
-    * Computes a potential factor for the current `RationalNumber` instance.
+    * Computes the potential factor associated with this instance.
     *
-    * This method attempts to determine a factor related to the instance and returns it wrapped in an `Option`.
-    * If no such factor exists or can be determined, it returns `None`.
-    *
-    * @return an `Option` containing a `Factor` instance if a factor is defined, or `None` if no factor is applicable or computable.
+    * @return Some(PureNumber).
     */
   def maybeFactor: Option[Factor] = Some(PureNumber)
 }

@@ -47,13 +47,6 @@ trait Structure extends Valuable {
   }
 
   /**
-    * Method to render this Structure for presentation to the user.
-    *
-    * @return a String
-    */
-  def render: String
-
-  /**
     * Method to determine the NumberSet, if any, to which this Structure object belongs.
     * NOTE that we don't yet support H, the quaternions.
     *

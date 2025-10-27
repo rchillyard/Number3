@@ -152,6 +152,11 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
       x doPlus this
   }
 
+  /**
+    * Computes the potential factor associated with this instance.
+    *
+    * @return an `Option` containing a `Factor` if available, otherwise `None`
+    */
   def maybeFactor: Option[Factor] = Some(Radian)
 }
 
