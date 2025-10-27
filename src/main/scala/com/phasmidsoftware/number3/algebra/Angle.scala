@@ -6,7 +6,6 @@ package com.phasmidsoftware.number3.algebra
 
 import cats.Show
 import cats.kernel.CommutativeGroup
-import com.phasmidsoftware.number.core.inner.Rational.convertDouble
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number3.algebra.Angle.angleIsCommutativeGroup
 import com.phasmidsoftware.number3.misc.FP
@@ -41,8 +40,8 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
     *         and `None` is returned if the comparison cannot be made
     */
   def compareExact(that: Number): Option[Int] = that match {
-    case Angle(o) =>
-      Some(radians.compare(o))
+    case Angle(r) =>
+      Some(radians.compare(r))
     case _ =>
       None
   }
@@ -104,16 +103,6 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
   }
 
   /**
-    * Provides the identity element for the `Angle` group, representing an angle of zero radians.
-    *
-    * This method returns an `Angle` instance corresponding to a zero value,
-    * which serves as the identity for the `combine` operation in the group structure.
-    *
-    * @return an `Angle` instance with zero radians.
-    */
-  def empty: Angle = Angle(RationalNumber.zero)
-
-  /**
     * Computes the additive inverse of the current `Angle` instance.
     *
     * This method negates the current angle, returning a new `Angle` instance
@@ -123,20 +112,6 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
     */
   def unary_- : Angle = {
     angleIsCommutativeGroup.inverse(this)
-  }
-
-  /**
-    * Combines two `Angle` instances by adding their respective radians.
-    *
-    * @param x the first `Angle` to combine
-    * @param y the second `Angle` to combine
-    * @return a new `Angle` representing the sum of the radians of the two provided `Angle` instances
-    */
-  def combine(x: Angle, y: Angle): Angle = (x, y) match {
-    case (Angle(x1@RationalNumber(_)), Angle(x2@RationalNumber(_))) =>
-      Angle(RationalNumber.zero plus(x1, x2))
-    case _ =>
-      throw new UnsupportedOperationException("Angle.combine")
   }
 
   /**
@@ -150,7 +125,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
     * @return a new `Angle` representing the sum of the current `Angle` and the specified `Angle`
     */
   def +(a: Angle): Angle =
-    combine(this, a)
+    angleIsCommutativeGroup.combine(this, a)
 
   /**
     * Subtracts the specified `Angle` from the current `Angle` instance.
@@ -269,7 +244,12 @@ object Angle {
       * @param y the second `Angle` to combine
       * @return a new `Angle` representing the sum of the radians of the two provided `Angle` instances
       */
-    def combine(x: Angle, y: Angle): Angle = x + y
+    def combine(x: Angle, y: Angle): Angle = (x, y) match {
+      case (Angle(x1@RationalNumber(_)), Angle(x2@RationalNumber(_))) =>
+        Angle(RationalNumber.zero plus(x1, x2))
+      case _ =>
+        throw new UnsupportedOperationException("Angle.combine")
+    }
 
     /**
       * Computes the additive inverse of the given `Angle`.
@@ -277,7 +257,7 @@ object Angle {
       * This method negates the input angle, returning an `Angle` instance
       * that represents its additive inverse, relative to `Angle.zero`.
       *
-      * @param x the `Angle` instance to be inverted
+      * @param a the `Angle` instance to be inverted
       * @return a new `Angle` instance representing the additive inverse of the input
       */
     def inverse(a: Angle): Angle = a.radians match {
