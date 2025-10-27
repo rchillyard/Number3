@@ -1,6 +1,9 @@
 package com.phasmidsoftware.number3.algebra
 
 import algebra.ring.Semiring
+import com.phasmidsoftware.number3.algebra.Nat.natIsSemiring
+
+import scala.annotation.tailrec
 
 /**
   * Represents natural numbers using Peano arithmetic.
@@ -15,7 +18,22 @@ import algebra.ring.Semiring
   * Operations on natural numbers, such as addition and multiplication,
   * can be defined recursively via pattern matching.
   */
-sealed trait Nat
+sealed trait Nat {
+  /**
+    * Adds the specified natural number to this natural number.
+    *
+    * @param that the natural number to be added to this instance
+    * @return a new natural number representing the sum of this instance and the specified natural number
+    */
+  def +(that: Nat): Nat
+
+  /**
+    * Increments this natural number by one.
+    *
+    * @return a new natural number representing the successor of the current instance.
+    */
+  def inc: Nat = Succ(this)
+}
 
 /**
   * Represents the natural number 0 in Peano arithmetic.
@@ -24,7 +42,15 @@ sealed trait Nat
   * It serves as the foundation for constructing all other natural numbers through
   * the `Succ` type.
   */
-case object Zero extends Nat
+case object Zero extends Nat {
+  /**
+    * Adds the specified natural number to this instance.
+    *
+    * @param that a natural number to be added to this
+    * @return that, since Zero is the additive identity.
+    */
+  def +(that: Nat): Nat = that
+}
 
 /**
   * Represents the successor of a natural number in Peano arithmetic.
@@ -34,7 +60,18 @@ case object Zero extends Nat
   *
   * @param pred The predecessor of this natural number, which is also a `Nat`.
   */
-case class Succ(pred: Nat) extends Nat
+case class Succ(pred: Nat) extends Nat {
+  /**
+    * Adds the specified natural number to this natural number.
+    *
+    * This method leverages the `natIsSemiring.plus` implementation, which defines
+    * addition for natural numbers recursively using Peano arithmetic.
+    *
+    * @param that the natural number to be added to this instance
+    * @return a new natural number representing the sum of this instance and the specified natural number
+    */
+  def +(that: Nat): Nat = natIsSemiring.plus(this, that)
+}
 
 /**
   * Provides a companion object for the sealed trait `Nat`, incorporating utility methods
@@ -45,6 +82,30 @@ case class Succ(pred: Nat) extends Nat
   * specifically tailored for natural numbers (`Nat`).
   */
 object Nat {
+  /**
+    * Converts a given non-negative integer into its corresponding `Nat` representation.
+    *
+    * The method uses Peano arithmetic to construct the natural number representation.
+    * It begins with the base case `Zero` and iteratively applies `Succ` to build
+    * the representation of the integer.
+    *
+    * @param x A non-negative integer to be converted into a `Nat` representation.
+    *          Must be greater than or equal to 0.
+    * @return The `Nat` representation of the given integer. The result is `Zero`
+    *         if `x` is 0, or a `Succ` chain equivalent to `x` if `x` is greater than 0.
+    */
+  def apply(x: Int): Nat = {
+    assert(x >= 0, "Nat.apply: x must be >= 0")
+
+    @tailrec
+    def inner(r: Nat)(z: Int): Nat = z match {
+      case 0 => r
+      case _ => inner(new Succ(r))(z - 1)
+    }
+
+    inner(Zero)(x)
+  }
+
   /**
     * Provides an implementation of the `Semiring` type class for natural numbers (`Nat`),
     * enabling operations such as addition and multiplication following the rules of Peano arithmetic.
@@ -102,6 +163,5 @@ object Nat {
       case Zero => Zero
       case Succ(yPred) => plus(times(x, yPred), x)
     }
-
   }
 }
