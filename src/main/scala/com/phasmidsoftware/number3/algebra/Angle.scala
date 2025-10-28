@@ -25,7 +25,7 @@ import com.phasmidsoftware.number3.misc.FP
   *
   * @param radians a non-Angle numerical value representing the angle in radians
   */
-case class Angle(radians: Number) extends Additive[Angle] with Number {
+case class Angle(radians: Number) extends Additive[Angle] with Radians {
 
   require(!radians.isInstanceOf[Angle], "Angle must not be based on an Angle")
 
@@ -40,7 +40,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
     *         `Some(0)` indicates that both angles are equal, `Some(1)` indicates that the current `Angle` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
-  def compareExact(that: Number): Option[Int] = that match {
+  def compareExact(that: Scalar): Option[Int] = that match {
     case Angle(r) =>
       Some(radians.compare(r))
     case _ =>
@@ -59,8 +59,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
     */
   def convert[T <: Structure](t: T): Option[T] = t match {
     case _: Real =>
-      val approx: Option[Real] = radians.approximation
-      approx.map { x => x.scaleByPi }.asInstanceOf[Option[T]]
+      radians.approximation.map(x => x.scaleByPi).asInstanceOf[Option[T]]
     case _ =>
       None
   }
@@ -140,16 +139,18 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
   def -(a: Angle): Additive[Angle] = this + -a
 
   /**
-    * Performs an addition operation between the current `Number` instance and another `Number` instance.
-    * Depending on the type of `that`, delegates the operation appropriately.
+    * Adds the specified `Scalar` to the current `Scalar` and returns the result as an `Option[Scalar]`.
+    * This method handles addition based on the type of `Scalar` provided. If the input is an `Angle`,
+    * it computes the sum of the current `Angle` and the provided `Angle`. If the input is a `Number`,
+    * the addition is delegated to the `doPlus` implementation of the `Number`.
     *
-    * @param that the `Number` instance to add to the current `Number` instance
-    * @return a `Number` instance representing the result of the addition
+    * @param that the `Scalar` to be added to the current instance
+    * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
     */
-  def doPlus(that: Number): Option[Number] = that match {
+  def doPlus(that: Scalar): Option[Scalar] = that match {
     case a: Angle =>
       Some(this + a)
-    case x =>
+    case x: Number =>
       x doPlus this
   }
 
@@ -159,6 +160,20 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
   def maybeFactor: Option[Factor] = Some(Radian)
+
+  /**
+    * Provides an approximation of this number, if applicable.
+    *
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
+    */
+  def approximation: Option[Real] = convert(Real.zero)
+
 }
 
 /**

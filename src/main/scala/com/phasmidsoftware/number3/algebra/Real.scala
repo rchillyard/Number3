@@ -6,6 +6,7 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Fuzziness
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Value}
 import com.phasmidsoftware.number3.algebra.Real.fuzzyNumberIsRing
+import com.phasmidsoftware.number3.core.Structure
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
@@ -45,7 +46,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @param t a prototype of the required output.
     * @return an Option wrapping the input number if the conversion is successful, otherwise None
     */
-  def convert[T <: Number](t: T): Option[T] =
+  def convert[T <: Structure](t: T): Option[T] =
     Option.when(t.isInstanceOf[Real])(this.asInstanceOf[T])
 
   /**
@@ -78,7 +79,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *         - zero if the current `Number` is equal to `that`
     *         - positive if the current `Number` is greater than `that`
     */
-  def compareExact(that: Number): Option[Int] =
+  def compareExact(that: Scalar): Option[Int] =
     if (isExact && that.isExact) {
       that match {
         case Real(x, _) =>
@@ -101,16 +102,36 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
   def render: String = new com.phasmidsoftware.number.core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
 
   /**
-    * Adds the current `Number` instance to another `Number`.
+    * Performs an addition operation between the current scalar and another scalar.
     *
-    * This method performs addition between the current `Number` and the provided `that` `Number`.
-    * The implementation takes into account the internal properties of the two `Number` instances
-    * and combines them accordingly.
+    * This method attempts to add the given `Scalar` to the current one. If the
+    * provided scalar is a `Real` instance, it directly computes the sum using
+    * the `fuzzyNumberIsRing.plus` method. For other scalar types, it attempts
+    * to convert them to a compatible type with this scalar and computes the
+    * result if the conversion is successful.
     *
-    * @param that the `Number` to be added to the current instance
-    * @return a new `Number` representing the result of adding the current instance and `that`
+    * @param that the `Scalar` to be added to the current scalar
+    * @return an `Option[Scalar]` containing the result of the addition,
+    *         or `None` if the operation cannot be performed
     */
-  def doPlus(that: Number): Option[Number] = that match {
+  def doPlus(that: Scalar): Option[Scalar] = that match {
+    case f@Real(_, _) =>
+      Some(fuzzyNumberIsRing.plus(this, f))
+    case n =>
+      n.convert(this) map (x => fuzzyNumberIsRing.plus(this, x))
+  }
+
+  /**
+    * Performs an addition operation between the current `Number` instance and another `Number`.
+    *
+    * This method calculates the sum of the current `Number` and the provided `that` `Number`.
+    * If the operation is successful, it returns an `Option` containing the resulting `Number`.
+    * Otherwise, it returns `None` to indicate that the operation could not be performed.
+    *
+    * @param that the `Number` to be added to the current `Number`
+    * @return an `Option[Number]` containing the result of the addition, or `None` if the operation fails
+    */
+  def doPlus(that: Structure): Option[Structure] = that match {
     case f@Real(_, _) =>
       Some(fuzzyNumberIsRing.plus(this, f))
     case n =>

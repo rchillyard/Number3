@@ -1,20 +1,15 @@
 package com.phasmidsoftware.number3.algebra
 
 import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
 
 /**
-  * Represents a numeric element that can be compared, approximated, and converted to other types.
+  * Represents a pure number that can be compared, approximated, and converted to other types.
   *
-  * The `Number` trait extends functionality for ordered comparison and allows for distinguishing
-  * between exact and approximate representations of numbers. Implementations of this trait must
-  * provide definitions for essential numeric operations such as exact comparison and conversions
-  * to approximate or concrete values.
-  *
-  * Multidimensional mathematical quantities such as Complex cannot be represented by a single `Number` object.
+  * `Number` is a trait that extends the `Scalar` trait, adding functionality for ordered comparison.
   */
-trait Number extends Ordered[Number] with Structure {
+trait Number extends Scalar with Ordered[Number] {
+
   /**
     * Compares the current `Number` instance with another `Number` instance.
     *
@@ -44,33 +39,17 @@ trait Number extends Ordered[Number] with Structure {
   }
 
   /**
-    * Compares the current `Number` instance with another `Number` instance for exact equality.
+    * Compares this `Scalar` with another `Scalar` for exact equivalence.
+    * This method checks if both instances can be compared in an exact manner.
     *
-    * This method performs an exact comparison of two `Number` instances. The comparison is successful
-    * only if both numbers are precisely equal and compatible. If the comparison cannot be performed exactly,
-    * it returns `None`.
-    *
-    * @param that the `Number` instance to compare with the current instance
-    * @return an `Option[Int]` containing:
-    *         - `Some(-1)` if this `Number` is less than `that`
-    *         - `Some(0)` if this `Number` is equal to `that`
-    *         - `Some(1)` if this `Number` is greater than `that`
-    *         - `None` if an exact comparison is not possible
+    * @param that the `Scalar` instance to compare against
+    * @return an `Option[Int]` value:
+    *         - `Some(-1)` if this `Scalar` is less than `that`
+    *         - `Some(0)` if this `Scalar` is equal to `that`
+    *         - `Some(1)` if this `Scalar` is greater than `that`
+    *         - `None` if the exact comparison is not possible
     */
-  def compareExact(that: Number): Option[Int]
-
-  /**
-    * Attempts to convert the given number of type `T` to another value of the same type,
-    * encapsulated in an `Option`.
-    *
-    * The method takes a number of type `T` as input, where `T` is a subtype of `Number`,
-    * and performs a conversion operation. If the conversion is successful, it returns
-    * `Some` containing the converted value. Otherwise, it returns `None`.
-    *
-    * @param t a prototype of the required output.
-    * @return an `Option` containing the converted value of type `T` if the conversion is successful, or `None` otherwise
-    */
-  def convert[T <: Number](t: T): Option[T]
+  def compareExact(that: Scalar): Option[Int]
 
   /**
     * Provides an approximation of this number, if applicable.
@@ -87,25 +66,6 @@ trait Number extends Ordered[Number] with Structure {
     convert(Real.zero)
 
   /**
-    * Performs an addition operation between the current `Number` instance and another `Number`.
-    *
-    * This method calculates the sum of the current `Number` and the provided `that` `Number`.
-    * If the operation is successful, it returns an `Option` containing the resulting `Number`.
-    * Otherwise, it returns `None` to indicate that the operation could not be performed.
-    *
-    * @param that the `Number` to be added to the current `Number`
-    * @return an `Option[Number]` containing the result of the addition, or `None` if the operation fails
-    */
-  def doPlus(that: Number): Option[Number]
-
-  /**
-    * Determines if the current number is equal to zero.
-    *
-    * @return true if the number is zero, false otherwise
-    */
-  def isZero: Boolean
-
-  /**
     * Performs a multiplication operation on the current `Number` instance by repeated addition.
     *
     * This method calculates the result of multiplying the current `Number` instance by an integer `n`
@@ -117,8 +77,15 @@ trait Number extends Ordered[Number] with Structure {
   def *(n: Int): Option[Number] =
     (1 until n).foldLeft[Option[Number]](Some(this)) {
       case (Some(a), _) =>
-        this doPlus a
+        (this doPlus a).asInstanceOf[Option[Number]] // TODO check that this is OK
       case (None, _) => None
     }
 
+  /**
+    * A scale factor applied to the `Number` instance.
+    *
+    * The `scale` represents a multiplier that influences computations or adjustments involving this number.
+    * It is commonly used to scale or manipulate the magnitude of the number in various arithmetic or operational contexts.
+    */
+  val scale: Double = 1.0
 }

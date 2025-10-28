@@ -8,6 +8,7 @@ import cats.Show
 import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number3.algebra.WholeNumber.wholeNumberIsCommutativeGroup
+import com.phasmidsoftware.number3.core.Structure
 import spire.math.SafeLong
 
 /**
@@ -31,7 +32,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     *         `Some(0)` indicates that both WholeNumbers are equal, `Some(1)` indicates that the current `WholeNumber` is greater,
     *         and `None` is returned if the comparison cannot be made
     */
-  def compareExact(that: Number): Option[Int] = that match {
+  def compareExact(that: Scalar): Option[Int] = that match {
     case WholeNumber(o) =>
       Some(x.compare(o))
     case _ =>
@@ -48,7 +49,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Number](t: T): Option[T] = t match {
+  def convert[T <: Structure](t: T): Option[T] = t match {
     case _: RationalNumber =>
       Some(RationalNumber(Rational(x.toBigInt)).asInstanceOf[T])
     case _ =>
@@ -117,17 +118,19 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     this + -t
 
   /**
-    * Performs an addition operation between the current `Number` instance and another `Number` instance.
-    * Depending on the type of `that`, delegates the operation appropriately.
+    * Adds the given `Scalar` instance to the current instance, returning the result as an `Option[Scalar]`.
     *
-    * @param that the `Number` instance to add to the current `Number` instance
-    * @return a `Number` instance representing the result of the addition
+    * If the provided `Scalar` is a `WholeNumber`, the method will calculate the sum and return it as `Some(WholeNumber)`.
+    * For other types of `Scalar`, the behavior is delegated to the `doPlus` method of the provided instance.
+    *
+    * @param that the `Scalar` instance to be added to the current instance
+    * @return an `Option[Scalar]` containing the result of the addition, or `None` if the addition is not valid
     */
-  def doPlus(that: Number): Option[Number] = that match {
+  def doPlus(that: Scalar): Option[Scalar] = that match {
     case a: WholeNumber =>
       Some(this + a)
-    case x =>
-      x doPlus this
+    case x: Number =>
+      (x doPlus this).asInstanceOf[Option[Number]]
   }
 
   /**

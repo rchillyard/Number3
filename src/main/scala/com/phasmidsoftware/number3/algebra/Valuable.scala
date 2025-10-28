@@ -19,19 +19,6 @@ trait Valuable {
   def render: String
 
   /**
-    * Yields an approximation of this `Valuable` object, if applicable.
-    *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
-    *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of the number, or `None` if no approximation is available.
-    */
-  def approximation: Option[Real]
-
-  /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.
     *
     * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
@@ -43,7 +30,7 @@ trait Valuable {
     * @return a `Boolean` indicating whether the entity is exact (`true`)
     *         or has an approximation (`false`).
     */
-  def isExact: Boolean = approximation.isEmpty
+  def isExact: Boolean
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.

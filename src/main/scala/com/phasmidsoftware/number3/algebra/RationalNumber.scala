@@ -5,6 +5,7 @@ import cats.Show
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number3.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number3.algebra.Real.fuzzyNumberIsRing
+import com.phasmidsoftware.number3.core.Structure
 
 /**
   * Represents a rational number and provides arithmetic operations
@@ -39,7 +40,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     *         - zero if this `Number` is equal to `that`
     *         - a positive value if this `Number` is greater than `that`
     */
-  def compareExact(that: Number): Option[Int] = that match {
+  def compareExact(that: Scalar): Option[Int] = that match {
     case RationalNumber(o) =>
       Some(r.compareTo(o))
     case _ =>
@@ -56,7 +57,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @tparam T the type of the number, which must be a subtype of `Number`
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible
     */
-  def convert[T <: Number](t: T): Option[T] = t match {
+  def convert[T <: Structure](t: T): Option[T] = t match {
     case _: Real =>
       Some(Real(r.toDouble, None).asInstanceOf[T])
     case _ =>
@@ -141,17 +142,17 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
   def /(t: RationalNumber): Multiplicative[RationalNumber] = rf.div(this, t)
 
   /**
-    * Adds the given `Number` to this `Number` and returns the result.
+    * Adds the given `Scalar` to this `Scalar` and returns the result as an `Option[Scalar]`.
     *
-    * This method performs addition based on the specific type of the input `Number`.
-    * - If the input is a `RationalNumber`, it adds the two instances.
-    * - If the input is an `Angle`, it converts it to a `Real` with a zero prototype and performs addition.
-    * - If the input is a `Real`, it performs addition with the current instance converted to a `Real` with a zero prototype.
+    * The addition is performed based on the type of the input `Scalar`. If the input is:
+    * - A `RationalNumber`, the result is computed by adding it to this instance.
+    * - An `Angle`, the angle is converted to a `Real` to determine compatibility for addition.
+    * - A `Real`, an attempt is made to convert this instance to a compatible `Real` and perform the operation.
     *
-    * @param that the `Number` to be added to this instance
-    * @return a `Number` representing the result of the addition
+    * @param that the `Scalar` to be added to the current instance
+    * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
     */
-  def doPlus(that: Number): Option[Number] = that match {
+  def doPlus(that: Scalar): Option[Scalar] = that match {
     case r@RationalNumber(_) => Some(this + r)
     case a@Angle(_) =>
       a.convert(Real.zero).flatMap(this.doPlus)

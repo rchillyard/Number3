@@ -1,14 +1,18 @@
 package com.phasmidsoftware.number3.algebra
 
+import com.phasmidsoftware.number3.core.Structure
+
 /**
-  * A trait that represents multiplicative operations for a type `T` that extends `Number`.
+  * Defines the behavior for a multiplicative algebraic structure.
   *
-  * The `Multiplicative` trait provides functionality for performing multiplication and division
-  * in a type-safe manner for instances of `T`.
+  * This trait represents entities that support multiplication and division operations within
+  * the context of a type `T` which extends the `Structure` trait.
+  * Implementations of this trait must provide specific rules and logic for combining and
+  * operating on instances of `T`.
   *
-  * @tparam T the type of numeric elements that must extend the `Number` trait
+  * @tparam T the type of the structure that supports multiplication and division, extending `Structure`
   */
-trait Multiplicative[T <: Number] {
+trait Multiplicative[T <: Structure] {
   /**
     * Multiplies the specified `T` by this `T` instance.
     *

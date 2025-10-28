@@ -4,7 +4,6 @@
 
 package com.phasmidsoftware.number3.core
 
-import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number3.algebra
 import com.phasmidsoftware.number3.algebra.{Real, Valuable}
 
@@ -18,22 +17,12 @@ import com.phasmidsoftware.number3.algebra.{Real, Valuable}
 trait Structure extends Valuable {
 
   /**
-    * Method to determine if this `Structure` object is exact.
-    * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
+    * Converts the given `Structure` object to an optional instance of the same type.
     *
-    * @return true if this `Structure` object is exact in the context of no factor, else false.
+    * @param t the input object of type `T` which is a subtype of `Structure`.
+    * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
     */
-  def isExact: Boolean
-
-  /**
-    * Attempts to yield a factor for the instance, if available.
-    *
-    * A `Factor` is a representation of the underlying numerical domain, for example, `PureNumber`, `Radian`, etc.
-    *
-    * @return an `Option[Factor]` containing the factor representation of this object,
-    *         or `None` if factorization is not applicable or unavailable.
-    */
-  def maybeFactor: Option[Factor]
+  def convert[T <: Structure](t: T): Option[T]
 
   /**
     * Converts this `Structure` object into an optional `java.lang.Number` provided that the conversion can be
@@ -76,6 +65,10 @@ trait Structure extends Valuable {
 }
 
 object Structure {
+
+  //  def +[W: CommutativeGroup, Z: CommutativeGroup](w: W, z: Z): Structure =
+  //    implicitly[CommutativeGroup[W]].combine()
+
   //  def conversion[T <: Structure](s: Structure, t: T): Option[Structure] = (s, t) match {
   //    case (a, b) => Some(x)
   //    case _ => None
@@ -88,3 +81,5 @@ object Structure {
   * @see com.phasmidsoftware.number.core.Complex
   */
 trait Complex extends Structure
+
+//trait Scalar extends Structure with Ordered[Scalar]

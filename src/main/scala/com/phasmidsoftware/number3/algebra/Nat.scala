@@ -61,6 +61,20 @@ sealed trait Nat extends Valuable {
   override def toString: String = render
 
   /**
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
+    *
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    *
+    * The method returns `true` if there is no approximate representation
+    * available (i.e., `approximation` is `None`), indicating that the
+    * entity is exact. Otherwise, it returns `false`.
+    *
+    * @return a `Boolean` indicating whether the entity is exact (`true`)
+    *         or has an approximation (`false`).
+    */
+  def isExact: Boolean = true
+
+  /**
     * Yields an approximation of this `Valuable` object, if applicable.
     *
     * This method attempts to compute an approximate representation of the number

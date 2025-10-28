@@ -1,16 +1,16 @@
 package com.phasmidsoftware.number3.algebra
 
+import com.phasmidsoftware.number3.core.Structure
+
 /**
-  * Represents an additive structure for a type `T` that is a subtype of `Number`.
+  * Represents an additive structure for types that extend `Structure`.
   *
-  * This trait defines basic operations for additive algebraic structures,
-  * such as addition and finding the additive inverse. It requires concrete
-  * implementations for the methods to provide functionality specific to the type `T`.
+  * This trait defines operations that are part of an additive algebraic structure,
+  * including addition, subtraction, and negation.
   *
-  * @tparam T the type over which the additive operations are defined,
-  *           constrained to subtypes of `Number`
+  * @tparam T the subtype of `Structure` that supports additive operations
   */
-trait Additive[T <: Number] {
+trait Additive[T <: Structure] {
   /**
     * Adds the specified `T` to this `T` instance.
     *
