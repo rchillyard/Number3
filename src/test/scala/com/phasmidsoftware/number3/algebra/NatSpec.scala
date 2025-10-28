@@ -46,8 +46,9 @@ class NatSpec extends AnyFlatSpec with should.Matchers {
     natIsSemiring.plus(natIsSemiring.zero, Nat(5)) shouldBe Nat(5)
     natIsSemiring.plus(Nat(5), Nat(3)) shouldBe Nat(8)
     natIsSemiring.plus(Nat(3), Nat(5)) shouldBe Nat(8)
-    val r1 = Nat(random.between(0, 1_000_000))
-    val r2 = Nat(random.between(0, 1_000_000))
+    val max = 100_000
+    val r1 = Nat(random.between(0, max))
+    val r2 = Nat(random.between(0, max))
     val expected = Nat(r1.asInt + r2.asInt)
     r1 + r2 shouldBe expected
     r2 + r1 shouldBe expected

@@ -18,6 +18,9 @@ import scala.annotation.tailrec
   *
   * Operations on natural numbers, such as addition and multiplication,
   * can be defined recursively via pattern matching.
+  *
+  * CONSIDER increasing the use of the `asInt` value for better performance.
+  * But note that doing that destroys the Peano aspect of this class (keep in mind that we also have WholeNumber).
   */
 sealed trait Nat extends Valuable {
   /**
@@ -47,7 +50,7 @@ sealed trait Nat extends Valuable {
     *
     * @return a String
     */
-  def render: String = asInt.toString
+  lazy val render: String = asInt.toString
 
   /**
     * Converts this natural number into its string representation using render.
@@ -68,7 +71,7 @@ sealed trait Nat extends Valuable {
     * @return an `Option[FuzzyNumber]` containing the approximate representation
     *         of the number, or `None` if no approximation is available.
     */
-  def approximation: Option[FuzzyNumber] =
+  lazy val approximation: Option[FuzzyNumber] =
     maybeDouble map FuzzyNumber.apply
 
   /**
@@ -78,7 +81,7 @@ sealed trait Nat extends Valuable {
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] = Some(asInt)
+  lazy val maybeDouble: Option[Double] = Some(asInt)
 
   /**
     * Attempts to yield a factor for the instance, if available.
@@ -88,7 +91,7 @@ sealed trait Nat extends Valuable {
     * @return an `Option[Factor]` containing the factor representation of this object,
     *         or `None` if factorization is not applicable or unavailable.
     */
-  def maybeFactor: Option[Factor] = Some(PureNumber)
+  lazy val maybeFactor: Option[Factor] = Some(PureNumber)
 }
 
 /**
@@ -112,7 +115,7 @@ case object Zero extends Nat {
     *
     * @return 0
     */
-  def asInt: Int = 0
+  val asInt: Int = 0
 }
 
 /**
@@ -166,7 +169,7 @@ case class Succ(pred: Nat) extends Nat {
     *
     * @return the integer value corresponding to this natural number
     */
-  def asInt: Int = {
+  lazy val asInt: Int = {
     @tailrec
     def inner(r: Int)(n: Nat): Int = n match {
       case Zero => r
