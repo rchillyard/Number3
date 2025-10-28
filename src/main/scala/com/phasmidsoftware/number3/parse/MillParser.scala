@@ -17,7 +17,7 @@ import scala.util.Try
 abstract class BaseMillParser extends BaseNumberParser {
 
   /**
-    * Parse the string w as a RPN expression.
+    * Parse the string w as an RPN expression.
     * The elements of the input include numbers, and various operators.
     *
     * @param w the String to parse.
@@ -54,9 +54,9 @@ abstract class BaseMillParser extends BaseNumberParser {
   /**
     * MonadicTerm is a Term defined by a Term t, a list of Strings, and an operator op.
     *
-    * @param t  a Term, typically a Number or another term.
+    * @param t  a Term, typically a `Number` or another term.
     * @param os a possibly empty list of Strings, representing neutral operators such as the swap operator.
-    * @param op an monadic operator, represented by a String.
+    * @param op a monadic operator, represented by a String.
     */
   case class MonadicTerm(t: Term, os: List[String], op: String) extends Term {
     override def toString: String = s"$t $os $op"
@@ -89,11 +89,11 @@ abstract class BaseMillParser extends BaseNumberParser {
 
   /**
     * A term is either of the form:
-    * DyadicOp term term (net pop) or:
-    * MonadicOp term (not unchanged) or:
-    * AnadicOp (net push).
+    * `DyadicOp term term` (net pop) or:
+    * `MonadicOp term` (not unchanged) or:
+    * `AnadicOp` (net push).
     *
-    * @return a Parser[Term]
+    * @return a `Parser[Term]`
     */
   def term: Parser[Term] = (dyadicTerm | monadicTerm | anadicTerm) :| "term"
 

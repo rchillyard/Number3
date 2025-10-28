@@ -1,11 +1,14 @@
 package com.phasmidsoftware.number3.algebra
 
 import algebra.ring.Field
-import com.phasmidsoftware.number.core.{AbsoluteFuzz, Fuzziness, Gaussian}
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box}
+import com.phasmidsoftware.number3.algebra.RationalNumber.rationalNumberIsField
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class RationalNumberSpec extends AnyFlatSpec with Matchers {
+
+  private val rf: Field[RationalNumber] = implicitly[Field[RationalNumber]]
 
   behavior of "RationalNumber"
 
@@ -14,7 +17,7 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers {
     val y = RationalNumber(2)
     x doPlus y shouldBe Some(RationalNumber(3))
     val z = Angle.pi
-    val expected = Some(FuzzyNumber(4.141592653589793, AbsoluteFuzz(3.0455534399508174E-16, Gaussian)))
+    val expected = Some(Real(4.141592653589793, Some(AbsoluteFuzz(5.02654824574367E-16, Box))))
     x doPlus z shouldBe expected
     z doPlus x shouldBe expected
   }
@@ -28,35 +31,35 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers {
     z doPlus x shouldBe Some(Angle.zero)
   }
 
-  it should "doPlus FuzzyNumber" in {
-    val x = FuzzyNumber(42, Fuzziness.doublePrecision)
+  it should "doPlus Real" in {
+    val x = Real(42)
     val y = Angle.pi
-    x doPlus y shouldBe Some(FuzzyNumber(45.1415926535898, AbsoluteFuzz(3.890632419571738E-15, Gaussian)))
+    x doPlus y shouldBe Some(Real(45.1415926535898, Some(AbsoluteFuzz(5.02654824574367E-16, Box))))
   }
 
   // Basic arithmetic operations
   it should "perform addition correctly" in {
     val x = RationalNumber(1)
     val y = RationalNumber(2)
-    RationalNumber.zero.plus(x, y) shouldBe RationalNumber(3)
+    rf.plus(x, y) shouldBe RationalNumber(3)
   }
 
   it should "perform subtraction correctly" in {
     val x = RationalNumber(5)
     val y = RationalNumber(3)
-    RationalNumber.zero.plus(x, RationalNumber.zero.negate(y)) shouldBe RationalNumber(2)
+    rf.plus(x, rationalNumberIsField.negate(y)) shouldBe RationalNumber(2)
   }
 
   it should "perform multiplication correctly" in {
     val x = RationalNumber(2)
     val y = RationalNumber(3)
-    RationalNumber.zero.times(x, y) shouldBe RationalNumber(6)
+    rf.times(x, y) shouldBe RationalNumber(6)
   }
 
   it should "perform division correctly" in {
     val x = RationalNumber(6)
     val y = RationalNumber(2)
-    RationalNumber.zero.div(x, y) shouldBe RationalNumber(3)
+    rf.div(x, y) shouldBe RationalNumber(3)
   }
 
   // Comparison operations
@@ -71,7 +74,7 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers {
   // Conversion operations
   it should "convert to different number types" in {
     val x = RationalNumber(5)
-    x.convert(FuzzyNumber.zero) shouldBe Some(FuzzyNumber(5, Fuzziness.doublePrecision))
+    x.convert(Real.zero) shouldBe Some(Real(5, None))
     x.convert(Angle.zero) shouldBe None
   }
 
@@ -82,7 +85,6 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers {
   }
 
   behavior of "Field[RationalNumber]"
-  private val rf: Field[RationalNumber] = implicitly[Field[RationalNumber]]
 
   it should "plus" in {
     rf.plus(-RationalNumber(3, 5), RationalNumber(8, 5)) shouldBe RationalNumber.one
@@ -90,5 +92,4 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers {
   it should "negate" in {
     rf.negate(RationalNumber(3, 5)) shouldBe RationalNumber(-3, 5)
   }
-
 }

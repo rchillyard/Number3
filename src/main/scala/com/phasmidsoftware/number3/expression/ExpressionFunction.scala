@@ -127,7 +127,7 @@ sealed abstract class ExpressionBiFunction(
 
   /**
     * Applies a trivial binary function to the provided `Field` elements `a` and `b`.
-    * Typically returns a default or neutral result without performing any meaningful operation.
+    * Typically, returns a default or neutral result without performing any meaningful operation.
     *
     * @param a the first operand, a `Field` instance.
     * @param b the second operand, a `Field` instance.

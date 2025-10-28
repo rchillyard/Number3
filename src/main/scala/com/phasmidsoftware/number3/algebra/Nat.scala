@@ -64,20 +64,20 @@ sealed trait Nat extends Valuable {
     * Yields an approximation of this `Valuable` object, if applicable.
     *
     * This method attempts to compute an approximate representation of the number
-    * in the form of a `FuzzyNumber`, which encapsulates uncertainty or imprecision
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
     * in its value. If no meaningful approximation is possible for the number, it
     * returns `None`.
     *
-    * @return an `Option[FuzzyNumber]` containing the approximate representation
+    * @return an `Option[Real]` containing the approximate representation
     *         of the number, or `None` if no approximation is available.
     */
-  lazy val approximation: Option[FuzzyNumber] =
-    maybeDouble map FuzzyNumber.apply
+  lazy val approximation: Option[Real] =
+    maybeDouble map Real.apply
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
+    * NOTE: do NOT implement this method to return a Double for a Real--only for exact numbers.
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
@@ -278,6 +278,7 @@ object Nat {
     def times(x: Nat, y: Nat): Nat = {
       @tailrec
       def inner(r: Nat)(w: Nat, z: Nat): Nat = (w, z) match {
+        case (Zero, _) | (_, Zero) => r
         case (`one`, `one`) => r
         case (`one`, _) => plus(r, y)
         case (_, `one`) => plus(r, x)

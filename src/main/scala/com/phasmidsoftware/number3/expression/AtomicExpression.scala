@@ -24,7 +24,7 @@ import scala.language.implicitConversions
 sealed trait AtomicExpression extends Expression {
   /**
     * Method to determine if this Structure object is exact.
-    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */

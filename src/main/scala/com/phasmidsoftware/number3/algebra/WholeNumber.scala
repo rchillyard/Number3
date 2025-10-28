@@ -64,16 +64,16 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
 
   /**
     * Method to determine if this Structure object is exact.
-    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
     *
-    * @return true if this Structure object is exact in the context of No factor, else false.
+    * @return true if this `Structure` object is exact in the context of No factor, else false.
     */
   override def isExact: Boolean = true
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
+    * NOTE: do NOT implement this method to return a Double for a Real--only for exact numbers.
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */

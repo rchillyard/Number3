@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number3.algebra
 
 import cats.kernel.CommutativeGroup
-import com.phasmidsoftware.number.core.Fuzziness
+import com.phasmidsoftware.number.core.{Box, RelativeFuzz}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -24,7 +24,7 @@ class AngleSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "test conversion to other Structures" in {
-    pi.convert(FuzzyNumber.zero) shouldBe Some(FuzzyNumber(3.141592653589793, Fuzziness.doublePrecision))
+    pi.convert(Real.zero) shouldBe Some(Real(3.141592653589793, Some(RelativeFuzz(1.6E-16, Box))))
     pi.convert(RationalNumber.zero) shouldBe None
   }
 

@@ -14,7 +14,7 @@ import com.phasmidsoftware.number3.misc.FP
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a single `Number` object.
   */
-trait Number extends Ordered[Number] with Structure with Valuable {
+trait Number extends Ordered[Number] with Structure {
   /**
     * Compares the current `Number` instance with another `Number` instance.
     *
@@ -32,7 +32,7 @@ trait Number extends Ordered[Number] with Structure with Valuable {
     if (isExact && that.isExact) // XXX both are exact
       FP.recover(compareExact(that))(NumberException(s"Angle.compareExact: logic error: $this, $that"))
     else if (!isExact) { // XXX this is not exact
-      // NOTE this should be a FuzzyNumber in which case we don't need to approximate it.
+      // NOTE this should be a Real in which case we don't need to approximate it.
       val maybeInt: Option[Int] = for {
         x <- approximation
         y <- that.approximation
@@ -76,15 +76,15 @@ trait Number extends Ordered[Number] with Structure with Valuable {
     * Provides an approximation of this number, if applicable.
     *
     * This method attempts to compute an approximate representation of the number
-    * in the form of a `FuzzyNumber`, which encapsulates uncertainty or imprecision
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
     * in its value. If no meaningful approximation is possible for the number, it
     * returns `None`.
     *
-    * @return an `Option[FuzzyNumber]` containing the approximate representation
+    * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[FuzzyNumber] =
-    convert(FuzzyNumber.zero)
+  def approximation: Option[Real] =
+    convert(Real.zero)
 
   /**
     * Performs an addition operation between the current `Number` instance and another `Number`.

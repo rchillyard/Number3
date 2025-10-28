@@ -47,7 +47,7 @@ object ShuntingYardParser extends BaseMillParser {
       * @return a new ShuntingYard which is the same as this but with token added.
       *         If token is an operator, it is added to the operators;
       *         If token is a number, it is added to the values;
-      *         If token is a open or close parenthesis, it is handled specially.
+      *         If token is an open or close parenthesis, it is handled specially.
       */
     def :+(token: InfixToken): ShuntingYard = token match {
       case InfixToken(Some(t), _) => t match {
@@ -124,7 +124,7 @@ object ShuntingYardParser extends BaseMillParser {
     * An infix token which represents either a Token or an open/close parenthesis.
     *
     * @param to    an optional token.
-    * @param paren the to is None, then paren is interpreted as Open (for true) and Close (for false).
+    * @param paren the `to` is `None`, then `paren` is interpreted as `Open` (for true) and `Close` (for false).
     */
   case class InfixToken(to: Option[Token], paren: Boolean)
 

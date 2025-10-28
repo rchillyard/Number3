@@ -1,6 +1,8 @@
 # Number3
 Major revision of Number, employing Scala 3
 
+For details of the original version, see <https://github.com/rchillyard/Number.git>.
+
 The purpose of version 2 is to restructure the Number project such that it has a stronger formal relationship with pure mathematics.
 Note that this document is a work in progress and will be changed without explicit markers (but Word will track the changes).
 Proposed changes

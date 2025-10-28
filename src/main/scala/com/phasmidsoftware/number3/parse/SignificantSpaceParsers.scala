@@ -86,7 +86,7 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
 
   /**
     * Tee method.
-    * This method will return its input, however, a side-effect occurs which is to invoke f(x).
+    * This method will return its input; however, a side effect occurs which is to invoke f(x).
     *
     * @param x an X value.
     * @param f a function which takes an X and yields Unit.

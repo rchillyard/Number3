@@ -1,12 +1,13 @@
 package com.phasmidsoftware.number3.algebra
 
+import algebra.ring.Ring
+import com.phasmidsoftware.number.core.{AbsoluteFuzz, Box}
 import com.phasmidsoftware.number3.algebra.Real.fuzzyNumberIsRing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class NumberSpec extends AnyFlatSpec with Matchers {
-
-  behavior of "Number"
+class RealSpec extends AnyFlatSpec with Matchers {
+  behavior of "Real"
 
   // Basic arithmetic operations
   ignore should "perform addition correctly" in {
@@ -54,4 +55,15 @@ class NumberSpec extends AnyFlatSpec with Matchers {
     val x = Real(0)
     x.isZero shouldBe true
   }
+
+  behavior of "Ring[Real]"
+  private val rf: Ring[Real] = implicitly[Ring[Real]]
+
+  it should "plus" in {
+    rf.plus(Real(3), Angle.pi.approximation.get) shouldBe Real(6.141592653589793, Some(AbsoluteFuzz(5.02654824574367E-16, Box)))
+  }
+  it should "negate" in {
+    rf.negate(Real(3)) shouldBe Real(-3)
+  }
+
 }

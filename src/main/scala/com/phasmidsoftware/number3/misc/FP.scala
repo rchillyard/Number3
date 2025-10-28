@@ -164,21 +164,21 @@ object FP {
     lRe.left.toOption.map(l2Zy) getOrElse Failure(new NoSuchElementException)
 
   /**
-    * This method is similar to doMap but with some important differences.
-    * To yield the (tried) result, we map the right-hand member of the input (lRe) with a function rToZy.
+    * This method is similar to `doMap` but with some important differences.
+    * To yield the (tried) result, we map the right-hand member of the input (`lRe`) with a function `rToZy`.
     * The result of this is then pattern-matched:
-    * In the Some(Success(z)) case, we return the Success(z).
-    * In the Some(Failure) case, we invoke tryMapLeft with the transpose of lRe and the function l2Zy.
-    * In the None case, we return the result of tryMapLeft applied to the lRe with the function l2Zy.
+    * In the `Some(Success(z))` case, we return the `Success(z)`.
+    * In the `Some(Failure)` case, we invoke `tryMapLeft` with the transpose of `lRe` and the function `l2Zy`.
+    * In the `None` case, we return the result of `tryMapLeft` applied to the `lRe` with the function `l2Zy`.
     *
-    * @param lRe  the input, an Either[L,R].
-    * @param r2Zy a function R => Try[Z].
-    * @param l2Zy a function L => Try[Z]
-    * @param r2L  an (implicit) converter from R to L.
-    * @tparam L the type of the left-side of the Either.
-    * @tparam R the type of the right-side of the Either.
+    * @param lRe  the input, an `Either[L,R]`.
+    * @param r2Zy a function `R => Try[Z]`.
+    * @param l2Zy a function `L => Try[Z]`.
+    * @param r2L  an (implicit) converter from `R` to `L`.
+    * @tparam L the type of the left-side of the `Either`.
+    * @tparam R the type of the right-side of the `Either`.
     * @tparam Z the underlying type of the result.
-    * @return a Try[Z]
+    * @return a `Try[Z]`
     */
   def tryMap[L, R, Z](lRe: Either[L, R])(r2Zy: R => Try[Z], l2Zy: L => Try[Z])(implicit r2L: R => L): Try[Z] =
     lRe.toOption.map(r2Zy) match {

@@ -2,9 +2,9 @@ package com.phasmidsoftware.number3.algebra
 
 import algebra.ring.Field
 import cats.Show
-import com.phasmidsoftware.number.core.Fuzziness
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number3.algebra.RationalNumber.rationalNumberIsField
+import com.phasmidsoftware.number3.algebra.Real.fuzzyNumberIsRing
 
 /**
   * Represents a rational number and provides arithmetic operations
@@ -49,7 +49,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
   /**
     * Converts the given number to an instance of the specified type, if possible.
     *
-    * The method attempts to convert the input into a `FuzzyNumber` if it matches the specific type constraint,
+    * The method attempts to convert the input into a `Real` if it matches the specific type constraint,
     * or returns `None` otherwise.
     *
     * @param t a prototype of the required output.
@@ -57,77 +57,11 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible
     */
   def convert[T <: Number](t: T): Option[T] = t match {
-    case _: FuzzyNumber =>
-      Some(FuzzyNumber(r.toDouble, Fuzziness.doublePrecision).asInstanceOf[T])
+    case _: Real =>
+      Some(Real(r.toDouble, None).asInstanceOf[T])
     case _ =>
       None
   }
-
-  /**
-    * Computes the additive inverse of the given rational number.
-    *
-    * @param x the `RationalNumber` to be negated
-    * @return a new `RationalNumber` representing the additive inverse of the input
-    */
-  def negate(x: RationalNumber): RationalNumber =
-    RationalNumber(x.r.negate)
-
-  /**
-    * Adds two RationalNumber instances and returns their sum as a new RationalNumber.
-    *
-    * @param x the first RationalNumber operand
-    * @param y the second RationalNumber operand
-    * @return a new RationalNumber representing the sum of x and y
-    */
-  def plus(x: RationalNumber, y: RationalNumber): RationalNumber =
-    RationalNumber(x.r + y.r)
-
-  /**
-    * Divides one `RationalNumber` by another.
-    *
-    * This method performs the division of two `RationalNumber` instances and
-    * returns the resulting `RationalNumber`. It is assumed that division
-    * by zero is handled appropriately by the implementation.
-    *
-    * @param x the dividend, represented as a `RationalNumber`
-    * @param y the divisor, represented as a `RationalNumber`
-    * @return the result of dividing `x` by `y` as a `RationalNumber`
-    */
-  def div(x: RationalNumber, y: RationalNumber): RationalNumber =
-    RationalNumber(x.r / y.r)
-
-  /**
-    * Multiplies two `RationalNumber` instances and returns the result.
-    *
-    * This method performs the multiplication of two rational numbers, resulting in a new `RationalNumber`
-    * that represents their product.
-    *
-    * @param x the first `RationalNumber` to multiply
-    * @param y the second `RationalNumber` to multiply
-    * @return a `RationalNumber` that is the product of the two input rational numbers
-    */
-  def times(x: RationalNumber, y: RationalNumber): RationalNumber =
-    RationalNumber(x.r * y.r)
-
-  /**
-    * Provides a constant value representing the multiplicative identity in the `RationalNumber` context.
-    *
-    * This method returns a `RationalNumber` instance corresponding to the value `1`,
-    * which serves as the identity element for multiplication operations in the `RationalNumber` algebra.
-    *
-    * @return a `RationalNumber` instance representing the value `1`.
-    */
-  def one: RationalNumber = RationalNumber(Rational.one)
-
-  /**
-    * Provides the additive identity element for `RationalNumber`.
-    *
-    * This method returns the zero value for `RationalNumber`, which serves as the
-    * identity for addition in the context of rational numbers.
-    *
-    * @return a `RationalNumber` instance representing zero.
-    */
-  def zero: RationalNumber = RationalNumber(Rational.zero)
 
   /**
     * Determines if the number is represented exactly without any approximation.
@@ -139,7 +73,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
+    * NOTE: do NOT implement this method to return a Double for a Real--only for exact numbers.
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
@@ -158,9 +92,6 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @return a String
     */
   def render: String = r.render
-
-  // CONSIDER why doesn't this work with implicitly...?
-  private val rf: Field[RationalNumber] = rationalNumberIsField
 
   /**
     * Adds the specified `T` to this `T` instance.
@@ -214,8 +145,8 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     *
     * This method performs addition based on the specific type of the input `Number`.
     * - If the input is a `RationalNumber`, it adds the two instances.
-    * - If the input is an `Angle`, it converts it to a `FuzzyNumber` with a zero prototype and performs addition.
-    * - If the input is a `FuzzyNumber`, it performs addition with the current instance converted to a `FuzzyNumber` with a zero prototype.
+    * - If the input is an `Angle`, it converts it to a `Real` with a zero prototype and performs addition.
+    * - If the input is a `Real`, it performs addition with the current instance converted to a `Real` with a zero prototype.
     *
     * @param that the `Number` to be added to this instance
     * @return a `Number` representing the result of the addition
@@ -223,9 +154,9 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
   def doPlus(that: Number): Option[Number] = that match {
     case r@RationalNumber(_) => Some(this + r)
     case a@Angle(_) =>
-      a.convert(FuzzyNumber.zero).flatMap(this.doPlus)
-    case f@FuzzyNumber(_, _) =>
-      this.convert(FuzzyNumber.zero).map(x => f plus(x, f))
+      a.convert(Real.zero).flatMap(this.doPlus)
+    case f@Real(_, _) =>
+      this.convert(Real.zero).map(x => fuzzyNumberIsRing.plus(x, f))
   }
 
   /**
@@ -234,6 +165,9 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @return Some(PureNumber).
     */
   def maybeFactor: Option[Factor] = Some(PureNumber)
+
+  // CONSIDER why doesn't this work with implicitly...?
+  private val rf: Field[RationalNumber] = rationalNumberIsField
 }
 
 /**
@@ -287,7 +221,8 @@ object RationalNumber {
     *
     * @return the zero value as a `RationalNumber` instance.
     */
-  def zero: RationalNumber = new RationalNumber(Rational.zero).zero
+  def zero: RationalNumber =
+    rationalNumberIsField.zero
 
   /**
     * Provides the multiplicative identity element for `RationalNumber`.
@@ -297,7 +232,8 @@ object RationalNumber {
     *
     * @return a `RationalNumber` instance representing the multiplicative identity `1`.
     */
-  def one: RationalNumber = RationalNumber.zero.one
+  def one: RationalNumber =
+    rationalNumberIsField.one
 
   /**
     * Provides an implicit implementation of the `Field` type class for the `RationalNumber` type.
@@ -313,14 +249,16 @@ object RationalNumber {
       *
       * @return the zero value of the `RationalNumber` type
       */
-    def zero: RationalNumber = RationalNumber.zero
+    def zero: RationalNumber =
+      RationalNumber(Rational.zero)
 
     /**
       * Retrieves the constant rational number representing one.
       *
       * @return A `RationalNumber` instance equal to one.
       */
-    def one: RationalNumber = RationalNumber.one
+    def one: RationalNumber =
+      RationalNumber(Rational.one)
 
     /**
       * Adds two rational numbers and returns their sum.
@@ -329,7 +267,8 @@ object RationalNumber {
       * @param y the second rational number
       * @return the sum of the two rational numbers
       */
-    def plus(x: RationalNumber, y: RationalNumber): RationalNumber = RationalNumber(x.r + y.r)
+    def plus(x: RationalNumber, y: RationalNumber): RationalNumber =
+      RationalNumber(x.r + y.r)
 
     /**
       * Returns the additive inverse of the given rational number.
@@ -337,7 +276,8 @@ object RationalNumber {
       * @param x the rational number to negate
       * @return a rational number representing the additive inverse of the input
       */
-    def negate(x: RationalNumber): RationalNumber = RationalNumber(-x.r)
+    def negate(x: RationalNumber): RationalNumber =
+      RationalNumber(-x.r)
 
     /**
       * Divides one rational number by another.
@@ -346,7 +286,8 @@ object RationalNumber {
       * @param y the denominator rational number
       * @return a new RationalNumber representing the result of the division
       */
-    def div(x: RationalNumber, y: RationalNumber): RationalNumber = RationalNumber(x.r / y.r)
+    def div(x: RationalNumber, y: RationalNumber): RationalNumber =
+      RationalNumber(x.r / y.r)
 
     /**
       * Multiplies two rational numbers.
@@ -355,6 +296,7 @@ object RationalNumber {
       * @param y the second rational number
       * @return the product of the two rational numbers
       */
-    def times(x: RationalNumber, y: RationalNumber): RationalNumber = RationalNumber(x.r * y.r)
+    def times(x: RationalNumber, y: RationalNumber): RationalNumber =
+      RationalNumber(x.r * y.r)
   }
 }

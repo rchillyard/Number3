@@ -8,6 +8,7 @@ import cats.Show
 import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number3.algebra.Angle.angleIsCommutativeGroup
+import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
 
 /**
@@ -18,7 +19,7 @@ import com.phasmidsoftware.number3.misc.FP
   * An `Angle` is expressed in terms of radians and supports exactness
   * checks, conversions, and a variety of mathematical operations.
   *
-  * Angle represents the "circle group" which is a compact Abelian (commutative) group under angle addition,
+  * Angle represents the "circle group," which is a compact Abelian (commutative) group under angle addition,
   * where the addition wraps around the circle.
   * It is compact in that it is bounded by -𝛑 and 𝛑.
   *
@@ -56,9 +57,9 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Number](t: T): Option[T] = t match {
-    case _: FuzzyNumber =>
-      val approx: Option[FuzzyNumber] = radians.approximation
+  def convert[T <: Structure](t: T): Option[T] = t match {
+    case _: Real =>
+      val approx: Option[Real] = radians.approximation
       approx.map { x => x.scaleByPi }.asInstanceOf[Option[T]]
     case _ =>
       None
@@ -73,7 +74,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
 
   /**
     * Method to determine if this Structure object is exact.
-    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    * For instance, `Number.pi` is exact, although if you converted it into a PureNumber, it would no longer be exact.
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
@@ -82,12 +83,12 @@ case class Angle(radians: Number) extends Additive[Angle] with Number {
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a FuzzyNumber--only for exact numbers.
+    * NOTE: do NOT implement this method to return a Double for a Real--only for exact numbers.
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
   def maybeDouble: Option[Double] =
-    FP.whenever(isExact)(convert(FuzzyNumber.zero) flatMap (_.maybeDouble))
+    FP.whenever(isExact)(convert(Real.zero) flatMap (_.maybeDouble))
 
   /**
     * Renders this `Angle` instance as a string representation of radians in terms of π.
@@ -211,7 +212,7 @@ object Angle {
   /**
     * Represents an angle equivalent to π/2 radians.
     *
-    * `pi_2` is a constant instance of the `Angle` class initialized using
+    * The value `pi_2` is a constant instance of the `Angle` class initialized using
     * a `RationalNumber` constructed with a value of 1/2. This corresponds
     * to π/2 radians in mathematical terms.
     */
@@ -251,7 +252,7 @@ object Angle {
       */
     def combine(x: Angle, y: Angle): Angle = (x, y) match {
       case (Angle(x1@RationalNumber(_)), Angle(x2@RationalNumber(_))) =>
-        Angle(RationalNumber.zero plus(x1, x2))
+        Angle(RationalNumber(x1.r + x2.r))
       case _ =>
         throw new UnsupportedOperationException("Angle.combine")
     }
@@ -268,9 +269,8 @@ object Angle {
     def inverse(a: Angle): Angle = a.radians match {
       case RationalNumber(r) =>
         Angle(RationalNumber(r.negate))
-      case FuzzyNumber(x, f) =>
-        Angle(FuzzyNumber(-x, f))
+      case Real(x, f) =>
+        Angle(Real(-x, f))
     }
-
   }
 }

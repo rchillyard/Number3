@@ -4,8 +4,9 @@
 
 package com.phasmidsoftware.number3.core
 
+import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number3.algebra
-import com.phasmidsoftware.number3.algebra.{FuzzyNumber, Valuable}
+import com.phasmidsoftware.number3.algebra.{Real, Valuable}
 
 /**
   * Represents an Algebraic Structure.
@@ -17,12 +18,22 @@ import com.phasmidsoftware.number3.algebra.{FuzzyNumber, Valuable}
 trait Structure extends Valuable {
 
   /**
-    * Method to determine if this Structure object is exact.
-    * For instance, Number.pi is exact, although if you converted it into a PureNumber, it would no longer be exact.
+    * Method to determine if this `Structure` object is exact.
+    * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
     *
-    * @return true if this Structure object is exact in the context of No factor, else false.
+    * @return true if this `Structure` object is exact in the context of no factor, else false.
     */
   def isExact: Boolean
+
+  /**
+    * Attempts to yield a factor for the instance, if available.
+    *
+    * A `Factor` is a representation of the underlying numerical domain, for example, `PureNumber`, `Radian`, etc.
+    *
+    * @return an `Option[Factor]` containing the factor representation of this object,
+    *         or `None` if factorization is not applicable or unavailable.
+    */
+  def maybeFactor: Option[Factor]
 
   /**
     * Converts this `Structure` object into an optional `java.lang.Number` provided that the conversion can be
@@ -32,7 +43,7 @@ trait Structure extends Valuable {
     * by leveraging the `asNumber` method and further evaluating certain conditions:
     * - If the `Structure` object is an `ExactNumber` and its factor is `PureNumber`, the result
     * is converted using `Value.asJavaNumber`.
-    * - If the `Structure` object is a `FuzzyNumber` with a `wiggle` value below a specified tolerance,
+    * - If the `Structure` object is a `Real` with a `wiggle` value below a specified tolerance,
     * the result is also converted using `Value.asJavaNumber`.
     * - In all other cases, `None` is returned.
     *
@@ -40,8 +51,8 @@ trait Structure extends Valuable {
     *         if the conversion is successful under the stated conditions; otherwise, `None`.
     */
   def asJavaNumber: Option[java.lang.Number] = this match {
-    case algebra.Angle(number) => number.convert(FuzzyNumber.zero).flatMap(x => x.asJavaNumber)
-    case algebra.FuzzyNumber(value, _) => Some(value)
+    case algebra.Angle(number) => number.convert(Real.zero).flatMap(x => x.asJavaNumber)
+    case algebra.Real(value, _) => Some(value)
     case algebra.RationalNumber(r) => Some(r.toDouble)
     case _ => throw new UnsupportedOperationException(s"asJavaNumber: $this")
   }
@@ -63,3 +74,17 @@ trait Structure extends Valuable {
     */
   def memberOf(set: NumberSet): Boolean = set.isMember(this)
 }
+
+object Structure {
+  //  def conversion[T <: Structure](s: Structure, t: T): Option[Structure] = (s, t) match {
+  //    case (a, b) => Some(x)
+  //    case _ => None
+  //  }
+}
+
+/**
+  * This is a placeholder for a Complex number to demonstrate where it should appear in the type hierarchy.
+  *
+  * @see com.phasmidsoftware.number.core.Complex
+  */
+trait Complex extends Structure

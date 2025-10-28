@@ -703,7 +703,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @param f    the `ExpressionBiFunction` containing the potential identity elements.
     * @param left a boolean determining whether to check the left operand's identity (`true`) or
     *             the right operand's identity (`false`). If the right identity is not present,
-    *             the method will fallback to the left identity.
+    *             the method will fall back to the left identity.
     * @return an `Option[Boolean]` indicating whether the `Expression` matches the identity:
     *         - `Some(true)` if the match is successful.
     *         - `Some(false)` if the match fails or if the `Expression` is not atomic.

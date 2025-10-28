@@ -42,7 +42,7 @@ import scala.languageFeature.implicitConversions._
   * - Simplification logic for trivial arithmetic and symbolic cancellations.
   * - Handling edge cases like exact evaluation, reciprocal, and multi-level symbolic transformations.
   *
-  * Several tests focus on validating simplification scenarios, specifically ensuring the cancelation of
+  * Several tests focus on validating simplification scenarios, specifically ensuring the cancellation of
   * arithmetic operations like addition/subtraction, multiplication/division, and power/exponentiation inversions.
   *
   * Helper implicits such as `ExpressionEquality` and logging mechanisms (`MatchLogger`) assist in testing and debugging the logic.
@@ -92,7 +92,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val f = em.value
     f(One).successful shouldBe true
   }
-  it should "work with value on FuzzyNumber" in {
+  it should "work with value on Real" in {
     val f = em.value
     f(Literal(FuzzyNumber(Right(1), PureNumber, None))).successful shouldBe true
   }
@@ -1102,7 +1102,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     f(One).successful shouldBe true
     sb.toString shouldBe "trying matcher value on 1...\n... value: Match: 1\n"
   }
-  it should "work with value on FuzzyNumber" in {
+  it should "work with value on Real" in {
     val em = ems
     import em.MatcherOps
     // CONSIDER this appears to be a debugging logger--that doesn't seem right.
