@@ -56,7 +56,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
-  def maybeDouble: Option[Double] = None
+  def maybeDouble: Option[Double] =
+    Option.when(isExact)(value)
 
   /**
     * Determines if the current number is equal to zero.

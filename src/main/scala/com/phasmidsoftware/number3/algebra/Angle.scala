@@ -82,12 +82,12 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
-    * NOTE: do NOT implement this method to return a Double for a Real--only for exact numbers.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
     *
     * @return Some(x) where x is a Double if this is exact, else None.
     */
   def maybeDouble: Option[Double] =
-    FP.whenever(isExact)(convert(Real.zero) flatMap (_.maybeDouble))
+    FP.whenever(isExact)(convert(Real.zero) map (_.value))
 
   /**
     * Renders this `Angle` instance as a string representation of radians in terms of π.
