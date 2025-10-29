@@ -93,7 +93,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *         - positive if the current `Number` is greater than `that`
     */
   def compareExact(that: Scalar): Option[Int] =
-    if (isExact && that.isExact) {
+    if (isExact && that.isExact)
       that match {
         case Real(x, _) =>
           Some(value.compare(x))
@@ -102,7 +102,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
         case n =>
           n.convert(this) map (x => value.compare(x.value))
       }
-    } else None
+    else
+      None
 
   /**
     * Compares the current `Number` instance with another `Number` instance.
@@ -118,12 +119,10 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *         - a positive value if this `Number` is greater than `that`
     */
   override def compare(that: Number): Int = that match {
-    case r: Real if isExact && r.isExact =>
-      FP.getOrThrow(compareExact(r), NumberException("logic error1 "))
     case r: Real =>
       realIsRing.compare(this, r)
     case n =>
-      FP.getOrThrow(n.approximation.map(a => compare(a)), NumberException(s"logic error 2: $this, $that"))
+      FP.getOrThrow(n.approximation.map(a => compare(a)), NumberException(s"Real.compare: logic error: $this, $that"))
   }
 
   /**

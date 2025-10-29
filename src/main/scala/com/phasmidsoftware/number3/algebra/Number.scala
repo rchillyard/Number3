@@ -3,12 +3,38 @@ package com.phasmidsoftware.number3.algebra
 import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number3.misc.FP
 
+import scala.language.implicitConversions
+
 /**
   * Represents a pure number that can be compared, approximated, and converted to other types.
   *
   * `Number` is a trait that extends the `Scalar` trait, adding functionality for ordered comparison.
   */
-trait Number extends Scalar with Ordered[Number] {
+trait Number extends Scalar with Ordered[Scalar] {
+  /**
+    * Compares this `Number` instance with a `Scalar` instance.
+    *
+    * This method matches the type of the input `Scalar` and performs a comparison based on its type. If the input is a `Number`,
+    * it delegates to the `compare(Number)` method. If the input is a `Radians`, it first attempts to convert the `Radians`
+    * into a comparable value and then performs the comparison. If the conversion is not possible, it throws a `NumberException`.
+    *
+    * @param that the `Scalar` instance to compare the current instance against.
+    * @return an integer value:
+    *         - a negative value if the current instance is less than `that`.
+    *         - zero if the current instance is equal to `that`.
+    *         - a positive value if the current instance is greater than `that`.
+    */
+  def compare(that: Scalar): Int = that match {
+    case number: Number =>
+      compare(number)
+    case radians: Radians =>
+      radians.convert(this) match {
+        case Some(x) =>
+          compare(x)
+        case None =>
+          throw NumberException(s"Number.compare(Scalar): logic error: $this, $that")
+      }
+  }
 
   /**
     * Compares the current `Number` instance with another `Number` instance.
@@ -23,11 +49,10 @@ trait Number extends Scalar with Ordered[Number] {
     *         - zero if this `Number` is equal to `that`
     *         - a positive value if this `Number` is greater than `that`
     */
-  def compare(that: Number): Int = {
+  def compare(that: Number): Int =
     if (isExact && that.isExact) // XXX both are exact
-      FP.recover(compareExact(that))(NumberException(s"Angle.compareExact: logic error: $this, $that"))
+      FP.recover(compareExact(that))(NumberException(s"Number.compare(Number): logic error: $this, $that"))
     else if (!isExact) { // XXX this is not exact
-      // NOTE this should be a Real in which case we don't need to approximate it.
       val maybeInt: Option[Int] = for {
         x <- approximation
         y <- that.approximation
@@ -36,7 +61,6 @@ trait Number extends Scalar with Ordered[Number] {
     }
     else // XXX this is exact and that is not exact
       -that.compare(this)
-  }
 
   /**
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
@@ -88,4 +112,11 @@ trait Number extends Scalar with Ordered[Number] {
     * It is commonly used to scale or manipulate the magnitude of the number in various arithmetic or operational contexts.
     */
   val scale: Double = 1.0
+}
+
+object Number {
+  /**
+    *
+    */
+  implicit def convIntToNumber(x: Int): Number = WholeNumber(x)
 }

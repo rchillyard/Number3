@@ -18,6 +18,8 @@ import com.phasmidsoftware.number3.misc.FP
   * where the addition wraps around the circle.
   * It is compact in that it is bounded by -𝛑 and 𝛑.
   *
+  * Angle does not support ordering or comparison.
+  *
   * @param radians the value of the angle in radians
   */
 case class Angle(radians: Number) extends Additive[Angle] with Radians {
@@ -143,8 +145,10 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
   def doPlus(that: Scalar): Option[Scalar] = that match {
     case a: Angle =>
       Some(this + a)
-    case x: Number =>
-      x doPlus this
+    case x: Scalar =>
+      convert(Real.zero) flatMap (r => r doPlus x)
+    case _ =>
+      None
   }
 
   /**

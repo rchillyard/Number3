@@ -11,6 +11,8 @@ import com.phasmidsoftware.number3.algebra.WholeNumber.wholeNumberIsCommutativeG
 import com.phasmidsoftware.number3.core.Structure
 import spire.math.SafeLong
 
+import scala.language.implicitConversions
+
 /**
   * A case class representing a whole number.
   *
@@ -133,8 +135,8 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
   def doPlus(that: Scalar): Option[Scalar] = that match {
     case a: WholeNumber =>
       Some(this + a)
-    case x: Number =>
-      (x doPlus this).asInstanceOf[Option[Number]]
+    case x: Scalar =>
+      (x doPlus this).asInstanceOf[Option[Scalar]]
   }
 
   /**
@@ -168,6 +170,16 @@ object WholeNumber {
     * requiring a `Show` typeclass instance for displaying or logging purposes.
     */
   implicit val showWholeNumber: Show[WholeNumber] = Show.show(_.render)
+
+  /**
+    * Converts an `Int` to a `WholeNumber` implicitly.
+    *
+    * This implicit conversion allows an `Int` to be seamlessly treated as a `WholeNumber`.
+    *
+    * @param x the integer value to be converted to a `WholeNumber`
+    * @return the converted `WholeNumber` instance
+    */
+  implicit def convIntWholeNumber(x: Int): WholeNumber = WholeNumber(x)
 
   /**
     * Provides an implicit implementation of a commutative group for the `WholeNumber` type, supporting

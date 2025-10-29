@@ -8,6 +8,8 @@ import com.phasmidsoftware.number3.core.Structure
   * and supports various mathematical operations and properties. Scalars include both
   * exact and approximate numerical entities.
   *
+  * Scalar does not support ordering because not all scalars are comparable.
+  *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Scalar` object.
   */
 trait Scalar extends Structure {
