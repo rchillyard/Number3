@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number3.parse
 
 import scala.util.Try
-import scala.util.parsing.combinator._
+import scala.util.parsing.combinator.*
 
 /**
   * @author scalaprof
@@ -366,10 +366,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     *
     * @return a `Parser[Factor]` that attempts to parse and construct a valid `Factor`.
     */
-  def factor: Parser[Factor] = (number | parentheses | failure("factor")) ^^ {
-    case f: Factor => f
-    case f => BadFactor(f)
-  }
+  def factor: Parser[Factor] = number | parentheses | failure("factor")
 
   /**
     * Parses a floating-point number string and converts it to a FloatingPoint object.
@@ -388,14 +385,14 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     * @return a parser that produces a `Parentheses` instance wrapping the parsed expression.
     */
   def parentheses: Parser[Parentheses] = "(" ~> expr <~ ")" ^^ (x => Parentheses(x))
-
   /**
     * Creates a new line followed by a specified level of indentation.
     *
     * @param i the number of indentation levels to add after the new line,
     *          where each level corresponds to two spaces
     */
-  private def new_line(i: Int) = "\n" + ("  " * i)
+  private def new_line(i: Int) =
+    "\n" + "  ".repeat(i)
 
 }
 

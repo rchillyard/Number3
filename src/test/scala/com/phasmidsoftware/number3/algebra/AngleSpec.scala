@@ -53,7 +53,7 @@ class AngleSpec extends AnyFlatSpec with Matchers {
 
   it should "test compareExact" in {
     val xo: Option[Scalar] = piBy2.doPlus(piBy2)
-    xo flatMap (x => pi compareExact x) shouldBe Some(0)
+    xo flatMap (x => pi.compareExact(x)) shouldBe Some(0)
   }
   it should "test arithmetic operations" in {
     pi + pi shouldBe zero

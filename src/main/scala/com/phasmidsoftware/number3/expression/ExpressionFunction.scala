@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number3.expression
 
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number3.misc.FP
 
@@ -273,8 +273,6 @@ object ExpressionBiFunction {
   def unapply(f: ExpressionBiFunction): Option[((Field, Field) => Field, String, Option[Field], Option[Field])] = f match {
     case e: ExpressionBiFunction =>
       Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
-    case _ =>
-      None // TESTME
   }
 }
 

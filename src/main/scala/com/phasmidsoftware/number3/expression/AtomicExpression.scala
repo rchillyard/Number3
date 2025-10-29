@@ -6,9 +6,9 @@ package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.Number.one
+import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
-import com.phasmidsoftware.number.core.algebraic._
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number3.expression.Expression.em
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
@@ -1040,7 +1040,7 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     *              This represents the operand added to this `Root`.
     * @return a new `Root` which is the sum of this `Root` and the provided `other` `Root`.
     */
-  def add(other: Root): Option[Root] = other match {
+  infix def add(other: Root): Option[Root] = other match {
     case q: QuadraticRoot =>
       Some(QuadraticRoot(algebraic add q.algebraic))
     case _ =>

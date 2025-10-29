@@ -147,8 +147,6 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
       Some(this + a)
     case x: Scalar =>
       convert(Real.zero) flatMap (r => r doPlus x)
-    case _ =>
-      None
   }
 
   /**

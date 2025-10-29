@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number3.parse
 
-import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number3.expression.Expression
 import com.phasmidsoftware.number3.mill.{Expr, Item, Mill}
 
@@ -85,7 +85,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     *
     * @return a Parser[Mill].
     */
-  def mill: Parser[Mill] = repSepSp(term) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems): _*))
+  def mill: Parser[Mill] = repSepSp(term) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems) *))
 
   /**
     * A term is either of the form:

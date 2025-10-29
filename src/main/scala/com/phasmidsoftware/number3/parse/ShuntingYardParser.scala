@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number3.parse
 
-import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number3.expression.Expression
-import com.phasmidsoftware.number3.mill._
+import com.phasmidsoftware.number3.mill.*
 
 import scala.annotation.tailrec
 import scala.util.Try
@@ -66,7 +66,7 @@ object ShuntingYardParser extends BaseMillParser {
       * @return a Try[Mill].
       */
     def toMill: Try[Mill] = switch match {
-      case ShuntingYard(values, Nil) => Try(Mill(values: _*))
+      case ShuntingYard(values, Nil) => Try(Mill(values *))
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 

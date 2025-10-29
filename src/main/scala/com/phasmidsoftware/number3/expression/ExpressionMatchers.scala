@@ -5,9 +5,9 @@
 package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{Field, Number, Real}
-import com.phasmidsoftware.number.matchers._
+import com.phasmidsoftware.number.matchers.*
 import com.phasmidsoftware.number.misc.Bumperator
 import com.phasmidsoftware.number3.expression.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
@@ -32,7 +32,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
 
   self =>
 
-  import com.phasmidsoftware.matchers.Matchers._
+  import com.phasmidsoftware.matchers.Matchers.*
 
   /**
     * Abstract class `ExpressionMatcher`, which extends `Matcher` where the input type is always `Expression`.
@@ -155,6 +155,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           case Some(y) => fx.canRaise(fy, y)
           case _ => false
         }
+      case _ =>
+        false
     }).contains(true)
 
   /**
@@ -242,8 +244,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
     case a@Aggregate(_, _) =>
       (complementaryTermsEliminatorAggregate & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
-    case x =>
-      Miss(s"simplifyAggregate: no match for $x", x)
   }
 
   /**
@@ -266,7 +266,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           x => Math.abs(x)
         case Product =>
           x => if (x < 1) 1 / x else x
-        case Power =>
+        case _ =>
           throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
       }
       val sortFunction: Expression => Double =
@@ -286,8 +286,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
-    case x =>
-      Miss(s"simplifyAggregate: not an Aggregate", x)
   }
 
   /**

@@ -56,7 +56,7 @@ trait Number extends Scalar with Ordered[Scalar] {
       val maybeInt: Option[Int] = for {
         x <- approximation
         y <- that.approximation
-      } yield x compare y
+      } yield x.compare(y)
       FP.recover(maybeInt)(NumberException("Number.compare: Logic error"))
     }
     else // XXX this is exact and that is not exact
@@ -64,7 +64,7 @@ trait Number extends Scalar with Ordered[Scalar] {
 
   /**
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
-    * This method checks if both instances can be compared in an exact manner.
+    * This method checks if both instances can be compared exactly.
     *
     * @param that the `Scalar` instance to compare against
     * @return an `Option[Int]` value:

@@ -148,7 +148,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @return an `Option[Scalar]` containing the result of the addition,
     *         or `None` if the operation cannot be performed
     */
-  def doPlus(that: Scalar): Option[Scalar] = that match {
+  infix def doPlus(that: Scalar): Option[Scalar] = that match {
     case f@Real(_, _) =>
       Some(realIsRing.plus(this, f))
     case n =>
