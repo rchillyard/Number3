@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
-import com.phasmidsoftware.number3.algebra.Real.fuzzyNumberIsRing
+import com.phasmidsoftware.number3.algebra.Real.realIsRing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -12,25 +12,25 @@ class NumberSpec extends AnyFlatSpec with Matchers {
   it should "perform addition correctly" in {
     val x = Real(1)
     val y = Real(2)
-    fuzzyNumberIsRing.plus(x, y) compareTo RationalNumber(3) shouldBe 0
+    realIsRing.plus(x, y) compareTo RationalNumber(3) shouldBe 0
   }
 
   it should "perform subtraction correctly" in {
     val x = Real(5)
     val y = Real(3)
-    fuzzyNumberIsRing.plus(x, fuzzyNumberIsRing.negate(y)) should matchPattern { case Real(2, _) => }
+    realIsRing.plus(x, realIsRing.negate(y)) should matchPattern { case Real(2, _) => }
   }
 
   it should "perform multiplication correctly" in {
     val x = Real(2)
     val y = Real(3)
-    fuzzyNumberIsRing.times(x, y) should matchPattern { case Real(6, _) => }
+    realIsRing.times(x, y) should matchPattern { case Real(6, _) => }
   }
 
   it should "perform division correctly" in {
     val x = Real(6)
     val y = Real(2)
-    fuzzyNumberIsRing.div(x, y) should matchPattern { case Real(3, _) => }
+    realIsRing.div(x, y) should matchPattern { case Real(3, _) => }
   }
 
   // Comparison operations

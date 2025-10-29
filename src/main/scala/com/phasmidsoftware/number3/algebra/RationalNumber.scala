@@ -4,7 +4,7 @@ import algebra.ring.Field
 import cats.Show
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number3.algebra.RationalNumber.rationalNumberIsField
-import com.phasmidsoftware.number3.algebra.Real.fuzzyNumberIsRing
+import com.phasmidsoftware.number3.algebra.Real.realIsRing
 import com.phasmidsoftware.number3.core.Structure
 
 /**
@@ -161,7 +161,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     case a@Angle(_) =>
       a.convert(Real.zero).flatMap(this.doPlus)
     case f@Real(_, _) =>
-      this.convert(Real.zero).map(x => fuzzyNumberIsRing.plus(x, f))
+      this.convert(Real.zero).map(x => realIsRing.plus(x, f))
   }
 
   /**

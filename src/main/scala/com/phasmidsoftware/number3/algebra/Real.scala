@@ -4,8 +4,8 @@ import algebra.ring.Ring
 import cats.Show
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber}
-import com.phasmidsoftware.number3.algebra.Real.fuzzyNumberIsRing
+import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber, NumberException}
+import com.phasmidsoftware.number3.algebra.Real.realIsRing
 import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
 
@@ -105,6 +105,28 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     } else None
 
   /**
+    * Compares the current `Number` instance with another `Number` instance.
+    *
+    * This method performs a comparison of two `Number` instances. If both numbers are exact, it uses exact comparison.
+    * If one or both numbers are not exact, it attempts to approximate and compare. Note that in some cases, this method
+    * may throw an exception if an invalid approximation logic is encountered.
+    *
+    * @param that the `Number` instance to compare the current instance against
+    * @return an integer value:
+    *         - a negative value if this `Number` is less than `that`
+    *         - zero if this `Number` is equal to `that`
+    *         - a positive value if this `Number` is greater than `that`
+    */
+  override def compare(that: Number): Int = that match {
+    case r: Real if isExact && r.isExact =>
+      FP.getOrThrow(compareExact(r), NumberException("logic error1 "))
+    case r: Real =>
+      realIsRing.compare(this, r)
+    case n =>
+      FP.getOrThrow(n.approximation.map(a => compare(a)), NumberException(s"logic error 2: $this, $that"))
+  }
+
+  /**
     * Renders this `Real` for presentation.
     *
     * This method converts the current `Real` instance into its string representation,
@@ -119,7 +141,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *
     * This method attempts to add the given `Scalar` to the current one. If the
     * provided scalar is a `Real` instance, it directly computes the sum using
-    * the `fuzzyNumberIsRing.plus` method. For other scalar types, it attempts
+    * the `realIsRing.plus` method. For other scalar types, it attempts
     * to convert them to a compatible type with this scalar and computes the
     * result if the conversion is successful.
     *
@@ -129,9 +151,9 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     */
   def doPlus(that: Scalar): Option[Scalar] = that match {
     case f@Real(_, _) =>
-      Some(fuzzyNumberIsRing.plus(this, f))
+      Some(realIsRing.plus(this, f))
     case n =>
-      n.convert(this) map (x => fuzzyNumberIsRing.plus(this, x))
+      n.convert(this) map (x => realIsRing.plus(this, x))
   }
 
   /**
@@ -147,7 +169,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @param t an instance of `T` to be added to this `T`
     * @return a new `T` representing the sum of this `T` and the given `T`
     */
-  def +(t: Real): Real = fuzzyNumberIsRing.plus(this, t)
+  def +(t: Real): Real = realIsRing.plus(this, t)
 
   /**
     * Computes the additive inverse of this instance.
@@ -157,7 +179,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *
     * @return a new instance of type `T` that is the additive inverse of this instance
     */
-  def unary_- : Real = fuzzyNumberIsRing.negate(this)
+  def unary_- : Real = realIsRing.negate(this)
 
   /**
     * Subtracts the specified `T` from this `T` instance.
@@ -165,7 +187,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @param t an instance of `T` to be subtracted from this `T`
     * @return a new `Additive[T]` representing the result of the subtraction of the given `T` from this `T`
     */
-  def -(t: Real): Real = fuzzyNumberIsRing.plus(this, -t)
+  def -(t: Real): Real = realIsRing.plus(this, -t)
 
   /**
     * Multiplies the specified `T` by this `T` instance.
@@ -173,7 +195,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @param t an instance of `T` to be multiplied by this `T`
     * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
     */
-  def *(t: Real): Real = fuzzyNumberIsRing.times(this, t)
+  def *(t: Real): Real = realIsRing.times(this, t)
 
   /**
     * Divides this `T` instance by the specified `T`.
@@ -182,7 +204,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
     */
   def /(t: Real): Real =
-    fuzzyNumberIsRing.inverse(t) map (z => fuzzyNumberIsRing.times(this, z)) getOrElse Real.Infinity
+    realIsRing.inverse(t) map (z => realIsRing.times(this, z)) getOrElse Real.Infinity
 
   /**
     * Scale this Real by the given scalar, provided that it is exact.
@@ -298,7 +320,7 @@ object Real {
     * CONSIDER extending Semiring instead (Claude feels that it would be appropriate for fuzzy numbers),
     * but I don't have a problem with the additive (or multiplicative) inverse.
     */
-  implicit object fuzzyNumberIsRing extends Ring[Real] with Ordering[Real] {
+  implicit object realIsRing extends Ring[Real] with Ordering[Real] {
 
     /**
       * Adds two Real instances and returns their sum as a new Real.
@@ -367,7 +389,7 @@ object Real {
       * @return a `Real` representing the result of dividing `x` by `y`
       */
     def div(x: Real, y: Real): Real = {
-      (fuzzyNumberIsRing.inverse(y) map (z => fuzzyNumberIsRing.times(x, z))
+      (realIsRing.inverse(y) map (z => realIsRing.times(x, z))
         ).getOrElse(Real(Double.PositiveInfinity, Some(Fuzziness.createFuzz(0))))
     }
 
