@@ -1,5 +1,11 @@
 package com.phasmidsoftware.number3.algebra
 
+import com.phasmidsoftware.number.core.NumberExceptionWithCause
+import com.phasmidsoftware.number3.parse.NumberParser
+
+import scala.language.implicitConversions
+import scala.util.{Failure, Success}
+
 /**
   * A trait representing an object that is in some sense numerical and has a value (or possibly more than one value).
   * `Valuable` does not define an order because a sub-class may not be comparable, for example, a complex number.
@@ -40,4 +46,35 @@ trait Valuable {
     * @return Some(x) where x is a Double if this is exact, else None.
     */
   def maybeDouble: Option[Double]
+}
+
+/**
+  * Object `Valuable` provides utility methods and implicit conversions related to the `Valuable` trait,
+  * enabling parsing and conversion of strings to `Valuable` representations.
+  */
+object Valuable {
+  /**
+    * Parses the given string into a `Valuable` representation. If the string cannot be parsed
+    * into a valid `Number`, an exception is thrown.
+    *
+    * @param str the input string representing a numerical value.
+    * @return a `Valuable` representation of the parsed `Number`.
+    * @throws NumberExceptionWithCause if parsing the string fails.
+    */
+  def apply(str: String): Valuable =
+    NumberParser.parseNumber(str) match {
+      case Success(number) =>
+        Scalar(number)
+      case Failure(exception) =>
+        throw NumberExceptionWithCause("Valuable.apply", exception)
+    }
+
+  /**
+    * Converts a given string into a `Valuable` representation.
+    * This method allows implicit conversion from `String` to `Valuable`.
+    *
+    * @param w the input string to be converted into a `Valuable`.
+    * @return a `Valuable` instance parsed from the provided string.
+    */
+  implicit def toValuable(w: String): Valuable = apply(w)
 }

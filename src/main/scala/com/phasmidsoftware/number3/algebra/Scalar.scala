@@ -1,6 +1,8 @@
 package com.phasmidsoftware.number3.algebra
 
-import com.phasmidsoftware.number.core.inner.Factor
+import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number3.core.Structure
 
 /**
@@ -69,7 +71,70 @@ trait Scalar extends Structure {
   def isZero: Boolean
 }
 
+/**
+  * The `Scalar` object is a utility for creating and representing scalar values
+  * with dimensional factors, exact or approximate numerical precision,
+  * and optional fuzziness (uncertainty or imprecision).
+  */
+object Scalar {
+  /**
+    * Creates a `Scalar` instance based on the input `core.Number`.
+    * Converts the number into an appropriate scalar representation,
+    * either exact or fuzzy, depending on the properties of the input.
+    *
+    * @param x the `core.Number` to be converted into a `Scalar`.
+    *          It can be an `ExactNumber` or a `FuzzyNumber`, each with specific
+    *          properties such as value, factor, and optional fuzziness.
+    * @return the resulting `Scalar` based on the input number's properties, which
+    *         encapsulates its exact value, factor, and optional fuzziness.
+    */
+  def apply(x: core.Number): Scalar = x match {
+    case ExactNumber(value, factor) =>
+      createScalar(value, factor, None)
+    case FuzzyNumber(value, factor, fuzz) =>
+      createScalar(value, factor, fuzz)
+  }
 
+  /**
+    * Creates a `Scalar` instance based on the given input parameters.
+    * The method evaluates the input value and optional fuzziness to determine
+    * the appropriate numerical representation (e.g., `WholeNumber`, `Real`, `RationalNumber`)
+    * and associates it with the provided factor (e.g., `PureNumber`, `Radian`).
+    *
+    * @param value  the numerical value, which can either be a right value for exact numbers
+    *               (e.g., integers, floating-point values) or a left value for rational
+    *               or other representations.
+    * @param factor the dimensional factor associated with the scalar, such as
+    *               `PureNumber`, `Radian`, or other domain-specific factors.
+    * @param fuzz   an optional fuzziness component representing the uncertainty
+    *               or imprecision in the numerical value.
+    * @return the resulting `Scalar` based on the input values, factor, and optional fuzziness.
+    */
+  def createScalar(value: Value, factor: Factor, fuzz: Option[Fuzziness[Double]]): Scalar = {
+    val number = (value, fuzz) match {
+      case (Right(x), None) =>
+        WholeNumber(x)
+      case (Right(x), _) =>
+        Real(x, fuzz)
+      case (Left(Right(x)), None) =>
+        RationalNumber(x)
+      case (Left(Right(x)), _) =>
+        Real(x.toDouble, fuzz)
+      case (Left(Left(Some(x))), _) =>
+        Real(x, fuzz)
+    }
+    factor match {
+      case PureNumber =>
+        number
+      case Radian =>
+        Angle(number)
+      case logarithmic: Logarithmic =>
+        ???
+      case power: InversePower =>
+        ???
+    }
+  }
+}
 /**
   * The `Radians` trait represents a scalar quantity expressed in radians, a unit of angular measure.
   * It extends the `Scalar` trait, inheriting its properties and behaviors for numerical operations
