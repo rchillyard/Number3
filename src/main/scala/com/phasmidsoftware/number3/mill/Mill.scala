@@ -253,7 +253,7 @@ case class Stack(stack: List[Item]) extends Mill {
   private def evaluateSwap = {
     val (zo, m) = pop
     val (yo, n) = m.pop
-    val result: Option[(Option[Expression], Mill)] = (for (z <- zo; y <- yo; x = n.push(z).push(y)) yield x).map {
+    val result: Option[(Option[Expression], Mill)] = (for z <- zo; y <- yo; x = n.push(z).push(y) yield x).map {
       case mill: Stack => mill.evaluateInternal
       case _ => throw MillException(s"evaluateSwap: logic error")
     }
@@ -311,7 +311,7 @@ object Mill {
     * @param xs a comma-separated sequence of Item.
     * @return an appropriate Mill.
     */
-  def apply(xs: Item*): Mill = if (xs.isEmpty) Empty else Stack(xs.reverse.to(List))
+  def apply(xs: Item*): Mill = if xs.isEmpty then Empty else Stack(xs.reverse.to(List))
 
   /**
     * Alternative method of creating a Mill from a list of Items.

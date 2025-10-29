@@ -307,7 +307,7 @@ object Nat {
       val ten = Nat(10)
       // XXX if either `Nat` object is greater than ten (arbitrary),
       //  then we use `Int` multiplication instead (for performance reasons)
-      if (compare(x, ten) > 0 || compare(y, ten) > 0)
+      if compare(x, ten) > 0 || compare(y, ten) > 0 then
         Nat(x.asInt * y.asInt)
       else
         inner(zero)(x, y)

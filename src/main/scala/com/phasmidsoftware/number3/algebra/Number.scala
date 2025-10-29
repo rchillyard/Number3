@@ -50,13 +50,13 @@ trait Number extends Scalar with Ordered[Scalar] {
     *         - a positive value if this `Number` is greater than `that`
     */
   def compare(that: Number): Int =
-    if (isExact && that.isExact) // XXX both are exact
+    if isExact && that.isExact then // XXX both are exact
       FP.recover(compareExact(that))(NumberException(s"Number.compare(Number): logic error: $this, $that"))
-    else if (!isExact) { // XXX this is not exact
-      val maybeInt: Option[Int] = for {
+    else if !isExact then { // XXX this is not exact
+      val maybeInt: Option[Int] = for
         x <- approximation
         y <- that.approximation
-      } yield x.compare(y)
+      yield x.compare(y)
       FP.recover(maybeInt)(NumberException("Number.compare: Logic error"))
     }
     else // XXX this is exact and that is not exact

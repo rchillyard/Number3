@@ -90,7 +90,7 @@ trait Expression extends NumberLike with Approximatable {
     * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
     */
   def asNumber: Option[Number] =
-    if (isExact)
+    if isExact then
       evaluateAsIs flatMap (_.asNumber)
     else
       materialize.asNumber
@@ -112,7 +112,7 @@ trait Expression extends NumberLike with Approximatable {
     * @return the result of comparing materialized this with materialized comparand.
     */
   def compare(comparand: Expression): Int =
-    recover(for (x <- asNumber; y <- comparand.asNumber) yield x.compare(y))(NumberException("compare: logic error"))
+    recover(for x <- asNumber; y <- comparand.asNumber yield x.compare(y))(NumberException("compare: logic error"))
 
   // NOTE This can be useful for debugging: it allows you to see the value of this Expression.
   // However, it can also cause a stack overflow so use it sparingly!

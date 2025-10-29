@@ -93,7 +93,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *         - positive if the current `Number` is greater than `that`
     */
   def compareExact(that: Scalar): Option[Int] =
-    if (isExact && that.isExact)
+    if isExact && that.isExact then
       that match {
         case Real(x, _) =>
           Some(value.compare(x))
@@ -214,10 +214,10 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @return a scaled Real with the same relative error as this.
     */
   def scale(scalar: Scalar): Option[Real] =
-    for {
+    for
       x <- scalar.maybeDouble if scalar.isExact
       f <- fuzz
-    } yield Real(value * x, f.normalize(x, true))
+    yield Real(value * x, f.normalize(x, true))
 
   /**
     * Converts the current `Real` instance into an instance of `FuzzyNumber`.

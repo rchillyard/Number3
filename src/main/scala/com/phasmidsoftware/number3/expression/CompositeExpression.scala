@@ -495,7 +495,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `Option[Real]` representing the computed approximation if possible; otherwise, `None`.
     */
   def approximation: Option[Real] =
-    (for (x <- a.approximation; y <- b.approximation) yield f(x, y)) match {
+    (for x <- a.approximation; y <- b.approximation yield f(x, y)) match {
       case Some(r: Real) =>
         Some(r)
       case _ =>
@@ -712,10 +712,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   private def matchingIdentity(exp: Expression, f: ExpressionBiFunction, left: Boolean): Option[Boolean] =
     exp match {
       case expression: AtomicExpression =>
-        for {
-          identity <- if (left) f.maybeIdentityL else f.maybeIdentityR orElse f.maybeIdentityL
+        for
+          identity <- if left then f.maybeIdentityL else f.maybeIdentityR orElse f.maybeIdentityL
           field <- expression.evaluateAsIs
-        } yield field == identity
+        yield field == identity
       case _ =>
         Some(false)
     }
@@ -981,9 +981,9 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *         given expression with the provided field and context.
     */
   private def combineFieldsAndContexts(x: Expression, fo: Option[Field], context: Context): (Option[Field], Context) =
-    (for (a <- fo; b <- x.evaluate(context)) yield {
+    (for a <- fo; b <- x.evaluate(context) yield {
       val field = function(a, b)
-      field -> (for (factor <- field.maybeFactor) yield function.rightContext(factor)(context))
+      field -> (for factor <- field.maybeFactor yield function.rightContext(factor)(context))
     }) match {
       case Some((f, Some(qq))) =>
         Some(f) -> qq
@@ -1017,7 +1017,7 @@ object Aggregate {
     * @throws java.lang.IllegalArgumentException if the sequence of expressions is empty.
     */
   def create(function: ExpressionBiFunction, xs: Seq[Expression]): Aggregate =
-    if (xs.nonEmpty)
+    if xs.nonEmpty then
       new Aggregate(function, xs)
     else
       throw new IllegalArgumentException("total requires at least one argument (use empty if necessary)") // TESTME

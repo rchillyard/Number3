@@ -55,7 +55,7 @@ object ShuntingYardParser extends BaseMillParser {
         case Right(number) => this :+ number
       }
       case InfixToken(None, x) =>
-        if (x) this :+ openParenthesis // open parenthesis
+        if x then this :+ openParenthesis // open parenthesis
         else switch // close parenthesis
     }
 
@@ -79,7 +79,7 @@ object ShuntingYardParser extends BaseMillParser {
         case Open :: xs => ShuntingYard(values, o1 :: Open :: xs)
         case op +: xs => op match {
           case o2@Dyadic(_, _) =>
-            if (implicitly[Ordering[Dyadic]].compare(o1, o2) < 0)
+            if implicitly[Ordering[Dyadic]].compare(o1, o2) < 0 then
               ShuntingYard(values :+ o2, xs) :+ operator
             else
               ShuntingYard(values, o1 +: o2 +: xs)

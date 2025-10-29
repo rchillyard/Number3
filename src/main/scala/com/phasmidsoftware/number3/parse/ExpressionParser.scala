@@ -112,7 +112,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     *         or a `Failure` if either `t1` or `t2` is a `Failure`
     */
   def map2(t1: Try[T], t2: Try[T])(f: (T, T) => T): Try[T] =
-    for {tt1 <- t1; tt2 <- t2} yield f(tt1, tt2)
+    for tt1 <- t1; tt2 <- t2 yield f(tt1, tt2)
 
   /**
     * Represents a factor in an expression.
@@ -176,7 +176,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       */
     def show(i: Int): String = {
       val sb = new StringBuilder("Expr: " + new_line(i + 1) + t.show(i + 1))
-      if (ts.nonEmpty) {
+      if ts.nonEmpty then {
         sb.append(ts.foldLeft(" {")((a, x) => a + new_line(i + 1) + termShow(x, i + 1)))
         sb.append(new_line(i + 1) + "}")
       }
@@ -247,7 +247,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       */
     def show(i: Int): String = {
       val sb = new StringBuilder("Term: " + new_line(i + 1) + f.show(i + 1))
-      if (fs.nonEmpty) {
+      if fs.nonEmpty then {
         sb.append(fs.foldLeft(" {")((a, x) => a + new_line(i + 1) + factorShow(x, i + 1)))
         sb.append(new_line(i + 1) + "}")
       }

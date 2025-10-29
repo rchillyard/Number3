@@ -7,6 +7,12 @@ version := "2.0.1"
 scalaVersion := "3.7.3"
 
 scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation")
+//scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-source:future-migration", "-rewrite", "-Vprint:typer")
+
+//Compile / excludeFilter := {
+//  val default = (Compile / excludeFilter).value
+//  default || new SimpleFileFilter(_.getPath.contains("com/phasmidsoftware/number3/cats"))
+//}
 
 //Test / unmanagedSourceDirectories += baseDirectory.value / "it/scala"
 
