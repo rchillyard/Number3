@@ -35,7 +35,7 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
   }
 
   case class RatioNumber(numerator: WholeNumber, denominator: WholeNumber) extends ValuableNumber {
-    def value: Try[Rational] = for (n <- numerator.value; d <- denominator.value) yield n / d
+    def value: Try[Rational] = for n <- numerator.value; d <- denominator.value yield n / d
   }
 
   case class RealNumber(sign: Boolean, integerPart: String, maybeFractionalPart: Option[String], exponent: Option[String]) extends ValuableNumber {

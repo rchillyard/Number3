@@ -6,9 +6,9 @@ package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.Number.one
+import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
-import com.phasmidsoftware.number.core.algebraic._
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number3.expression.Expression.em
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
@@ -1040,7 +1040,7 @@ case class QuadraticRoot(equ: Equation, branch: Int) extends AbstractRoot(equ, b
     *              This represents the operand added to this `Root`.
     * @return a new `Root` which is the sum of this `Root` and the provided `other` `Root`.
     */
-  def add(other: Root): Option[Root] = other match {
+  infix def add(other: Root): Option[Root] = other match {
     case q: QuadraticRoot =>
       Some(QuadraticRoot(algebraic add q.algebraic))
     case _ =>
@@ -1205,7 +1205,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     case QuadraticSolution(base, offset, _, _) if Value.isZero(offset) =>
       Some(Field(base, PureNumber))
     case QuadraticSolution(base, offset, factor, branch) if Value.isZero(base) && (factor == PureNumber || branch == 0) =>
-      val radicalTerm = if (branch == 0) offset else Value.negate(offset)
+      val radicalTerm = if branch == 0 then offset else Value.negate(offset)
       Some(Real(one.make(radicalTerm, factor)))
     case _ =>
       (equ, branch) match {
@@ -1349,7 +1349,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     */
   def squareRoot(plus: Boolean): Expression = equation match {
     case Quadratic(p, q) =>
-      pure(Quadratic(-p.invert, -q / p), if (plus) 0 else 1)
+      pure(Quadratic(-p.invert, -q / p), if plus then 0 else 1)
     case _ =>
       throw ExpressionException(s"squareRoot: cannot compute square root of $this")
   }

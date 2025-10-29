@@ -292,20 +292,22 @@ object Nat {
     def times(x: Nat, y: Nat): Nat = {
       @tailrec
       def inner(r: Nat)(w: Nat, z: Nat): Nat = (w, z) match {
-        case (Zero, _) | (_, Zero) => r
-        case (`one`, `one`) => r
-        case (`one`, _) => plus(r, y)
-        case (_, `one`) => plus(r, x)
+        case (Zero, _) | (_, Zero) =>
+          r
+        case (`one`, `one`) =>
+          r
+        case (`one`, _) =>
+          plus(r, y)
+        case (_, `one`) =>
+          plus(r, x)
         case (Succ(wPred), _) =>
           inner(plus(r, z))(wPred, z)
-        case (_, Succ(zPred)) =>
-          inner(plus(r, w))(zPred, w)
       }
 
       val ten = Nat(10)
       // XXX if either `Nat` object is greater than ten (arbitrary),
       //  then we use `Int` multiplication instead (for performance reasons)
-      if (compare(x, ten) > 0 || compare(y, ten) > 0)
+      if compare(x, ten) > 0 || compare(y, ten) > 0 then
         Nat(x.asInt * y.asInt)
       else
         inner(zero)(x, y)

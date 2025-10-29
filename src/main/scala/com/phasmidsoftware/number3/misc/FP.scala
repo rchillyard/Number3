@@ -28,7 +28,7 @@ object FP {
     * @param x A computation represented as a call-by-name parameter, which returns a Try[X] when evaluated.
     * @return A Try[X] representing the result of the computation if the condition is true, or a Failure if the condition is false.
     */
-  def whenTry[X](p: Boolean)(x: => X): Try[X] = if (p) Success(x) else Failure(new Exception(s"condition $p is not satisfied"))
+  def whenTry[X](p: Boolean)(x: => X): Try[X] = if p then Success(x) else Failure(new Exception(s"condition $p is not satisfied"))
 
   /**
     * Executes the provided computation if the given condition is true; otherwise, returns a Failure.
@@ -69,7 +69,7 @@ object FP {
     */
   def sequence[X](xys: Iterable[Try[X]]): Try[Seq[X]] =
     xys.foldLeft(Try(Seq[X]())) {
-      (xsy, xy) => for (xs <- xsy; x <- xy) yield xs :+ x
+      (xsy, xy) => for xs <- xsy; x <- xy yield xs :+ x
     }
 
   /**
@@ -180,7 +180,7 @@ object FP {
     * @tparam Z the underlying type of the result.
     * @return a `Try[Z]`
     */
-  def tryMap[L, R, Z](lRe: Either[L, R])(r2Zy: R => Try[Z], l2Zy: L => Try[Z])(implicit r2L: R => L): Try[Z] =
+  def tryMap[L, R, Z](lRe: Either[L, R])(r2Zy: R => Try[Z], l2Zy: L => Try[Z])(using r2L: R => L): Try[Z] =
     lRe.toOption.map(r2Zy) match {
       case Some(Success(z)) => Success(z)
       case Some(Failure(_)) => tryMapLeft(transpose(lRe), l2Zy)
@@ -195,7 +195,7 @@ object FP {
     * @tparam R the right type.
     * @return a Left(L) as an Either[L, R].
     */
-  private def transpose[L, R](lRe: Either[L, R])(implicit rToL: R => L): Either[L, R] = lRe match {
+  private def transpose[L, R](lRe: Either[L, R])(using rToL: R => L): Either[L, R] = lRe match {
     case Right(y) => Left(rToL(y))
     case Left(_) => lRe
   }
@@ -301,11 +301,11 @@ object FP {
     *         an error occurs during processing or if the file contains invalid input
     */
   def readFromResource(filename: String, function: Array[String] => Option[String]): Try[Seq[BigInt]] =
-    TryUsing(FP.resource(filename) map (Source.fromURL(_))) {
+    TryUsing(FP.resource[FP.type](filename).map(Source.fromURL(_))) {
       source =>
         val bn = implicitly[Numeric[BigInt]]
         val wos: Iterator[Option[String]] = source.getLines().map(l => function(l.split("""\s""")))
-        val bos: Iterator[Option[BigInt]] = for (p <- wos) yield for (q <- p; qq <- bn.parseString(q)) yield qq
+        val bos: Iterator[Option[BigInt]] = for p <- wos yield for q <- p; qq <- bn.parseString(q) yield qq
         FP.toTry(FP.sequence(bos.toList), Failure(NumberException(s"invalid input in file: $filename")))
     }
 
@@ -319,7 +319,7 @@ object FP {
     */
   def sequence[X](xos: Iterable[Option[X]]): Option[Seq[X]] =
     xos.foldLeft(Option(Seq[X]())) {
-      (xso, xo) => for (xs <- xso; x <- xo) yield xs :+ x
+      (xso, xo) => for xs <- xso; x <- xo yield xs :+ x
     }
 
   /**
@@ -338,7 +338,7 @@ object FP {
     * @param clazz        the class, relative to which, the resource can be found (defaults to the caller's class).
     * @return a Try[URL]
     */
-  def resourceForClass(resourceName: String, clazz: Class[_] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
+  def resourceForClass(resourceName: String, clazz: Class[?] = getClass): Try[URL] = Option(clazz.getResource(resourceName)) match {
     case Some(u) => Success(u)
     case None => Failure(new Exception(s"$resourceName is not a valid resource for $clazz"))
   }
@@ -377,7 +377,7 @@ object FP {
     * @return the result of raising the base number to the specified exponent
     */
   def power[X: Numeric](x: X, n: Int): X =
-    if (n == 0)
+    if n == 0 then
       implicitly[Numeric[X]].one
     else
       implicitly[Numeric[X]].times(x, power(x, n - 1))
@@ -405,7 +405,7 @@ object TryUsing {
     * @tparam A the underlying type of the result.
     * @return a Try[A]
     */
-  def apply[R: Releasable, A](ry: Try[R])(f: R => Try[A]): Try[A] = for (r <- ry; a <- apply(r)(f)) yield a
+  def apply[R: Releasable, A](ry: Try[R])(f: R => Try[A]): Try[A] = for r <- ry; a <- apply(r)(f) yield a
 
   /**
     * This method is to Using.apply as flatMap is to Map.

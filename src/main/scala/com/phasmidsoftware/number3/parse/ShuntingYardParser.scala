@@ -1,8 +1,8 @@
 package com.phasmidsoftware.number3.parse
 
-import com.phasmidsoftware.number.core._
+import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number3.expression.Expression
-import com.phasmidsoftware.number3.mill._
+import com.phasmidsoftware.number3.mill.*
 
 import scala.annotation.tailrec
 import scala.util.Try
@@ -55,7 +55,7 @@ object ShuntingYardParser extends BaseMillParser {
         case Right(number) => this :+ number
       }
       case InfixToken(None, x) =>
-        if (x) this :+ openParenthesis // open parenthesis
+        if x then this :+ openParenthesis // open parenthesis
         else switch // close parenthesis
     }
 
@@ -66,7 +66,7 @@ object ShuntingYardParser extends BaseMillParser {
       * @return a Try[Mill].
       */
     def toMill: Try[Mill] = switch match {
-      case ShuntingYard(values, Nil) => Try(Mill(values: _*))
+      case ShuntingYard(values, Nil) => Try(Mill(values *))
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 
@@ -79,7 +79,7 @@ object ShuntingYardParser extends BaseMillParser {
         case Open :: xs => ShuntingYard(values, o1 :: Open :: xs)
         case op +: xs => op match {
           case o2@Dyadic(_, _) =>
-            if (implicitly[Ordering[Dyadic]].compare(o1, o2) < 0)
+            if implicitly[Ordering[Dyadic]].compare(o1, o2) < 0 then
               ShuntingYard(values :+ o2, xs) :+ operator
             else
               ShuntingYard(values, o1 +: o2 +: xs)

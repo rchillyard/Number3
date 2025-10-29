@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number3.algebra
 
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number3.core.Structure
 
@@ -61,7 +61,7 @@ trait Scalar extends Structure {
     * @param that the `Scalar` to be added to the current instance
     * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
     */
-  def doPlus(that: Scalar): Option[Scalar]
+  infix def doPlus(that: Scalar): Option[Scalar]
 
   /**
     * Determines if the current number is equal to zero.
@@ -122,6 +122,8 @@ object Scalar {
         Real(x.toDouble, fuzz)
       case (Left(Left(Some(x))), _) =>
         Real(x, fuzz)
+      case (Left(Left(None)), _) =>
+        Real(Double.NaN, fuzz)
     }
     factor match {
       case PureNumber =>
@@ -129,9 +131,9 @@ object Scalar {
       case Radian =>
         Angle(number)
       case logarithmic: Logarithmic =>
-        ???
+        ??? // TODO implement this
       case power: InversePower =>
-        ???
+        ??? // TODO implement this
     }
   }
 }

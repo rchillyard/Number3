@@ -5,9 +5,9 @@
 package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{Field, Number, Real}
-import com.phasmidsoftware.number.matchers._
+import com.phasmidsoftware.number.matchers.*
 import com.phasmidsoftware.number.misc.Bumperator
 import com.phasmidsoftware.number3.expression.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
@@ -28,11 +28,11 @@ import scala.util.{Failure, Success, Try}
   * (2) Some matches return non-exact match results -- these should be passed to flatMap simplifier;
   * NOTE: do not pass anything to flatMap simplifier if it could possibly be the same as the input (else stack overflow).
   */
-class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends MatchersExtras {
+class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExtras {
 
   self =>
 
-  import com.phasmidsoftware.matchers.Matchers._
+  import com.phasmidsoftware.matchers.Matchers.*
 
   /**
     * Abstract class `ExpressionMatcher`, which extends `Matcher` where the input type is always `Expression`.
@@ -112,7 +112,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return True if the expressions are complementary, according to the binary function, false otherwise.
     */
   private def complementaryFields(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
-    if (x.maybeFactor == y.maybeFactor) { // TODO logic here is same as for value in BiFunction
+    if x.maybeFactor == y.maybeFactor then { // TODO logic here is same as for value in BiFunction
       val fo = f.evaluateAsIs(x, y)
       (fo, f.maybeIdentityL) match {
         case (Some(field1), Some(field2)) if field1 == field2 =>
@@ -145,7 +145,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     * @return True if the factors match according to the binary function, false otherwise.
     */
   def factorsMatch(f: ExpressionBiFunction, x: Expression, y: Expression): Boolean =
-    (for (fx <- x.maybeFactor; fy <- y.maybeFactor) yield f match {
+    (for fx <- x.maybeFactor; fy <- y.maybeFactor yield f match {
       case Sum =>
         fx.canAdd(fy)
       case Product =>
@@ -155,6 +155,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
           case Some(y) => fx.canRaise(fy, y)
           case _ => false
         }
+      case _ =>
+        false
     }).contains(true)
 
   /**
@@ -242,8 +244,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
     // NOTE it's important that you do not reintroduce a match into a BiFunction!
     case a@Aggregate(_, _) =>
       (complementaryTermsEliminatorAggregate & alt(matchSimpler.asInstanceOf[Matcher[Expression, Expression]]))(a)
-    case x =>
-      Miss(s"simplifyAggregate: no match for $x", x)
   }
 
   /**
@@ -265,8 +265,8 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         case Sum =>
           x => Math.abs(x)
         case Product =>
-          x => if (x < 1) 1 / x else x
-        case Power =>
+          x => if x < 1 then 1 / x else x
+        case _ =>
           throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
       }
       val sortFunction: Expression => Double =
@@ -278,7 +278,7 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
       Try(xs.sortBy(sortFunction)) match {
         case Success(sorted) =>
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
-          if (list.length < xs.length)
+          if list.length < xs.length then
             // CONSIDER write=ing instead `Match(CompositeExpression(f, list))` But be careful!
             Match(Aggregate(f, list))
           else
@@ -286,8 +286,6 @@ class ExpressionMatchers(implicit val matchLogger: MatchLogger) extends Matchers
         case Failure(x) =>
           Error(x) // XXX the result of an extremely improbable NoSuchElementException // TESTME
       }
-    case x =>
-      Miss(s"simplifyAggregate: not an Aggregate", x)
   }
 
   /**

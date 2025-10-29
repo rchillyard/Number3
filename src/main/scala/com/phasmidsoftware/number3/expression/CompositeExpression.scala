@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Constants, Field, Number, Real}
 import com.phasmidsoftware.number3.expression.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
@@ -495,7 +495,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `Option[Real]` representing the computed approximation if possible; otherwise, `None`.
     */
   def approximation: Option[Real] =
-    (for (x <- a.approximation; y <- b.approximation) yield f(x, y)) match {
+    (for x <- a.approximation; y <- b.approximation yield f(x, y)) match {
       case Some(r: Real) =>
         Some(r)
       case _ =>
@@ -712,10 +712,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
   private def matchingIdentity(exp: Expression, f: ExpressionBiFunction, left: Boolean): Option[Boolean] =
     exp match {
       case expression: AtomicExpression =>
-        for {
-          identity <- if (left) f.maybeIdentityL else f.maybeIdentityR orElse f.maybeIdentityL
+        for
+          identity <- if left then f.maybeIdentityL else f.maybeIdentityR orElse f.maybeIdentityL
           field <- expression.evaluateAsIs
-        } yield field == identity
+        yield field == identity
       case _ =>
         Some(false)
     }
@@ -738,12 +738,12 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
             (y.x.toNominalRational, f) match {
               case (Some(x), Power) =>
                 em.Match(r.power(x))
-              case (None, _) =>
+              case (_, _) =>
                 em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Rational)", this) // TESTME
             }
           case Some(y: Algebraic_Quadratic) if f.commutes =>
             modifyAlgebraicQuadratic(y, x, f)
-          case None =>
+          case _ =>
             em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Real)", this) // TESTME
         }
       case _ =>
@@ -774,10 +774,10 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
                 // XXX in this case, we revert this `Algebraic_Quadratic` (viz., a Field) to a `Root` (viz., an `Expression`)
                 val root = Root(a.equation, a.branch).power(r)
                 em.Match(root)
-              case (None, _) =>
+              case (_, _) =>
                 em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Rational)", this) // TESTME
             }
-          case None =>
+          case _ =>
             em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Real)", this) // TESTME
         }
       case _ =>
@@ -981,12 +981,14 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *         given expression with the provided field and context.
     */
   private def combineFieldsAndContexts(x: Expression, fo: Option[Field], context: Context): (Option[Field], Context) =
-    (for (a <- fo; b <- x.evaluate(context)) yield {
+    (for a <- fo; b <- x.evaluate(context) yield {
       val field = function(a, b)
-      field -> (for (factor <- field.maybeFactor) yield function.rightContext(factor)(context))
+      field -> (for factor <- field.maybeFactor yield function.rightContext(factor)(context))
     }) match {
       case Some((f, Some(qq))) =>
         Some(f) -> qq
+      case _ =>
+        None -> Context.AnyScalar
     }
 }
 
@@ -1015,7 +1017,7 @@ object Aggregate {
     * @throws java.lang.IllegalArgumentException if the sequence of expressions is empty.
     */
   def create(function: ExpressionBiFunction, xs: Seq[Expression]): Aggregate =
-    if (xs.nonEmpty)
+    if xs.nonEmpty then
       new Aggregate(function, xs)
     else
       throw new IllegalArgumentException("total requires at least one argument (use empty if necessary)") // TESTME

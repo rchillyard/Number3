@@ -2,11 +2,17 @@ organization := "com.phasmidsoftware"
 
 name := "Number3"
 
-version := "2.0.0"
+version := "2.0.1"
 
-scalaVersion := "2.13.17"
+scalaVersion := "3.7.3"
 
-scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-Ywarn-dead-code", "-Ywarn-value-discard", "-Ywarn-unused" )
+scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation")
+//scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-source:future-migration", "-rewrite", "-Vprint:typer")
+
+//Compile / excludeFilter := {
+//  val default = (Compile / excludeFilter).value
+//  default || new SimpleFileFilter(_.getPath.contains("com/phasmidsoftware/number3/cats"))
+//}
 
 //Test / unmanagedSourceDirectories += baseDirectory.value / "it/scala"
 
@@ -14,7 +20,7 @@ val catsVersion = "2.13.0"
 val scalaTestVersion = "3.2.19"
 
 libraryDependencies ++= Seq(
-  "com.phasmidsoftware" %% "number" % "1.2.12",
+  "com.phasmidsoftware" % "number_2.13" % "1.2.12",
 //  "com.phasmidsoftware" %% "flog" % "1.0.10",
 //  "com.phasmidsoftware" %% "matchers" % "1.0.11",
 //  "org.apache.commons" %% "commons-math3" % "3.6.1",

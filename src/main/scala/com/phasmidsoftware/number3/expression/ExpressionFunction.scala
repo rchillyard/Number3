@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number3.expression
 
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.core.inner._
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
 import com.phasmidsoftware.number3.misc.FP
 
@@ -227,12 +227,12 @@ sealed abstract class ExpressionBiFunction(
     *         of `x` and `y`, or `None` if any step in the process fails.
     */
   private def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Field] =
-    for {
+    for
       a <- x.evaluate(leftContext(context))
       f <- a.maybeFactor
       b <- y.evaluate(rightContext(f)(RestrictedContext(f)))
       z <- applyExact(a, b)
-    } yield z
+    yield z
 
   /**
     * Evaluates two expressions as-is (without any simplification or conversion) and applies the function `f`
@@ -244,7 +244,7 @@ sealed abstract class ExpressionBiFunction(
     *         evaluated results of `x` and `y`, or `None` if either evaluation fails.
     */
   def evaluateAsIs(x: Expression, y: Expression): Option[Field] =
-    for (a <- x.evaluateAsIs; b <- y.evaluateAsIs) yield f(a, b)
+    for a <- x.evaluateAsIs; b <- y.evaluateAsIs yield f(a, b)
 
   /**
     * Generate helpful debugging information about this ExpressionMonoFunction.
@@ -273,8 +273,6 @@ object ExpressionBiFunction {
   def unapply(f: ExpressionBiFunction): Option[((Field, Field) => Field, String, Option[Field], Option[Field])] = f match {
     case e: ExpressionBiFunction =>
       Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
-    case _ =>
-      None // TESTME
   }
 }
 
@@ -341,14 +339,14 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
       case (Constants.zero, Constants.one) =>
         Some(Constants.piBy2)
       case (Real(ExactNumber(x, PureNumber)), Real(ExactNumber(y, PureNumber))) => // TESTME
-        for {
+        for
           q <- Value.maybeRational(x)
           p <- Value.maybeRational(y)
           r = p / q
           // TODO test this--I have no idea if this is correct
-          d = if (Value.signum(x) == Value.signum(y)) 1 else -1
+          d = if Value.signum(x) == Value.signum(y) then 1 else -1
           v <- Operations.doTransformValueMonadic(Value.fromRational(r))(MonadicOperationAtan(d).functions)
-        } yield Real(ExactNumber(v, Radian))
+        yield Real(ExactNumber(v, Radian))
       case _ =>
         None // TESTME
     }
@@ -783,7 +781,7 @@ case object Power extends ExpressionBiFunction("∧", (x, y) => x.power(y), isEx
   *
   * @param sine a boolean indicating whether the sine function should be used (`true` for sine, `false` for cosine).
   */
-abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if (sine) "sin" else "cos", x => if (sine) x.sin else x.cos) {
+abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine then "sin" else "cos", x => if sine then x.sin else x.cos) {
   /**
     * Regardless of the value of `context`, the required `Context` for the parameter is `Radian`.
     *
@@ -803,13 +801,13 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if (sine) "
     */
   def applyExact(x: Field): Option[Field] = x match {
     case Constants.zero =>
-      Some(if (sine) Constants.zero else Constants.one)
+      Some(if sine then Constants.zero else Constants.one)
     case Constants.piBy2 =>
-      Some(if (sine) Constants.one else Constants.zero)
+      Some(if sine then Constants.one else Constants.zero)
     case Constants.pi =>
-      Some(if (sine) Constants.zero else -Constants.one)
+      Some(if sine then Constants.zero else -Constants.one)
     case Constants.piBy2Times3 =>
-      Some(if (sine) -Constants.one else Constants.zero) // TESTME
+      Some(if sine then -Constants.one else Constants.zero) // TESTME
     case _ =>
       None // TESTME
   }

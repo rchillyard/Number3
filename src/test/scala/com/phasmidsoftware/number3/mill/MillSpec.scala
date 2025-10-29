@@ -60,7 +60,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     target shouldBe Stack(items)
   }
   it should "accept list of Items: 42, 37, +" in {
-    val target = Mill.apply(List("42", "37", "+").map(Item(_)): _*)
+    val target = Mill.apply(List("42", "37", "+").map(Item(_)) *)
     val items: List[Item] = List(Add, Expr(Number(37)), Expr(Number(42)))
     target shouldBe Stack(items)
   }

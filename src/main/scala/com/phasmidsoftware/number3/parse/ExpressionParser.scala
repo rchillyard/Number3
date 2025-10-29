@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number3.parse
 
 import scala.util.Try
-import scala.util.parsing.combinator._
+import scala.util.parsing.combinator.*
 
 /**
   * @author scalaprof
@@ -111,7 +111,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     * @return a `Try` containing the result of applying `f` to the values of `t1` and `t2` if both are successful,
     *         or a `Failure` if either `t1` or `t2` is a `Failure`
     */
-  def map2(t1: Try[T], t2: Try[T])(f: (T, T) => T): Try[T] = for {tt1 <- t1; tt2 <- t2} yield f(tt1, tt2)
+  def map2(t1: Try[T], t2: Try[T])(f: (T, T) => T): Try[T] =
+    for tt1 <- t1; tt2 <- t2 yield f(tt1, tt2)
 
   /**
     * Represents a factor in an expression.
@@ -152,7 +153,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       *         evaluated, it returns a `Success` containing the final result. If an error occurs,
       *         it returns a `Failure` describing the issue.
       */
-    def value: Try[T] = ts.foldLeft(t.value)((a, x) => map2(a, termVal(x))(plus))
+    def value: Try[T] =
+      ts.foldLeft(t.value)((a, x) => map2(a, termVal(x))(plus))
 
     /**
       * Formats a string representation of a term, combining its operator and term at the given indentation level.
@@ -161,7 +163,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       * @param i the current indentation level
       * @return a formatted `String` representation of the term with proper indentation
       */
-    def termShow(t: String ~ Term, i: Int): String = s"${t._1}${new_line(i)}${t._2.show(i + 1)}"
+    def termShow(t: String ~ Term, i: Int): String =
+      s"${t._1}${new_line(i)}${t._2.show(i + 1)}"
 
     /**
       * Generates a string representation of the expression starting from the specified indentation level.
@@ -173,7 +176,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       */
     def show(i: Int): String = {
       val sb = new StringBuilder("Expr: " + new_line(i + 1) + t.show(i + 1))
-      if (ts.nonEmpty) {
+      if ts.nonEmpty then {
         sb.append(ts.foldLeft(" {")((a, x) => a + new_line(i + 1) + termShow(x, i + 1)))
         sb.append(new_line(i + 1) + "}")
       }
@@ -204,9 +207,12 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       *         or a failure if the operator is unsupported or the evaluation fails
       */
     def factorVal(t: String ~ Factor): Try[T] = t match {
-      case "*" ~ x => x.value;
-      case "/" ~ x => map2(Try(one), x.value)(div);
-      case z ~ _ => scala.util.Failure(ParseException(s"Term: operator $z is not supported"))
+      case "*" ~ x =>
+        x.value;
+      case "/" ~ x =>
+        map2(Try(one), x.value)(div);
+      case z ~ _ =>
+        scala.util.Failure(ParseException(s"Term: operator $z is not supported"))
     }
 
     /**
@@ -216,7 +222,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       *
       * @return A `Try[T]` representing the result of the fold operation or the encountered failure.
       */
-    def value: Try[T] = fs.foldLeft(f.value)((a, x) => map2(a, factorVal(x))(times))
+    def value: Try[T] =
+      fs.foldLeft(f.value)((a, x) => map2(a, factorVal(x))(times))
 
     /**
       * Combines the string representation of a tuple containing a string and a Factor,
@@ -228,7 +235,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       *         the string representation of the Factor, separated by a newline,
       *         with the appropriate indentation.
       */
-    def factorShow(t: String ~ Factor, i: Int): String = s"${t._1}${new_line(i)}${t._2.show(i + 1)}"
+    def factorShow(t: String ~ Factor, i: Int): String =
+      s"${t._1}${new_line(i)}${t._2.show(i + 1)}"
 
     /**
       * Constructs and returns a formatted string representation
@@ -239,7 +247,7 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       */
     def show(i: Int): String = {
       val sb = new StringBuilder("Term: " + new_line(i + 1) + f.show(i + 1))
-      if (fs.nonEmpty) {
+      if fs.nonEmpty then {
         sb.append(fs.foldLeft(" {")((a, x) => a + new_line(i + 1) + factorShow(x, i + 1)))
         sb.append(new_line(i + 1) + "}")
       }
@@ -301,7 +309,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       * @return a string representation of the expression enclosed in parentheses,
       *         formatted with appropriate line breaks and indentation
       */
-    def show(i: Int): String = "(" + new_line(i) + e.show(i + 1) + ")"
+    def show(i: Int): String =
+      "(" + new_line(i) + e.show(i + 1) + ")"
   }
 
   /**
@@ -324,7 +333,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       *
       * @return a `Try[T]`, which will always be a `Failure` containing a `ParseException`.
       */
-    def value: Try[T] = scala.util.Failure(ParseException("\n" + x.show(0) + "\n"))
+    def value: Try[T] =
+      scala.util.Failure(ParseException("\n" + x.show(0) + "\n"))
 
     /**
       * Generates a representation of a "bad factor" with indentation and includes the result of showing the associated expression.
@@ -332,7 +342,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
       * @param i the current indentation level used for formatting the output.
       * @return a formatted string that describes the "bad factor" along with the indented representation of the associated expression.
       */
-    def show(i: Int): String = s"bad factor: ${new_line(i)}${x.show(i + 1)}"
+    def show(i: Int): String =
+      s"bad factor: ${new_line(i)}${x.show(i + 1)}"
   }
 
   /**
@@ -345,9 +356,10 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     * @return a `Parser[Expr]` that processes input into an `Expr` representation,
     *         encapsulating the parsed terms and their associated operators.
     */
-  def expr: Parser[Expr] = term ~ rep("+" ~ term | "-" ~ term) ^^ {
-    case t ~ x => Expr(t, x)
-  }
+  def expr: Parser[Expr] =
+    term ~ rep("+" ~ term | "-" ~ term) ^^ {
+      case t ~ x => Expr(t, x)
+    }
 
   /**
     * Parses a term, which consists of a `factor` followed by zero or more occurrences of either
@@ -356,9 +368,10 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     * @return a `Parser[Term]` that parses a term and constructs a `Term` instance
     *         combining the initial factor and a list of operator-factor pairs.
     */
-  def term: Parser[Term] = factor ~ rep("*" ~ factor | "/" ~ factor) ^^ {
-    case f ~ r => Term(f, r)
-  }
+  def term: Parser[Term] =
+    factor ~ rep("*" ~ factor | "/" ~ factor) ^^ {
+      case f ~ r => Term(f, r)
+    }
 
   /**
     * Parses a factor in an expression. A factor can be a number, a parenthesized expression,
@@ -366,17 +379,16 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     *
     * @return a `Parser[Factor]` that attempts to parse and construct a valid `Factor`.
     */
-  def factor: Parser[Factor] = (number | parentheses | failure("factor")) ^^ {
-    case f: Factor => f
-    case f => BadFactor(f)
-  }
+  def factor: Parser[Factor] =
+    number | parentheses | failure("factor")
 
   /**
     * Parses a floating-point number string and converts it to a FloatingPoint object.
     *
     * @return a Parser that processes a floating-point number and returns a Factor in the form of a FloatingPoint instance.
     */
-  def number: Parser[Factor] = floatingPointNumber ^^ (x => FloatingPoint(x))
+  def number: Parser[Factor] =
+    floatingPointNumber ^^ (x => FloatingPoint(x))
 
   /**
     * Parses an expression enclosed in parentheses. Ensures that the inner expression is
@@ -387,7 +399,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     *
     * @return a parser that produces a `Parentheses` instance wrapping the parsed expression.
     */
-  def parentheses: Parser[Parentheses] = "(" ~> expr <~ ")" ^^ (x => Parentheses(x))
+  def parentheses: Parser[Parentheses] =
+    "(" ~> expr <~ ")" ^^ (x => Parentheses(x))
 
   /**
     * Creates a new line followed by a specified level of indentation.
@@ -395,8 +408,8 @@ abstract class ExpressionParser[T] extends JavaTokenParsers with (String => Try[
     * @param i the number of indentation levels to add after the new line,
     *          where each level corresponds to two spaces
     */
-  private def new_line(i: Int) = "\n" + ("  " * i)
-
+  private def new_line(i: Int) =
+    "\n" + "  ".repeat(i)
 }
 
 case class ParseException(s: String) extends Exception(s"Parse exception: $s")

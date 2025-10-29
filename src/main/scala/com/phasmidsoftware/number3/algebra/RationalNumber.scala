@@ -156,7 +156,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @param that the `Scalar` to be added to the current instance
     * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
     */
-  def doPlus(that: Scalar): Option[Scalar] = that match {
+  infix def doPlus(that: Scalar): Option[Scalar] = that match {
     case r@RationalNumber(_) => Some(this + r)
     case a@Angle(_) =>
       a.convert(Real.zero).flatMap(this.doPlus)

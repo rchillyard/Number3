@@ -4,8 +4,8 @@
 
 package com.phasmidsoftware.number3.mill
 
-import com.phasmidsoftware.number.core._
-import com.phasmidsoftware.number3.expression.Expression._
+import com.phasmidsoftware.number.core.*
+import com.phasmidsoftware.number3.expression.Expression.*
 import com.phasmidsoftware.number3.expression.{Expression, Literal}
 
 /**
@@ -38,7 +38,7 @@ object Dyadic {
     *
     */
   implicit object DyadicOrdering extends Ordering[Dyadic] {
-    def compare(x: Dyadic, y: Dyadic): Int = if ((x.leftAssociativity && x.precedence <= y.precedence) || (!x.leftAssociativity && x.precedence < y.precedence)) -1 else 0
+    def compare(x: Dyadic, y: Dyadic): Int = if (x.leftAssociativity && x.precedence <= y.precedence) || (!x.leftAssociativity && x.precedence < y.precedence) then -1 else 0
   }
 }
 
@@ -204,7 +204,7 @@ object Item {
     */
   def apply(s: String): Item = s.toLowerCase match {
     // XXX Dyadic operators
-    case "∧" => Power
+    case "^" => Power
     case "∧" => Power
     case "+" => Add
     case "-" | "−" | "–" => Subtract

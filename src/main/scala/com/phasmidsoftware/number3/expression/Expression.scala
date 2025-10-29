@@ -6,7 +6,7 @@ package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.Number.convertInt
-import com.phasmidsoftware.number.core.inner._
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{Approximatable, ComplexPolar, Constants, Field, Number, NumberException, NumberLike, Real}
 import com.phasmidsoftware.number3.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
@@ -90,7 +90,7 @@ trait Expression extends NumberLike with Approximatable {
     * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
     */
   def asNumber: Option[Number] =
-    if (isExact)
+    if isExact then
       evaluateAsIs flatMap (_.asNumber)
     else
       materialize.asNumber
@@ -112,7 +112,7 @@ trait Expression extends NumberLike with Approximatable {
     * @return the result of comparing materialized this with materialized comparand.
     */
   def compare(comparand: Expression): Int =
-    recover(for (x <- asNumber; y <- comparand.asNumber) yield x.compare(y))(NumberException("compare: logic error"))
+    recover(for x <- asNumber; y <- comparand.asNumber yield x.compare(y))(NumberException("compare: logic error"))
 
   // NOTE This can be useful for debugging: it allows you to see the value of this Expression.
   // However, it can also cause a stack overflow so use it sparingly!
@@ -155,7 +155,7 @@ object Expression {
       * @param y another Expression.
       * @return an Expression which is the lazy product of x and y.
       */
-    def plus(y: Expression): Expression =
+    infix def plus(y: Expression): Expression =
       BiFunction(x, y, Sum)
 
     /**
@@ -305,7 +305,7 @@ object Expression {
       * @return the result of the comparison.
       */
     def compare(comparand: Expression): Int =
-      x compare comparand
+      x.compare(comparand)
   }
 
   /**

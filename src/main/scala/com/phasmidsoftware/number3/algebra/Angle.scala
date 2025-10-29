@@ -94,7 +94,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
   def render: String = {
     val prefix = radians.render
     val suffix = "𝛑"
-    (if (prefix == "1") "" else prefix) + suffix
+    (if prefix == "1" then "" else prefix) + suffix
   }
 
   /**
@@ -147,8 +147,6 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
       Some(this + a)
     case x: Scalar =>
       convert(Real.zero) flatMap (r => r doPlus x)
-    case _ =>
-      None
   }
 
   /**
