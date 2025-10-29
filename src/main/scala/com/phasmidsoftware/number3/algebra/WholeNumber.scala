@@ -35,6 +35,8 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
   def compareExact(that: Scalar): Option[Int] = that match {
     case WholeNumber(o) =>
       Some(x.compare(o))
+    case RationalNumber(r) =>
+      Some(Rational(x.toBigInt).compare(r))
     case _ =>
       None
   }
@@ -52,6 +54,8 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
   def convert[T <: Structure](t: T): Option[T] = t match {
     case _: RationalNumber =>
       Some(RationalNumber(Rational(x.toBigInt)).asInstanceOf[T])
+    case _: Real =>
+      Some(Real(x.toDouble, None).asInstanceOf[T])
     case _ =>
       None
   }

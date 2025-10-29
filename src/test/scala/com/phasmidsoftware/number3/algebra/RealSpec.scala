@@ -28,14 +28,14 @@ class RealSpec extends AnyFlatSpec with Matchers {
     fuzzyNumberIsRing.times(x, y) should matchPattern { case Real(6, _) => }
   }
 
-  ignore should "perform division correctly" in {
+  it should "perform division correctly" in {
     val x = Real(6)
     val y = Real(2)
     fuzzyNumberIsRing.div(x, y) should matchPattern { case Real(3, _) => }
   }
 
   // Comparison operations
-  ignore should "compare numbers correctly" in {
+  it should "compare numbers correctly" in {
     val x = Real(1)
     val y = Real(2)
     x.compare(y) shouldBe -1
@@ -51,7 +51,7 @@ class RealSpec extends AnyFlatSpec with Matchers {
   }
 
   // Edge cases and special values
-  ignore should "handle zero correctly" in {
+  it should "handle zero correctly" in {
     val x = Real(0)
     x.isZero shouldBe true
   }

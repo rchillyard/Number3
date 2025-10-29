@@ -12,22 +12,15 @@ import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
 
 /**
-  * A case class representing an angle in radians.
-  *
-  * The `Angle` class models an angle and its associated operations,
-  * enabling addition, inversion, comparison, and rendering of angles.
-  * An `Angle` is expressed in terms of radians and supports exactness
-  * checks, conversions, and a variety of mathematical operations.
-  *
+  * A case class representing an angle in radians. This class implements the `Additive` and `Radians` traits,
+  * allowing operations such as addition, subtraction, and various type conversions.
   * Angle represents the "circle group," which is a compact Abelian (commutative) group under angle addition,
   * where the addition wraps around the circle.
   * It is compact in that it is bounded by -𝛑 and 𝛑.
   *
-  * @param radians a non-Angle numerical value representing the angle in radians
+  * @param radians the value of the angle in radians
   */
 case class Angle(radians: Number) extends Additive[Angle] with Radians {
-
-  require(!radians.isInstanceOf[Angle], "Angle must not be based on an Angle")
 
   /**
     * Compares the current `Angle` instance with another `Number` to determine their exact order.

@@ -3,24 +3,27 @@ package com.phasmidsoftware.number3.algebra
 import algebra.ring.Ring
 import cats.Show
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.Fuzziness
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Value}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number3.algebra.Real.fuzzyNumberIsRing
 import com.phasmidsoftware.number3.core.Structure
+import com.phasmidsoftware.number3.misc.FP
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 /**
-  * Represents a fuzzy real number, which combines a numerical value with an associated fuzziness attribute.
+  * Represents a (usually) fuzzy real number, which combines a numerical value with an associated fuzziness attribute.
   * A fuzzy number expresses imprecision or uncertainty around a central numeric value, enabling computations
   * that consider tolerances or relative inaccuracies in mathematical operations.
   *
   * This class extends additive and multiplicative algebraic structures (`Additive` and `Multiplicative`
   * traits) while implementing `Number` as a base trait to encapsulate numeric-like behavior.
   *
+  * NOTE that a Real with empty fuzz is considered to be exact.
+  *
   * @param value the central numeric value of the fuzzy number
-  * @param fuzz  the degree or extent of fuzziness associated with the numeric value (optional)
+  * @param fuzz  the optional fuzziness associated with the numeric value
   */
 case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive[Real] with Multiplicative[Real] with Number {
 
@@ -46,8 +49,16 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @param t a prototype of the required output.
     * @return an Option wrapping the input number if the conversion is successful, otherwise None
     */
-  def convert[T <: Structure](t: T): Option[T] =
-    Option.when(t.isInstanceOf[Real])(this.asInstanceOf[T])
+  def convert[T <: Structure](t: T): Option[T] = t match {
+    case _: RationalNumber =>
+      FP.whenever(isExact)(Rational.createExact(value).toOption).asInstanceOf[Option[T]]
+    case _: Real =>
+      Some(this).asInstanceOf[Option[T]]
+    case _: Angle =>
+      scale(Real.one / Real.pi).map(Angle(_)).asInstanceOf[Option[T]]
+    case _ =>
+      None
+  }
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
@@ -64,7 +75,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = compare(fuzzyNumberIsRing.zero) == 0
+  def isZero: Boolean =
+    compare(Real.zero) == 0
 
   /**
     * Compares the current `Number` instance with another `Number` instance exactly.
@@ -123,23 +135,6 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
   }
 
   /**
-    * Performs an addition operation between the current `Number` instance and another `Number`.
-    *
-    * This method calculates the sum of the current `Number` and the provided `that` `Number`.
-    * If the operation is successful, it returns an `Option` containing the resulting `Number`.
-    * Otherwise, it returns `None` to indicate that the operation could not be performed.
-    *
-    * @param that the `Number` to be added to the current `Number`
-    * @return an `Option[Number]` containing the result of the addition, or `None` if the operation fails
-    */
-  def doPlus(that: Structure): Option[Structure] = that match {
-    case f@Real(_, _) =>
-      Some(fuzzyNumberIsRing.plus(this, f))
-    case n =>
-      n.convert(this) map (x => fuzzyNumberIsRing.plus(this, x))
-  }
-
-  /**
     * Computes the potential factor associated with this instance.
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
@@ -188,6 +183,31 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     */
   def /(t: Real): Real =
     fuzzyNumberIsRing.inverse(t) map (z => fuzzyNumberIsRing.times(this, z)) getOrElse Real.Infinity
+
+  /**
+    * Scale this Real by the given scalar, provided that it is exact.
+    * This method is used to scale a Real by a scalar that is known to be exact.
+    * If you want to simply multiply this Real by a scalar, use the * operator.
+    *
+    * @param scalar the exact scalar to scale by
+    * @return a scaled Real with the same relative error as this.
+    */
+  def scale(scalar: Scalar): Option[Real] =
+    for {
+      x <- scalar.maybeDouble if scalar.isExact
+      f <- fuzz
+    } yield Real(value * x, f.normalize(x, true))
+
+  /**
+    * Converts the current `Real` instance into an instance of `FuzzyNumber`.
+    *
+    * This method creates a `FuzzyNumber` using the value of the current
+    * `Real`, its numeric type as `PureNumber`, and its associated fuzziness.
+    *
+    * @return a `FuzzyNumber` representation of this `Real` instance
+    */
+  def toOldFuzzyNumber: FuzzyNumber =
+    FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz)
 
   /**
     * Scales the current `Real` instance by the mathematical constant π (pi).
@@ -328,7 +348,8 @@ object Real {
       case 0 =>
         None
       case v =>
-        x.fuzz.map(f => f.normalize(v, relative = true)).map(ff => Real(1 / v, ff))
+        val maybeFuzz: Option[Fuzziness[Double]] = x.fuzz.flatMap(f => f.normalize(v, relative = true))
+        Some(Real(1 / v, maybeFuzz))
     }
 
     /**
@@ -345,8 +366,10 @@ object Real {
       * @param y the denominator `Real` (divisor)
       * @return a `Real` representing the result of dividing `x` by `y`
       */
-    def div(x: Real, y: Real): Real =
-      (fuzzyNumberIsRing.inverse(y) map (z => fuzzyNumberIsRing.times(x, z))).getOrElse(Real(Double.PositiveInfinity, Some(Fuzziness.createFuzz(0)))) // TODO do this properly
+    def div(x: Real, y: Real): Real = {
+      (fuzzyNumberIsRing.inverse(y) map (z => fuzzyNumberIsRing.times(x, z))
+        ).getOrElse(Real(Double.PositiveInfinity, Some(Fuzziness.createFuzz(0))))
+    }
 
     /**
       * Converts an integer value into a `Real` representation.
@@ -393,8 +416,19 @@ object Real {
           println(s"Real: cannot parse String as Real: $str"); None
       }
 
+    /**
+      * Compares two `Real` instances and returns an integer indicating their relative order.
+      *
+      * @param x the first `Real` instance to compare
+      * @param y the second `Real` instance to compare
+      * @return an integer value:
+      *         - negative if `x` is less than `y`
+      *         - zero if `x` is equal to `y`
+      *         - positive if `x` is greater than `y`
+      */
     def compare(x: Real, y: Real): Int =
-      x.compareExact(y) getOrElse ??? // TODO implement this
+      x.compareExact(y) getOrElse
+        x.toOldFuzzyNumber.fuzzyCompare(y.toOldFuzzyNumber, 0.5)
   }
 
   /**

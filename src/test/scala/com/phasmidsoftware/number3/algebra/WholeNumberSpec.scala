@@ -20,7 +20,7 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "test conversion to other Structures" in {
-    zero.convert(Real.zero) shouldBe None
+    zero.convert(Real.zero) shouldBe Some(Real(0, None))
     zero.convert(RationalNumber.zero) shouldBe Some(RationalNumber.zero)
   }
 

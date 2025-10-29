@@ -43,6 +43,8 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
   def compareExact(that: Scalar): Option[Int] = that match {
     case RationalNumber(o) =>
       Some(r.compareTo(o))
+    case WholeNumber(x) =>
+      Some(r.compare(Rational(x.toBigInt)))
     case _ =>
       None
   }
@@ -60,6 +62,8 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
   def convert[T <: Structure](t: T): Option[T] = t match {
     case _: Real =>
       Some(Real(r.toDouble, None).asInstanceOf[T])
+    case _: WholeNumber =>
+      Option.when(r.isWhole)(WholeNumber(r.toBigInt).asInstanceOf[T])
     case _ =>
       None
   }
