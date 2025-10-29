@@ -10,7 +10,7 @@ class RealSpec extends AnyFlatSpec with Matchers {
   behavior of "Real"
 
   // Basic arithmetic operations
-  ignore should "perform addition correctly" in {
+  it should "perform addition correctly" in {
     val x = Real(1)
     val y = Real(2)
     fuzzyNumberIsRing.plus(x, y) compareTo RationalNumber(3) shouldBe 0
