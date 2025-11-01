@@ -3,7 +3,7 @@ package com.phasmidsoftware.number3.core
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.{Complex, Field, Number, Numerical, Real}
-import com.phasmidsoftware.number3.expression.Expression
+import com.phasmidsoftware.number3.expression.{Expression, ExpressionFunction}
 import org.scalactic.Equality
 
 trait FuzzyEquality {
@@ -33,7 +33,7 @@ trait FuzzyEquality {
 
     def areEqual(a: OldNumberLike, b: Any): Boolean = a match {
       case e: Expression =>
-        FieldEquality.areEqual(e.materialize, b)
+        FieldEquality.areEqual(ExpressionFunction.valuableToField(e.materialize), b)
       case s: Solution =>
         FieldEquality.areEqual(s.asField, b)
       case r: Rational =>

@@ -3,6 +3,7 @@ package com.phasmidsoftware.number3.mill
 import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
 import com.phasmidsoftware.number.core.{Field, Number, Real}
+import com.phasmidsoftware.number3.algebra.Valuable
 import com.phasmidsoftware.number3.core.FuzzyEquality
 import com.phasmidsoftware.number3.expression.{Expression, Literal}
 import com.phasmidsoftware.number3.mill.Mill.parseInfix
@@ -200,9 +201,9 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
     val q: Option[Expression] = value.toOption flatMap (_.evaluate)
-    val z = q map (_.materialize)
+    val z: Option[Valuable] = q map (_.materialize)
     z should matchPattern { case Some(_) => }
-    convertToNumber(z.get) shouldEqual Number("3.000*")
+    z.get === Valuable("3.000*")
   }
 
   it should "parse and evaluate:  220xxxx with trailing space" in {
@@ -217,9 +218,9 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   it should "parse infix" in {
-    val result: Option[Field] = parseInfix("12 + 34  +  56  -  78  +  90  -  12").toOption.flatMap(_.evaluate).map(_.materialize)
+    val result: Option[Valuable] = parseInfix("12 + 34  +  56  -  78  +  90  -  12").toOption.flatMap(_.evaluate).map(_.materialize)
     result.isDefined shouldBe true
-    result.get shouldBe Real(102)
+    result.get shouldBe Valuable(102)
   }
 
   private def checkMill(expected: Real, list: List[String]): Assertion = {
@@ -232,8 +233,8 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   private def checkMill(expected: Field, mill: Mill): Assertion = {
-    val q: Option[Field] = mill.evaluate map (_.materialize)
+    val q: Option[Valuable] = mill.evaluate map (_.materialize)
     q should matchPattern { case Some(_) => }
-    q.get should ===(expected)
+    q.get should === (expected)
   }
 }

@@ -82,6 +82,29 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
   def toRational: Option[Rational] = Some(Rational(x.toBigInt))
 
   /**
+    * Scale this Real by the given scalar, provided that it is exact.
+    * This method is used to scale a Real by a scalar that is known to be exact.
+    * If you want to simply multiply this Real by a scalar, use the * operator.
+    *
+    * @param scalar the exact scalar to scale by
+    * @return a scaled Real with the same relative error as this.
+    */
+  def scale(scalar: Scalar): Option[Number] =
+    scalar.toRational.filter(_.isInteger).map(x => WholeNumber(x.toLong))
+
+  /**
+    * Scales the instance of type T by the given integer multiplier.
+    *
+    * This method performs a multiplication operation between the current instance and
+    * the specified integer, returning an optional result. The result is defined if
+    * the scaling operation is valid for the specific implementation.
+    *
+    * @param that the integer multiplier used to scale the instance
+    * @return an Option containing the scaled result of type T, or None if the operation is invalid
+    */
+  def doScaleInt(that: Int): Option[Monotone] = ???
+
+  /**
     * Determines the sign of the scalar value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
     *
@@ -159,7 +182,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     * @param that the `Scalar` instance to be added to the current instance
     * @return an `Option[Scalar]` containing the result of the addition, or `None` if the addition is not valid
     */
-  def doPlus(that: Scalar): Option[Scalar] = that match {
+  infix def doPlus(that: Scalar): Option[Scalar] = that match {
     case a: WholeNumber =>
       Some(this + a)
     case x: Scalar =>

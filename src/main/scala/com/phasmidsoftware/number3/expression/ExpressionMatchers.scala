@@ -9,7 +9,7 @@ import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.{Field, Real}
 import com.phasmidsoftware.number.matchers.*
 import com.phasmidsoftware.number.misc.Bumperator
-import com.phasmidsoftware.number3.algebra.Monotone
+import com.phasmidsoftware.number3.algebra.{Monotone, Valuable}
 import com.phasmidsoftware.number3.core.RestrictedContext
 import com.phasmidsoftware.number3.expression.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField
@@ -168,18 +168,18 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @param x the Number to match.
     * @return a Matcher[Expression, Number].
     */
-  def matchValue(x: Field): ExpressionMatcher[Field] = (value & matchNumber(x)) :| s"matchValue($x)"
+  def matchValue(x: Valuable): ExpressionMatcher[Valuable] = (value & matchNumber(x)) :| s"matchValue($x)"
 
   /**
     * Matcher which matches on Expressions that directly represent Numbers.
     *
     * @return an ExpressionMatcher[Field].
     */
-  def value: ExpressionMatcher[Field] = {
-    case Literal(com.phasmidsoftware.number3.algebra.Valuable(x), _) => Match(x) // TESTME
-    case ValueExpression(com.phasmidsoftware.number3.algebra.Valuable(x), _) => Match(x)
-    case x@com.phasmidsoftware.number.core.Number(_, _) => Match(Real(x)) // TESTME
-    case x: ValueExpression => matchIfDefined(x.evaluateAsIs)(x).map(valuableToField)
+  def value: ExpressionMatcher[Valuable] = {
+    case Literal(v, _) => Match(v) // TESTME
+    case ValueExpression(v, _) => Match(v)
+//    case x@com.phasmidsoftware.number.core.Number(_, _) => Match(Real(x)) // TESTME
+    case x: ValueExpression => matchIfDefined(x.evaluateAsIs)(x)
     case x => Miss("value", x)
   }
 
@@ -190,7 +190,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @param x the `Number` to match.
     * @return a `AutoMatcher[Field]` which matches only on x.
     */
-  private def matchNumber(x: Field): AutoMatcher[Field] =
+  private def matchNumber(x: Valuable): AutoMatcher[Valuable] =
     Matcher("matchNumber") {
       case `x` => Match(x) // TESTME
       case e => Miss("matchNumber", e)

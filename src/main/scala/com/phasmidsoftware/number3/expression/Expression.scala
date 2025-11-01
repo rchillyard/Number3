@@ -5,10 +5,11 @@
 package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Number.convertInt
-import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number.core.{Approximatable, ComplexPolar, Constants, NumberException, NumberLike}
-import com.phasmidsoftware.number3.algebra.{Number, RationalNumber, Scalar, Valuable, WholeNumber, Valuable as apply} // TODO huh?
+import com.phasmidsoftware.number3.algebra.{Number, RationalNumber, Scalar, Valuable, WholeNumber, Valuable as apply}
 import com.phasmidsoftware.number3.core.{AnyContext, Context}
 import com.phasmidsoftware.number3.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
@@ -78,7 +79,7 @@ trait Expression extends NumberLike with Approximatable {
     *
     * @return an optional `Factor`.
     */
-  lazy val maybeFactor: Option[Factor] =
+  def maybeFactor: Option[Factor] =
     evaluateAsIs match {
       case Some(scalar: Scalar) =>
         scalar.maybeFactor
@@ -106,15 +107,15 @@ trait Expression extends NumberLike with Approximatable {
     *
     * @return a `Some(x)` if this materializes as a `Number`; otherwise `None`.
     */
-  def asNumber: Option[Number] =
+  def asNumber: Option[core.Number] =
     if isExact then
       evaluateAsIs match {
-        case Some(x: Number) => Some(x)
+        case Some(x: core.Number) => Some(x)
         case _ => None
       }
     else
       materialize match {
-        case x: Number => Some(x)
+        case x: core.Number => Some(x)
         case _ => None
       }
 
@@ -142,6 +143,33 @@ trait Expression extends NumberLike with Approximatable {
   //  val approx = simplify.approximation getOrElse Real.NaN
 }
 
+object ExpressionHelper {
+  /**
+    * Adds utility methods for evaluating and materializing expressions from a String.
+    * These methods allow parsing and processing of a string as a mathematical or logical expression.
+    *
+    * @param x the input string that represents the expression to be evaluated or materialized.
+    */
+  extension (x: String)
+    def evaluateAsIs: Option[Valuable] =
+      Expression.parse(x).flatMap(_.evaluateAsIs)
+    def evaluate(context: Context = com.phasmidsoftware.number3.core.RestrictedContext(PureNumber)): Option[Valuable] =
+      Expression.parse(x).flatMap(_.evaluate(context))
+    def materialize: Option[Valuable] =
+      Expression.parse(x).map(_.materialize)
+    def render: String =
+      Expression.parse(x).map(_.render).getOrElse("???")
+    def plus(y: Valuable): Option[Valuable] =
+      Expression.parse(s"$x + $y").flatMap(_.evaluateAsIs)
+    def times(y: Valuable): Option[Valuable] =
+      Expression.parse(s"$x * $y").flatMap(_.evaluateAsIs)
+
+  extension (inline sc: StringContext)
+    inline def math(args: Any*): Expression =
+      val parts = sc.parts
+      val interleaved = parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)
+      Expression(interleaved.mkString)
+}
 /**
   * The `Expression` companion object provides utilities for creating, manipulating, and parsing expressions.
   *
@@ -386,7 +414,26 @@ object Expression {
   }
 
   def apply(w: String): Expression = parse(w) getOrElse Noop
-  
+
+  def apply(r: Rational): Expression = apply(Valuable(r))
+
+  /**
+    * The following method is helpful in getting an expression started
+    * (i.e., used as the leftmost operand).
+    */
+  def apply(x: Int): Expression = x match {
+    case -1 =>
+      minusOne
+    case 0 =>
+      zero // TESTME
+    case 1 =>
+      one
+    case 2 =>
+      two // TESTME
+    case _ =>
+      Literal(x)
+  }
+
   /**
     * Method to parse a String as an Expression.
     *
@@ -425,23 +472,6 @@ object Expression {
     */
   implicit def convertRationalToExpression(x: Rational): Expression =
     Expression(RationalNumber(x))
-
-  /**
-    * The following method is helpful in getting an expression started
-    * (i.e., used as the leftmost operand).
-    */
-  def apply(x: Int): Expression = x match {
-    case -1 =>
-      minusOne
-    case 0 =>
-      zero // TESTME
-    case 1 =>
-      one
-    case 2 =>
-      two // TESTME
-    case _ =>
-      Literal(x)
-  }
 
   /**
     * Method to yield a function which can determine if a given expression is an identity for the provided binary function.

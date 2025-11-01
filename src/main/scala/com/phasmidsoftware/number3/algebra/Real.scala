@@ -8,10 +8,11 @@ import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber, NumberException}
 import com.phasmidsoftware.number3.algebra.Real.realIsRing
 import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
+import com.phasmidsoftware.number3.parse.NumberParser
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents a (usually) fuzzy real number, which combines a numerical value with an associated fuzziness attribute.
@@ -168,7 +169,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *
     * @return a string representation of the `Real`
     */
-  def render: String = new com.phasmidsoftware.number.core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
+  def render: String = new core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
 
   /**
     * Performs an addition operation between the current scalar and another scalar.
@@ -239,6 +240,18 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     */
   def /(t: Real): Real =
     realIsRing.inverse(t) map (z => realIsRing.times(this, z)) getOrElse Real.Infinity
+
+  /**
+    * Scales the instance of type T by the given integer multiplier.
+    *
+    * This method performs a multiplication operation between the current instance and
+    * the specified integer, returning an optional result. The result is defined if
+    * the scaling operation is valid for the specific implementation.
+    *
+    * @param that the integer multiplier used to scale the instance
+    * @return an Option containing the scaled result of type T, or None if the operation is invalid
+    */
+  def doScaleInt(that: Int): Option[Monotone] = ???
 
   /**
     * Scale this Real by the given scalar, provided that it is exact.
@@ -312,6 +325,29 @@ object Real {
   def apply(value: Double): Real = apply(value, Some(Fuzziness.doublePrecision))
 
   /**
+    * Constructs a `Real` instance using the numerical value and optional fuzziness of a given `core.Real` instance.
+    *
+    * This method extracts a double-precision value and an optional fuzziness level from the input `core.Real`,
+    * and creates a new `Real` instance initialized with those parameters.
+    *
+    * @param x the input `core.Real` instance, providing the value and optional fuzziness for the new `Real`
+    * @return a `Real` instance initialized with the value and fuzziness derived from the input `core.Real`
+    */
+  def apply(x: core.Real): Real = apply(x.toDouble, x.asNumber.flatMap(_.fuzz))
+  
+  /**
+    * Parses a string representation of a number and constructs a `Real` instance.
+    * If the input string cannot be parsed into a valid number, a `NumberException` is thrown.
+    *
+    * @param w the input string to be parsed and converted into a `Real` instance
+    * @return a `Real` instance constructed from the parsed numeric value of the input string
+    */
+  def apply(w: String): Real = {
+    val z: Try[core.Real] = NumberParser.parseNumber(w).map(x => core.Real(x))
+    FP.getOrThrow[Real](z.map(x => Real(x)).toOption, NumberException(s"Real.apply(String): cannot parse $w"))
+  }
+  
+  /**
     * Constructs a new `Real` instance based on the values of an existing `Real`.
     *
     * This method takes a `Real` instance as an input and creates a new `Real`
@@ -320,7 +356,7 @@ object Real {
     * @param real the input `Real` used to initialize the new `Real` instance
     * @return a `Real` instance initialized with the value of the input `Real`
     */
-  def convertFromOldReal(real: com.phasmidsoftware.number.core.Real): Real =
+  def convertFromOldReal(real: core.Real): Real =
     new Real(real.toDouble, real.asNumber.flatMap(_.fuzz))
     
   /**
@@ -471,7 +507,7 @@ object Real {
       * @return an Option containing the parsed Real if successful, or None if parsing fails
       */
     def parseString(str: String): Option[Real] =
-      com.phasmidsoftware.number.core.Number.parse(str) match {
+      core.Number.parse(str) match {
         case Success(core.Number(v, PureNumber)) =>
           fromFuzzyPureValue(v, None)
         case Success(core.FuzzyNumber(v, PureNumber, fo)) =>

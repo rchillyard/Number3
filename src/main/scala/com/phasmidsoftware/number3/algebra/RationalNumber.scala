@@ -38,7 +38,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * results in the same element. For any element `x`, `x + zero` and `zero + x` should
     * equal `x`.
     */
-  val zero: RationalNumber = rf.zero
+  val zero: RationalNumber = rationalNumberIsField.zero
 
   /**
     * Represents the multiplicative identity element of the structure.
@@ -46,7 +46,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * The `one` value serves as the neutral element for the multiplication operation, meaning
     * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
     */
-  val one: RationalNumber = rf.one
+  val one: RationalNumber = rationalNumberIsField.one
   
   /**
     * Compares the current `Number` instance with another `Number` instance exactly.
@@ -108,7 +108,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @param that the `Number` multiplier used to scale the current instance
     * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
     */
-  infix def doScale(that: Number): Option[Number] = that.toRational match {
+  def scale(that: Scalar): Option[Number] = that.toRational match {
     case Some(n@Rational(_, _)) => Some(RationalNumber(r * n))
     case _ => None
   }
@@ -171,7 +171,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @return a new `T` representing the sum of this `T` and the given `T`
     */
   def +(t: RationalNumber): RationalNumber =
-    rf.plus(this, t) // CONSIDER why doesn't this work with implicitly...?
+    rationalNumberIsField.plus(this, t) // CONSIDER why doesn't this work with implicitly...?
 
   /**
     * Computes the additive inverse of this instance.
@@ -182,7 +182,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @return a new instance of type `T` that is the additive inverse of this instance
     */
   def unary_- : RationalNumber =
-    rf.negate(this)
+    rationalNumberIsField.negate(this)
 
   /**
     * Subtracts the specified `RationalNumber` from this `RationalNumber`.
@@ -201,7 +201,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @param t an instance of `T` to be multiplied by this `T`
     * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
     */
-  def *(t: RationalNumber): RationalNumber = rf.times(this, t)
+  def *(t: RationalNumber): RationalNumber = rationalNumberIsField.times(this, t)
 
   /**
     * Divides this `T` instance by the specified `T`.
@@ -209,7 +209,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @param t an instance of `T` to be the divisor
     * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
     */
-  def /(t: RationalNumber): RationalNumber = rf.div(this, t)
+  def /(t: RationalNumber): RationalNumber = rationalNumberIsField.div(this, t)
 
   /**
     * Computes the multiplicative inverse of this instance.
@@ -247,8 +247,6 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     */
   def maybeFactor: Option[Factor] = Some(PureNumber)
 
-  // CONSIDER why doesn't this work with implicitly...?
-  private val rf: Field[RationalNumber] = rationalNumberIsField
 }
 
 /**

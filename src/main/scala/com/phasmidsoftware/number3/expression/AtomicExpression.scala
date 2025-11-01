@@ -123,28 +123,12 @@ case object Noop extends AtomicExpression {
     throw new UnsupportedOperationException("Noop.evaluate")
 
   /**
-    * Provides an approximation of the expression represented by this object.
-    * Since this implementation represents a no-operation (Noop), there is
-    * no meaningful approximation available.
-    *
-    * @return None, indicating that no approximation can be provided.
-    */
-  def approximation: Option[Real] = None
-
-  /**
     * Method to render this Structure in a presentable manner.
     *
     * @return a String
     */
   def render: String = "Noop"
-
-  /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
-    *
-    * @return an optional `Factor`.
-    */
-  override def maybeFactor: Option[Factor] = None
-
+  
   /**
     *
     */
@@ -152,7 +136,20 @@ case object Noop extends AtomicExpression {
     _ =>
       em.Miss[Expression, Expression]("AtomicExpression: simplifyAtomic: Noop", this)
   )
+
+  def approximation: Option[core.Real] = None
 }
+
+/**
+  * Converts a new `Real` type to an old `Real` type by first transforming
+  * it into a valuable field representation and then casting it to the core `Real`.
+  *
+  * TESTME: this is a hack.
+  * 
+  * @param r The new `Real` type that needs to be converted to the old `Real` type.
+  */
+def newRealToOldReal(r: Real) = 
+  ExpressionFunction.valuableToField(r).asInstanceOf[core.Real]
 
 /**
   * Represents an abstract expression for a Valuable that can optionally be associated with a name.
@@ -207,13 +204,13 @@ sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option
     *
     * @return Some(Real) if the Valuable can be approximated as a Real number, otherwise None.
     */
-  def approximation: Option[Real] = value match {
+  def approximation: Option[com.phasmidsoftware.number.core.Real] = value match {
     case r: Real =>
-      Some(r)
+      Some(newRealToOldReal(r)) // TESTME
     case algebraic: Algebraic =>
       algebraic.solve.asField match {
         case r: com.phasmidsoftware.number.core.Real =>
-          Some(Real(r.toDouble))
+          Some(r)
         case _ =>
           None // TESTME
       }
@@ -813,10 +810,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     *
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */
-  def approximation: Option[Real] = {
-    val result: Option[core.Real] = expression.approximation
-    result.map(x => Real(x.toDouble))
-  }
+  def approximation: Option[core.Real] = expression.approximation
 
   /**
     * Determines if the provided object is equal to the current instance.
@@ -1263,12 +1257,12 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */
-  def approximation: Option[Real] =
+  def approximation: Option[core.Real] =
     maybeValue match {
       case Some(value) =>
-        value.approximation.map(r => Real.convertFromOldReal(r))
+        value.approximation
       case None =>
-        solution.asNumber.map(n => Real.convertFromOldReal(com.phasmidsoftware.number.core.Real(n)))
+        solution.asNumber map (core.Real(_))
     }
 
   /**

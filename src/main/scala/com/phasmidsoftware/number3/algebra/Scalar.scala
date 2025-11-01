@@ -31,12 +31,12 @@ trait Scalar extends Monotone with CanAdd[Scalar] {
   def compareExact(that: Scalar): Option[Int]
 
   /**
-    * Method to determine if this `Structure` object is exact.
-    * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
+    * Converts this `Number` into its corresponding `Rational` representation, if possible.
     *
-    * @return true if this `Structure` object is exact in the context of no factor, else false.
+    * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
+    *         if it can be converted, or `None` if the conversion is not possible.
     */
-  def isExact: Boolean = approximation.isEmpty
+  def toRational: Option[Rational]
 
   /**
     * Represents the scaleFactor of a scalar value as a `Double`.

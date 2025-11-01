@@ -72,6 +72,8 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
     * in the form of a `Real`, which encapsulates uncertainty or imprecision
     * in its value. If no meaningful approximation is possible for the number, it
     * returns `None`.
+    * 
+    * CONSIDER moving this method up into Scalar.
     *
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
@@ -85,6 +87,8 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
     * This method calculates the result of multiplying the current `Number` instance by an integer `n`
     * by repeatedly adding the instance to itself `n - 1` times.
     *
+    * This is really scaleInt(n).
+    * 
     * @param n the multiplier, an integer value by which the current `Number` instance is to be multiplied
     * @return a new `Number` instance representing the result of the multiplication
     */
@@ -96,13 +100,28 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
     }
 
   /**
-    * Converts this `Number` into its corresponding `Rational` representation, if possible.
+    * Scales the current instance of type `T` using the given `Number` multiplier.
     *
-    * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
-    *         if it can be converted, or `None` if the conversion is not possible.
+    * This method performs a scaling operation by multiplying the current instance
+    * with the provided `Number`. The result of the scaling operation is returned
+    * as an `Option`, allowing for cases where the operation might not be valid or
+    * possible.
+    *
+    * @param that the `Number` multiplier used to scale the current instance
+    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
     */
-  def toRational: Option[Rational]
+  def doScale(that: Number): Option[Number] = scale(that)
 
+  /**
+    * Scale this Real by the given scalar, provided that it is exact.
+    * This method is used to scale a Real by a scalar that is known to be exact.
+    * If you want to simply multiply this Real by a scalar, use the * operator.
+    *
+    * @param scalar the exact scalar to scale by
+    * @return a scaled Real with the same relative error as this.
+    */
+  def scale(scalar: Scalar): Option[Number]
+  
   /**
     * A scale factor applied to this `Number`.
     *
@@ -118,20 +137,24 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
   */
 object Number {
   /**
-    * Represents the number one as a `WholeNumber` instance.
-    */
-  val one: Number = WholeNumber.one
-  /**
     * Represents the value `0` as an instance of `WholeNumber`.
     * It is a predefined constant in the `Number` object.
     */
   val zero: Number = WholeNumber.zero
   /**
+    * Represents the number one as a `WholeNumber` instance.
+    */
+  val one: Number = WholeNumber.one
+  /**
     * Represents the value `-1` as an instance of `WholeNumber`.
     * It is a predefined constant in the `Number` object.
     */
   val minusOne: Number = WholeNumber.minusOne
-  
+  /**
+    * Represents the value `2` as an instance of `WholeNumber`.
+    * It is a predefined constant in the `Number` object.
+    */
+  val two: Number = WholeNumber.two
   /**
     *
     */

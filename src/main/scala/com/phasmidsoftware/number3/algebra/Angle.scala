@@ -93,6 +93,14 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
   override def isExact: Boolean = radians.isExact
 
   /**
+    * Converts this `Number` into its corresponding `Rational` representation, if possible.
+    *
+    * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
+    *         if it can be converted, or `None` if the conversion is not possible.
+    */
+  def toRational: Option[Rational] = radians.toRational
+
+  /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
@@ -160,7 +168,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
     * @param that the `Scalar` to be added to the current instance
     * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
     */
-  def doPlus(that: Scalar): Option[Scalar] = that match {
+  infix def doPlus(that: Scalar): Option[Scalar] = that match {
     case a: Angle =>
       Some(this + a)
     case x: Scalar =>
@@ -179,7 +187,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
     */
   infix def doScaleInt(that: Int): Option[Angle] =
     radians.doScaleInt(that).map(x => Angle.apply(x.asInstanceOf[RationalNumber]))
-  
+
   /**
     * Scales the current instance using the provided `Number`.
     *
@@ -273,7 +281,9 @@ object Angle {
   val piBy3: Angle = Angle(RationalNumber(Rational.third))
   val piBy4: Angle = Angle(RationalNumber(Rational(1,4)))
   val piBy2Times3: Angle = Angle(RationalNumber(Rational(3,2)))
-  
+  val twoPi: Angle = Angle(RationalNumber(Rational.two))
+  val negPi: Angle = Angle(RationalNumber(Rational.negOne))
+
   /**
     * Provides an implicit `Show` instance for the `Angle` class, enabling conversion
     * of an `Angle` instance to a string representation using its `render` method.

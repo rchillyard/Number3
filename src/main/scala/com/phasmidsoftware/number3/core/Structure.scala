@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number3.core
 
+import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number3.algebra
 import com.phasmidsoftware.number3.algebra.{Real, Valuable}
 
@@ -82,6 +83,48 @@ object Structure {
   *
   * @see com.phasmidsoftware.number.core.Complex
   */
-case class Complex(complex: com.phasmidsoftware.number.core.Complex) extends  Valuable
+case class Complex(complex: com.phasmidsoftware.number.core.Complex) extends  Valuable {
+  /**
+    * Method to render this `Valuable` for presentation to the user.
+    *
+    * @return a String
+    */
+  def render: String = complex.render
+
+  /**
+    * Determines whether this `Valuable` is exact, i.e., has no approximation.
+    *
+    * CONSIDER it may be possible that there are non-approximatable entities that are not exact either.
+    *
+    * The method returns `true` if there is no approximate representation
+    * available (i.e., `approximation` is `None`), indicating that the
+    * entity is exact. Otherwise, it returns `false`.
+    *
+    * @return a `Boolean` indicating whether the entity is exact (`true`)
+    *         or has an approximation (`false`).
+    */
+  def isExact: Boolean = complex.isExact
+
+  /**
+    * If this `Valuable` is exact, it returns the exact value as a `Double`.
+    * Otherwise, it returns `None`.
+    * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
+    *
+    * @return Some(x) where x is a Double if this is exact, else None.
+    */
+  def maybeDouble: Option[Double] =
+    complex.toRational.map(_.toDouble) // TESTME 
+
+  /**
+    * Optionally retrieves a factor associated with this `Valuable` if one exists (this is a Scalar).
+    *
+    * Factors are components or divisors related to the numerical value represented 
+    * by this `Valuable`. If no such factor exists or is applicable, the result will 
+    * be `None`.
+    *
+    * @return an `Option` containing the `Factor` if available, otherwise `None`.
+    */
+  def maybeFactor: Option[Factor] = complex.maybeFactor
+}
 
 //trait Scalar extends Structure with Ordered[Scalar]

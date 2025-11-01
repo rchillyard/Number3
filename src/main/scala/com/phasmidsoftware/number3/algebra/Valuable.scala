@@ -1,7 +1,7 @@
 package com.phasmidsoftware.number3.algebra
 
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
-import com.phasmidsoftware.number.core.{ExactNumber, GeneralNumber, NumberExceptionWithCause}
+import com.phasmidsoftware.number.core.{Constants, ExactNumber, GeneralNumber, NumberExceptionWithCause}
 import com.phasmidsoftware.number3.core.{Complex, Structure}
 import com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField
 import com.phasmidsoftware.number3.parse.NumberParser
@@ -74,9 +74,12 @@ object Valuable {
   val half: Valuable = RationalNumber(Rational.half)
   val pi: Valuable = Angle.pi
   val piBy2: Valuable = Angle.piBy2
+  val piBy4: Valuable = Angle.piBy4
   val e: Valuable = NatLog.e
   val infinity: Valuable = RationalNumber.zero.inverse
   val negInfinity: Valuable = RationalNumber(Rational.negInfinity)
+  val root2: Valuable = Valuable(Constants.root2)
+  val root3: Valuable = Valuable(Constants.root3)
   
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed
@@ -94,6 +97,8 @@ object Valuable {
         throw NumberExceptionWithCause("Valuable.apply", exception)
     }
 
+  def apply(x: Long): Valuable = WholeNumber(x)
+  
   /**
     * Creates a `Valuable` instance based on the given `Field`.
     * If the `Field` is a `Real` object, it converts it into a `Scalar` representation.

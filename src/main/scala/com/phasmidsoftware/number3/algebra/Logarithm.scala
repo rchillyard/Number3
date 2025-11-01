@@ -16,19 +16,28 @@ import com.phasmidsoftware.number3.misc.FP
 import scala.reflect.ClassTag
 
 /**
-  * A case class representing a Logarithm. This class implements the `Additive` and `Radians` traits,
-  * allowing operations such as addition, subtraction, and various type conversions.
+  * Represents an abstract logarithmic structure.
   *
-  * @param x the value of the Logarithm.
+  * The `Logarithm` class defines properties and operations related to logarithmic
+  * values. This class serves as a base class for implementing logarithmic computations,
+  * adhering to specific mathematical principles such as addition, scaling, and rendering.
+  *
+  * @constructor Creates a new instance of `Logarithm` with the specified value.
+  * @param value the numerical value representing the logarithm
   */
-abstract class Logarithm(val x: Number) extends Additive[Logarithm] with Transformed with CanAdd[Logarithm] with Ordered[Logarithm] {
+abstract class Logarithm(val value: Number) extends Additive[Logarithm] with Transformed with CanAdd[Logarithm] with Ordered[Logarithm] {
 
+  /**
+    * Returns the base of this logarithm.
+    *
+    * @return the base of type `Number`
+    */
   def base: Number
 
   /**
     * Compares this `Logarithm` instance with another `Logarithm` instance.
     *
-    * This method compares the `x` values of the current `Logarithm` instance 
+    * This method compares the `value` values of the current `Logarithm` instance 
     * and the specified `Logarithm` instance using their natural order.
     *
     * @param that the `Logarithm` instance to compare with the current instance
@@ -38,7 +47,7 @@ abstract class Logarithm(val x: Number) extends Additive[Logarithm] with Transfo
     *         - a positive value if this `Logarithm` is greater than `that`
     */
   def compare(that: Logarithm): Int = 
-    x.compare(that.x)
+    value.compare(that.value)
 
   /**
     * Converts the current number to a representation of the specified type `T`, if possible.
@@ -67,7 +76,7 @@ abstract class Logarithm(val x: Number) extends Additive[Logarithm] with Transfo
     * @param that the `Scalar` to be added to the current instance
     * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
     */
-  def doPlus(that: Logarithm): Option[Logarithm] =
+  infix def doPlus(that: Logarithm): Option[Logarithm] =
     if (getClass == that.getClass)
       Some(this + that)
     else
@@ -90,7 +99,7 @@ abstract class Logarithm(val x: Number) extends Additive[Logarithm] with Transfo
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = x.isZero
+  def isZero: Boolean = value.isZero
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -98,7 +107,7 @@ abstract class Logarithm(val x: Number) extends Additive[Logarithm] with Transfo
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = x.compareExact(WholeNumber.zero).get
+  def signum: Int = value.compareExact(WholeNumber.zero).get
 
   /**
     * Method to determine if this Structure object is exact.
@@ -106,30 +115,17 @@ abstract class Logarithm(val x: Number) extends Additive[Logarithm] with Transfo
     *
     * @return true if this Structure object is exact in the context of No factor, else false.
     */
-  override def isExact: Boolean = x.isExact
+  override def isExact: Boolean = value.isExact
 
   /**
     * If this `Valuable` is exact, it returns the exact value as a `Double`.
     * Otherwise, it returns `None`.
     * NOTE: do NOT implement this method to return a Double for a fuzzy Real--only for exact numbers.
     *
-    * @return Some(x) where x is a Double if this is exact, else None.
+    * @return Some(value) where value is a Double if this is exact, else None.
     */
   def maybeDouble: Option[Double] =
     FP.whenever(isExact)(convert(Real.zero) map (_.value))
-
-  /**
-    * Renders this `Logarithm` instance as a string representation of x in terms of π.
-    *
-    * The method formats the radius equivalent to π, omitting the numeric coefficient if it is 1.
-    *
-    * @return a string representation of the `Logarithm` in terms of π
-    */
-  def render: String = {
-    val prefix = x.render
-    val suffix = "𝛑"
-    (if prefix == "1" then "" else prefix) + suffix
-  }
 
   /**
     * Computes the additive inverse of the current `Logarithm` instance.
@@ -146,7 +142,7 @@ abstract class Logarithm(val x: Number) extends Additive[Logarithm] with Transfo
     * Adds the specified `Logarithm` to the current `Logarithm` instance.
     *
     * This method combines the current Logarithm with the provided Logarithm
-    * by adding their respective x, returning a new `Logarithm` instance
+    * by adding their respective value, returning a new `Logarithm` instance
     * representing the sum.
     *
     * @param a the `Logarithm` to be added to the current `Logarithm`
@@ -189,7 +185,7 @@ abstract class Logarithm(val x: Number) extends Additive[Logarithm] with Transfo
   *
   * Logarithm does not support ordering or comparison.
   *
-  * @param x the value of the Logarithm.
+  * @param value the value of the Logarithm.
   */
 case class NatLog(x: Number) extends Logarithm(x) {
 
@@ -200,8 +196,8 @@ case class NatLog(x: Number) extends Logarithm(x) {
     *
     * The additive identity, commonly referred to as "zero," is the element in an
     * additive algebraic structure that, when added to any element of the structure,
-    * results in the same element. For any element `x`, `x + zero` and `zero + x` should
-    * equal `x`.
+    * results in the same element. For any element `value`, `value + zero` and `zero + value` should
+    * equal `value`.
     */
   val zero: Logarithm = NatLog(WholeNumber.zero)
 
@@ -216,7 +212,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
     val c = implicitly[ClassTag[T]]
     if (c.runtimeClass == classOf[Real]) {
       val result: Real = 
-      x match {
+      value match {
         case WholeNumber.one | RationalNumber(Rational.one) => 
           Real(math.E)
         case Real(value, fuzz) =>
@@ -249,31 +245,14 @@ case class NatLog(x: Number) extends Logarithm(x) {
   }
 
   /**
-    * Converts the current number to a representation of the specified type `T`, if possible.
-    *
-    * This method attempts to convert the number to a type `T` that has implicit evidence
-    * of `Ordering`. If the conversion is successful, it returns an `Option` containing the
-    * resulting typed value. If the conversion is not valid or not possible for the given
-    * type `T`, it returns `None`.
-    *
-    * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
-    */
-  def convert[T <: Structure: ClassTag](t: T): Option[T] = t match {
-    case _: Real =>
-      x.approximation.map(x => x.scaleFactor).asInstanceOf[Option[T]]
-    case _ =>
-      None
-  }
-
-  /**
-    * Renders this `Logarithm` instance as a string representation of x in terms of π.
+    * Renders this `Logarithm` instance as a string representation of value in terms of π.
     *
     * The method formats the radius equivalent to π, omitting the numeric coefficient if it is 1.
     *
     * @return a string representation of the `Logarithm` in terms of π
     */
   def render: String = {
-    val number = x.render
+    val number = value.render
     "e" + (if (number == "1") "" else s"^$number")
   }
 
@@ -290,7 +269,7 @@ object NatLog {
   /**
     * Represents the zero value of the `Logarithm` class.
     *
-    * This is a predefined constant which corresponds to an `Logarithm` of zero x.
+    * This is a predefined constant which corresponds to an `Logarithm` of zero value.
     * It is used as the additive identity in operations involving Logarithms.
     */
   val one: Logarithm = NatLog(WholeNumber.zero)
@@ -330,18 +309,18 @@ object Logarithm {
     */
   implicit object LogarithmIsCommutativeMonoid extends CommutativeMonoid[Logarithm] {
     /**
-      * Provides the identity element for the `Logarithm` group, representing an Logarithm of zero x.
+      * Provides the identity element for the `Logarithm` group, representing an Logarithm of zero value.
       *
-      * @return an `Logarithm` instance with zero x, acting as the identity element in the group structure.
+      * @return an `Logarithm` instance with zero value, acting as the identity element in the group structure.
       */
     def empty: Logarithm = NatLog.one
 
     /**
-      * Combines two `Logarithm` instances by adding their respective x.
+      * Combines two `Logarithm` instances by adding their respective value.
       *
       * @param x the first `Logarithm` to combine
       * @param y the second `Logarithm` to combine
-      * @return a new `Logarithm` representing the sum of the x of the two provided `Logarithm` instances
+      * @return a new `Logarithm` representing the sum of the value of the two provided `Logarithm` instances
       */
     def combine(x: Logarithm, y: Logarithm): Logarithm = (x, y) match {
       case (a, b) if a.getClass == b.getClass =>
