@@ -320,18 +320,18 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     euler.materialize shouldBe Constants.minusOne
   }
 
-  behavior of "FieldExpression"
+  behavior of "ValueExpression"
   it should "Zero be equal to zero" in {
     val target = Literal(Constants.zero)
     target shouldBe Zero
     target should matchPattern { case Literal(Constants.zero, _) => }
-    target should matchPattern { case FieldExpression(Constants.zero, _) => }
+    target should matchPattern { case ValueExpression(Constants.zero, _) => }
   }
   it should "One be equal to one" in {
     val target = Literal(Constants.one)
     target shouldBe One
     target should matchPattern { case Literal(Constants.one, _) => }
-    target should matchPattern { case FieldExpression(Constants.one, _) => }
+    target should matchPattern { case ValueExpression(Constants.one, _) => }
   }
 
   behavior of "simplifyConstant"

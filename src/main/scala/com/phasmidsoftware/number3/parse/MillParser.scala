@@ -32,7 +32,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     def toItems: Seq[Item] = this match {
       case AnadicTerm(x) => x match {
         case Left(w) => Seq(Item(w))
-        case Right(n) => Seq(Expr(Expression(Real(n))))
+        case Right(n) => Seq(Expr(Expression(com.phasmidsoftware.number3.algebra.Valuable(Real(n)))))
       }
       case MonadicTerm(x, os, p) => x.toItems ++ os.map(Item(_)) :+ Item(p)
       case DyadicTerm(x, p) => x.toItems ++ p.toItems

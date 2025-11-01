@@ -6,7 +6,8 @@ import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber}
 import com.phasmidsoftware.number3.core.Structure
 
 /**
-  * Represents a `Scalar`, which is one-dimensional `Structure` that can be ordered
+  * Represents a `Scalar`, which is a `Monotone` that is linear with other scalar quantities and
+  * thus has a scale factor defined.
   * and supports various mathematical operations and properties. Scalars include both
   * exact and approximate numerical entities.
   *
@@ -14,7 +15,20 @@ import com.phasmidsoftware.number3.core.Structure
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Scalar` object.
   */
-trait Scalar extends Structure {
+trait Scalar extends Monotone with CanAdd[Scalar] {
+
+  /**
+    * Compares this `Scalar` with another `Scalar` for exact equivalence.
+    * This method checks if both instances can be compared exactly.
+    *
+    * @param that the `Scalar` instance to compare against
+    * @return an `Option[Int]` value:
+    *         - `Some(-1)` if this `Scalar` is less than `that`
+    *         - `Some(0)` if this `Scalar` is equal to `that`
+    *         - `Some(1)` if this `Scalar` is greater than `that`
+    *         - `None` if the exact comparison is not possible
+    */
+  def compareExact(that: Scalar): Option[Int]
 
   /**
     * Method to determine if this `Structure` object is exact.
@@ -25,11 +39,11 @@ trait Scalar extends Structure {
   def isExact: Boolean = approximation.isEmpty
 
   /**
-    * Represents the scale of a scalar value as a `Double`.
+    * Represents the scaleFactor of a scalar value as a `Double`.
     * This value indicates the magnitude by which a scalar is scaled,
     * and the conversion factor to yield a `PureNumber`.
     */
-  val scale: Double
+  val scaleFactor: Double
 
   /**
     * Attempts to yield a factor for the instance, if available.
@@ -55,20 +69,19 @@ trait Scalar extends Structure {
   def approximation: Option[Real]
 
   /**
-    * Adds this `Scalar` to another `Scalar` and returns the result as an `Option[Scalar]`.
-    * The addition may not always be valid, depending on the context or properties of the `Scalar`s.
-    *
-    * @param that the `Scalar` to be added to the current instance
-    * @return an `Option[Scalar]` containing the result of the addition, or `None` if the operation is not valid
-    */
-  infix def doPlus(that: Scalar): Option[Scalar]
-
-  /**
     * Determines if the current number is equal to zero.
     *
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean
+  
+  /**
+    * Determines the sign of the scalar value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int
 }
 
 /**
@@ -146,5 +159,5 @@ trait Radians extends Scalar {
   /**
     * Represents the scalar value for converting radians to a pure number, using Pi as the scaling factor.
     */
-  val scale: Double = math.Pi // TODO change this to be an exact number (not a Double)
+  val scaleFactor: Double = math.Pi // TODO change this to be an exact number (not a Double)
 }

@@ -24,7 +24,7 @@ class RationalNumberSpec extends AnyFlatSpec with Matchers {
 
   it should "doPlus Angle" in {
     val x = Angle.pi
-    val y = Angle.pi_2
+    val y = Angle.piBy2
     x doPlus y shouldBe Some(-y)
     val z = Angle.pi
     x doPlus z shouldBe Some(Angle.zero)

@@ -1,6 +1,7 @@
 package com.phasmidsoftware.number3.algebra
 
 import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number3.misc.FP
 
 import scala.language.implicitConversions
@@ -9,8 +10,10 @@ import scala.language.implicitConversions
   * Represents a pure number that can be compared, approximated, and converted to other types.
   *
   * `Number` is a trait that extends the `Scalar` trait, adding functionality for ordered comparison.
+  * 
+  * CONSIDER why does it not extend Ordered[Number]?
   */
-trait Number extends Scalar with Ordered[Scalar] {
+trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
   /**
     * Compares this `Number` instance with a `Scalar` instance.
     *
@@ -63,19 +66,6 @@ trait Number extends Scalar with Ordered[Scalar] {
       -that.compare(this)
 
   /**
-    * Compares this `Scalar` with another `Scalar` for exact equivalence.
-    * This method checks if both instances can be compared exactly.
-    *
-    * @param that the `Scalar` instance to compare against
-    * @return an `Option[Int]` value:
-    *         - `Some(-1)` if this `Scalar` is less than `that`
-    *         - `Some(0)` if this `Scalar` is equal to `that`
-    *         - `Some(1)` if this `Scalar` is greater than `that`
-    *         - `None` if the exact comparison is not possible
-    */
-  def compareExact(that: Scalar): Option[Int]
-
-  /**
     * Provides an approximation of this number, if applicable.
     *
     * This method attempts to compute an approximate representation of the number
@@ -99,22 +89,49 @@ trait Number extends Scalar with Ordered[Scalar] {
     * @return a new `Number` instance representing the result of the multiplication
     */
   def *(n: Int): Option[Number] =
-    (1 until n).foldLeft[Option[Number]](Some(this)) {
+    Range(1,n).foldLeft[Option[Number]](Some(this)) { // CONSIDER putting "Range(1,n)" back to "1 until n".
       case (Some(a), _) =>
         (this doPlus a).asInstanceOf[Option[Number]] // TODO check that this is OK
       case (None, _) => None
     }
 
   /**
-    * A scale factor applied to the `Number` instance.
+    * Converts this `Number` into its corresponding `Rational` representation, if possible.
     *
-    * The `scale` represents a multiplier that influences computations or adjustments involving this number.
-    * It is commonly used to scale or manipulate the magnitude of the number in various arithmetic or operational contexts.
+    * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
+    *         if it can be converted, or `None` if the conversion is not possible.
     */
-  val scale: Double = 1.0
+  def toRational: Option[Rational]
+
+  /**
+    * A scale factor applied to this `Number`.
+    *
+    * The `scaleFactor` represents a multiplier that influences computations or adjustments involving this number.
+    * It is commonly used to scaleFactor or manipulate the magnitude of the number in various arithmetic or operational contexts.
+    */
+  val scaleFactor: Double = 1.0
 }
 
+/**
+  * The `Number` object provides predefined constants and implicit conversions related to numerical operations.
+  * It includes representations of common numbers and utilities to work with the `Number` type.
+  */
 object Number {
+  /**
+    * Represents the number one as a `WholeNumber` instance.
+    */
+  val one: Number = WholeNumber.one
+  /**
+    * Represents the value `0` as an instance of `WholeNumber`.
+    * It is a predefined constant in the `Number` object.
+    */
+  val zero: Number = WholeNumber.zero
+  /**
+    * Represents the value `-1` as an instance of `WholeNumber`.
+    * It is a predefined constant in the `Number` object.
+    */
+  val minusOne: Number = WholeNumber.minusOne
+  
   /**
     *
     */

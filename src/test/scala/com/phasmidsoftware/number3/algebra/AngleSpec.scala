@@ -9,7 +9,7 @@ class AngleSpec extends AnyFlatSpec with Matchers {
 
   private val zero: Angle = Angle.zero
   private val pi: Angle = Angle.pi
-  private val piBy2: Angle = Angle.pi_2
+  private val piBy2: Angle = Angle.piBy2
 
   behavior of "Angle"
 

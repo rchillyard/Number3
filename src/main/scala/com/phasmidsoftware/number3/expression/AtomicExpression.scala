@@ -4,12 +4,15 @@
 
 package com.phasmidsoftware.number3.expression
 
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.Number.one
 import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
-import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.{Complex, Constants, ExactNumber, Field, Number, Real}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational, Value}
+import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, Number}
+import com.phasmidsoftware.number3.algebra.{Additive, Angle, Multiplicative, MultiplicativeWithInverse, Nat, NatLog, RationalNumber, Real, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number3.core.{AnyContext, Complex, Context, Structure}
 import com.phasmidsoftware.number3.expression.Expression.em
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
 
@@ -39,13 +42,6 @@ sealed trait AtomicExpression extends Expression {
   def isAtomic: Boolean = true
 
   /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
-    *
-    * @return an optional `Factor`.
-    */
-  def maybeFactor: Option[Factor]
-
-  /**
     * @return 1.
     */
   def depth: Int = 1
@@ -65,45 +61,43 @@ sealed trait AtomicExpression extends Expression {
   * Provides utility methods for working with instances of `AtomicExpression`.
   *
   * The `unapply` method enables pattern matching on `AtomicExpression` instances, providing an
-  * optional `Field` as a result based on the type of the expression. The behavior of this method
-  * varies for different subtypes of `AtomicExpression`, such as `Complex`, `FieldExpression`,
-  * `Literal`, `Field`, `Noop`, and `ReducedQuadraticRoot`.
+  * optional `Valuable` as a result based on the type of the expression. The behavior of this method
+  * varies for different subtypes of `AtomicExpression`, such as `Complex`, `ValueExpression`,
+  * `Literal`, `Valuable`, `Noop`, and `ReducedQuadraticRoot`.
   *
   * Notes:
-  * - For `Complex`, the method directly returns the `Complex` instance as a `Field`.
-  * - For `FieldExpression` and `Literal`, the value of the field is returned, but the name
+  * - For `Complex`, the method directly returns the `Complex` instance as a `Valuable`.
+  * - For `ValueExpression` and `Literal`, the value of the Valuable is returned, but the name
   * might be discarded during extraction.
-  * - For `Field`, the method directly returns the field.
+  * - For `Valuable`, the method directly returns the Valuable.
   * - For `ReducedQuadraticRoot`, the method attempts to evaluate it "as-is."
   * - For `Noop`, the method returns `None`.
   *
   * Considerations:
-  * - The use of `Complex` and `Field` directly in the extraction may warrant re-evaluation.
-  * - The potential loss of the name in `FieldExpression` and `Literal` is noted as a trade-off.
+  * - The use of `Complex` and `Valuable` directly in the extraction may warrant re-evaluation.
+  * - The potential loss of the name in `ValueExpression` and `Literal` is noted as a trade-off.
   */
 object AtomicExpression {
   /**
-    * Extracts an optional `Field` from an `AtomicExpression` instance based on its type.
+    * Extracts an optional `Valuable` from an `AtomicExpression` instance based on its type.
     * This method provides a mechanism for pattern matching on subtypes of `AtomicExpression`,
-    * returning a `Field` where applicable.
+    * returning a `Valuable` where applicable.
     *
-    * @param arg the `AtomicExpression` instance from which the `Field` is to be extracted.
-    *            This can be one of the subtypes such as `Complex`, `FieldExpression`, `Literal`,
-    *            `Field`, `Noop`, or `ReducedQuadraticRoot`.
-    * @return an `Option` containing the extracted `Field` if one can be determined based on the
-    *         type of `arg`. Returns `None` if no `Field` can be extracted, e.g., in the case of `Noop`.
+    * @param arg the `AtomicExpression` instance from which the `Valuable` is to be extracted.
+    *            This can be one of the subtypes such as `Complex`, `ValueExpression`, `Literal`,
+    *            `Valuable`, `Noop`, or `ReducedQuadraticRoot`.
+    * @return an `Option` containing the extracted `Valuable` if one can be determined based on the
+    *         type of `arg`. Returns `None` if no `Valuable` can be extracted, e.g., in the case of `Noop`.
     */
-  def unapply(arg: AtomicExpression): Option[Field] = arg match {
+  def unapply(arg: AtomicExpression): Option[Valuable] = arg match {
     case c: Complex =>
       Some(c) // CONSIDER eliminate this?  // TESTME
-    case FieldExpression(x, _) =>
+    case ValueExpression(x, _) =>
       Some(x) // NOTE we lose the name here.
     case Literal(x, _) =>
       Some(x) // NOTE we lose the name here. // TESTME
     case r: Root =>
       r.evaluateAsIs // TESTME
-    case f: Field =>
-      Some(f) // CONSIDER eliminate this?
     case _ => // TESTME
       None
   }
@@ -116,16 +110,16 @@ object AtomicExpression {
   */
 case object Noop extends AtomicExpression {
 
-  def value: Field =
+  def value: Valuable =
     throw new UnsupportedOperationException("Noop.value")
 
   /**
-    * Action to evaluate this `Expression` as a `Field`,
+    * Action to evaluate this `Expression` as a `Valuable`,
     * NOTE: no simplification occurs here.
     *
-    * @return a `Field`.
+    * @return a `Valuable`.
     */
-  def evaluate(context: Context): Option[Field] =
+  def evaluate(context: Context): Option[Valuable] =
     throw new UnsupportedOperationException("Noop.evaluate")
 
   /**
@@ -149,7 +143,7 @@ case object Noop extends AtomicExpression {
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] = None
+  override def maybeFactor: Option[Factor] = None
 
   /**
     *
@@ -161,69 +155,65 @@ case object Noop extends AtomicExpression {
 }
 
 /**
-  * Represents an abstract expression for a field that can optionally be associated with a name.
+  * Represents an abstract expression for a Valuable that can optionally be associated with a name.
   *
-  * A `FieldExpression` provides methods for evaluating its qualifications within
+  * A `ValueExpression` provides methods for evaluating its qualifications within
   * a given context, rendering its representation, and determining equality or hashing.
   * It extends the `AtomicExpression` trait, allowing it to be used wherever atomic
   * expressions are valid.
   *
   * CONSIDER placing maybeName in the second parameter list.
   *
-  * @param value     the `Field` associated with the expression
-  * @param maybeName an optional name for the field expression
+  * @param value     the `Valuable` associated with the expression
+  * @param maybeName an optional name for the Valuable expression
   */
-sealed abstract class FieldExpression(val value: Field, val maybeName: Option[String] = None) extends AtomicExpression {
+sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option[String] = None) extends AtomicExpression {
 
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic expression as its result.
-    * NOTE that, if there is a result defined, it is exact and, preferably, a `FieldExpression`.
+    * NOTE that, if there is a result defined, it is exact and, preferably, a `ValueExpression`.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing a `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing a `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression]
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression]
 
   /**
-    * Evaluates the current field expression within the given context and determines
-    * if the field qualifies based on the context's rules.
+    * Evaluates the current Valuable expression within the given context and determines
+    * if the Valuable qualifies based on the context's rules.
     *
-    * NOTE: we now have Field values that may not have a unique factor (Algebraics).
+    * NOTE: we now have Valuable values that may not have a unique factor (Algebraics).
     * That's why we need to check first if value has a unique factor.
     *
-    * If the field meets the qualifications specified by the context, the method
-    * returns an `Option` containing the field. Otherwise, it returns `None`.
+    * If the Valuable meets the qualifications specified by the context, the method
+    * returns an `Option` containing the Valuable. Otherwise, it returns `None`.
     *
-    * @param context the context in which the field is evaluated. It defines the
-    *                qualification rules for determining whether the field is valid.
-    * @return `Some(Field)` if the field qualifies within the given context, otherwise `None`.
+    * @param context the context in which the Valuable is evaluated. It defines the
+    *                qualification rules for determining whether the Valuable is valid.
+    * @return `Some(Valuable)` if the Valuable qualifies within the given context, otherwise `None`.
     */
-  def evaluate(context: Context): Option[Field] =
-    Option.when(value.maybeFactor.isDefined && context.fieldQualifies(value))(value)
-
+  def evaluate(context: Context): Option[Valuable] = value match {
+    case nat: Nat => Some(nat)
+    case scalar: com.phasmidsoftware.number3.algebra.Scalar =>
+      Option.when(scalar.maybeFactor.isDefined && context.valuableQualifies(scalar))(value)
+    case _ => ???
+  }
+  
   /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
+    * Attempts to approximate the current Valuable expression as a Real number.
     *
-    * @return an optional `Factor`.
-    */
-  def maybeFactor: Option[Factor] =
-    evaluateAsIs flatMap (_.maybeFactor)
-
-  /**
-    * Attempts to approximate the current field expression as a Real number.
-    *
-    * @return Some(Real) if the field can be approximated as a Real number, otherwise None.
+    * @return Some(Real) if the Valuable can be approximated as a Real number, otherwise None.
     */
   def approximation: Option[Real] = value match {
     case r: Real =>
       Some(r)
     case algebraic: Algebraic =>
       algebraic.solve.asField match {
-        case r: Real =>
-          Some(r)
+        case r: com.phasmidsoftware.number.core.Real =>
+          Some(Real(r.toDouble))
         case _ =>
           None // TESTME
       }
@@ -247,15 +237,15 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
     maybeName getOrElse value.toString
 
   /**
-    * Compares this `FieldExpression` with another object for equality.
-    * The comparison considers the `value` field and whether the other object can
+    * Compares this `ValueExpression` with another object for equality.
+    * The comparison considers the `value` Valuable and whether the other object can
     * be equal to this instance.
     *
     * @param other the object to compare for equality with this instance.
     * @return true if the provided object is equal to this instance, false otherwise.
     */
   override def equals(other: Any): Boolean = other match {
-    case that: FieldExpression =>
+    case that: ValueExpression =>
       that.canEqual(this) &&
         value == that.value
     case _ =>
@@ -263,50 +253,50 @@ sealed abstract class FieldExpression(val value: Field, val maybeName: Option[St
   }
 
   /**
-    * Computes the hash code for this `FieldExpression` instance.
+    * Computes the hash code for this `ValueExpression` instance.
     *
-    * The hash code is derived from the hash code of the `value` field, ensuring
+    * The hash code is derived from the hash code of the `value` Valuable, ensuring
     * that the behavior adheres to the contract of the `hashCode` method,
     * particularly in relation to the `equals` method.
     *
-    * @return an integer hash code that represents this `FieldExpression` instance.
+    * @return an integer hash code that represents this `ValueExpression` instance.
     */
   override def hashCode(): Int = value.hashCode()
 
   /**
-    * Determines whether the provided object can be considered equal to an instance of `FieldExpression`.
+    * Determines whether the provided object can be considered equal to an instance of `ValueExpression`.
     *
     * @param other the object to compare with this instance.
-    * @return true if the provided object is an instance of `FieldExpression`, false otherwise.
+    * @return true if the provided object is an instance of `ValueExpression`, false otherwise.
     */
   private def canEqual(other: Any): Boolean =
-    other.isInstanceOf[FieldExpression]
+    other.isInstanceOf[ValueExpression]
 }
 
 /**
-  * The `FieldExpression` companion object provides a mechanism to extract elements from a `FieldExpression` instance.
-  * It defines the `unapply` method to enable pattern matching and decomposition of `FieldExpression` objects.
+  * The `ValueExpression` companion object provides a mechanism to extract elements from a `ValueExpression` instance.
+  * It defines the `unapply` method to enable pattern matching and decomposition of `ValueExpression` objects.
   *
-  * The extraction operation retrieves the underlying `Field` and an optional name, if available.
+  * The extraction operation retrieves the underlying `Valuable` and an optional name, if available.
   * It handles two main cases:
-  * 1. For instances of `Literal`, it extracts the `Field` value along with `None` for the optional name.
-  * 2. For other cases, it extracts the `Field` value along with its associated optional name.
+  * 1. For instances of `Literal`, it extracts the `Valuable` value along with `None` for the optional name.
+  * 2. For other cases, it extracts the `Valuable` value along with its associated optional name.
   *
-  * @see FieldExpression
+  * @see ValueExpression
   * @see Literal
   */
-object FieldExpression {
+object ValueExpression {
   /**
-    * Extracts components from a `FieldExpression` instance, enabling pattern matching.
+    * Extracts components from a `ValueExpression` instance, enabling pattern matching.
     *
-    * The `unapply` method decomposes a `FieldExpression` into its constituent `Field` and an
+    * The `unapply` method decomposes a `ValueExpression` into its constituent `Valuable` and an
     * optional name. For instances of `Literal`, the optional name is always `None`.
     *
-    * @param f the `FieldExpression` to be decomposed.
-    * @return an `Option` containing a tuple of the `Field` and an optional name derived
-    *         from the given `FieldExpression`. If the input cannot be decomposed, returns `None`.
+    * @param f the `ValueExpression` to be decomposed.
+    * @return an `Option` containing a tuple of the `Valuable` and an optional name derived
+    *         from the given `ValueExpression`. If the input cannot be decomposed, returns `None`.
     */
-  def unapply(f: FieldExpression): Option[(Field, Option[String])] = f match {
+  def unapply(f: ValueExpression): Option[(Valuable, Option[String])] = f match {
     case Literal(x, _) =>
       Some((x, None))
     case _ =>
@@ -315,12 +305,12 @@ object FieldExpression {
 }
 
 /**
-  * A `FieldExpression` based on a literal `Field`.
+  * A `ValueExpression` based on a literal `Valuable`.
   *
-  * @param value     the `Field`.
+  * @param value     the `Valuable`.
   * @param maybeName an optional name (typically this will be None).
   */
-case class Literal(override val value: Field, override val maybeName: Option[String] = None) extends FieldExpression(value, maybeName) {
+case class Literal(override val value: Valuable, override val maybeName: Option[String] = None) extends ValueExpression(value, maybeName) {
 
   /**
     * Attempts to simplify literal expressions within the `Expression` context by matching against predefined constants.
@@ -351,7 +341,7 @@ case class Literal(override val value: Field, override val maybeName: Option[Str
       em.Match(Two)
     case Literal(Constants.half, _) =>
       em.Match(Half)
-    case Literal(Constants.pi, _) | Literal(Real(Number.pi), _) =>
+    case Literal(Constants.pi, _) | Literal(Angle.pi, _) =>
       em.Match(ConstPi)
     case Literal(Constants.e, _) =>
       em.Match(ConstE)
@@ -364,31 +354,32 @@ case class Literal(override val value: Field, override val maybeName: Option[Str
   }
 
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = (f, value) match {
-    case (Negate, r@Real(ExactNumber(_, _: Scalar))) =>
-      someLiteral(-r)
-    case (Reciprocal, r@Real(ExactNumber(_, PureNumber))) =>
-      someLiteral(r.invert)
-    case (Reciprocal, a: Algebraic) =>
-      someLiteral(a.invert)
-    case (Reciprocal, c: Complex) =>
-      someLiteral(c.invert)
-    case (Ln, r@Real(ExactNumber(_, PureNumber))) =>
-      someLiteral(r.ln)
-    case (Exp, r@Real(ExactNumber(_, PureNumber))) =>
-      someLiteral(r.exp)
-    case (Sine, r@Real(ExactNumber(_, Radian))) =>
-      someLiteral(r.sin)
-    case (Cosine, r@Real(ExactNumber(_, Radian))) =>
-      someLiteral(r.cos)
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = (f, value) match {
+    case (Negate, r: Additive[?]) =>
+      someLiteral((-r).asInstanceOf[Valuable])
+    case (Reciprocal, r: MultiplicativeWithInverse[?]) =>
+      someLiteral(r.inverse.asInstanceOf[Valuable])
+      // TODO implement all of these cases
+//    case (Reciprocal, a: Algebraic) =>
+//      someLiteral(a.invert)
+//    case (Reciprocal, c: Complex) =>
+//      someLiteral(c.complex.invert) // TODO refactor this
+//    case (Ln, r@Real(x,None)) =>
+//      someLiteral(r.ln)
+//    case (Exp, r@Real(x,None)) =>
+//      someLiteral(r.exp)
+//    case (Sine, r@Real(x,None)) =>
+//      someLiteral(r.sin)
+//    case (Cosine, r@Real(x,None)) =>
+//      someLiteral(r.cos)
     // TODO implement for other functions
     case _ =>
       None
@@ -400,13 +391,13 @@ case class Literal(override val value: Field, override val maybeName: Option[Str
   */
 object Literal {
   /**
-    * Extracts a Field value from a Literal instance.
+    * Extracts a Valuable value from a Literal instance.
     * CONSIDER this may never be invoked.
     *
-    * @param arg the Literal instance to extract the Field from.
-    * @return an Option containing the extracted Field, or None if extraction is not possible.
+    * @param arg the Literal instance to extract the Valuable from.
+    * @return an Option containing the extracted Valuable, or None if extraction is not possible.
     */
-  def unapply(arg: Literal): Option[(Field, Option[String])] =
+  def unapply(arg: Literal): Option[(Valuable, Option[String])] =
     Some(arg.value, arg.maybeName)
 
   /**
@@ -429,13 +420,8 @@ object Literal {
     * @param x the Rational value to be wrapped in a Literal
     * @return a Literal instance containing the given Rational value encapsulated in a Real
     */
-  def apply(x: Rational): Expression = x match {
-    case Rational(n, Rational.bigOne) =>
-      Literal(Real(n))
-    case Rational.half =>
-      Half // TESTME
-    case _ => Literal(Real(x))
-  }
+  def apply(x: Rational): Expression =
+    apply(RationalNumber(x))
 
   /**
     * Creates a new Literal instance wrapping the given Double value.
@@ -468,23 +454,25 @@ object Literal {
     case Number.e =>
       ConstE
     case _ =>
-      Literal(Real(x))
+      Literal(Scalar(x))
   }
+  
+  def apply(x: Algebraic): Expression = Literal(Valuable(x))
 
-  def someLiteral(x: Field): Option[Literal] = Some(Literal(x))
+  def someLiteral(x: Valuable): Option[Literal] = Some(Literal(x))
 }
 
 /**
-  * Represents a specific constant whose value is a `Field` with an associated name.
+  * Represents a specific constant whose value is a `Valuable` with an associated name.
   *
-  * This abstract class extends [[FieldExpression]], allowing for named representation
-  * of constants in mathematical expressions, while being tied to a specific field type.
+  * This abstract class extends [[ValueExpression]], allowing for named representation
+  * of constants in mathematical expressions, while being tied to a specific Valuable type.
   *
-  * @constructor Creates a named constant within the context of the provided field.
-  * @param x    the mathematical field to which this constant belongs.
+  * @constructor Creates a named constant within the context of the provided Valuable.
+  * @param x    the mathematical Valuable to which this constant belongs.
   * @param name the name associated with this constant.
   */
-abstract class NamedConstant(x: Field, name: String) extends FieldExpression(x, Some(name)) {
+abstract class NamedConstant(x: Valuable, name: String) extends ValueExpression(x, Some(name)) {
   def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("simplifyAtomic")(
       _ =>
@@ -493,34 +481,34 @@ abstract class NamedConstant(x: Field, name: String) extends FieldExpression(x, 
 }
 
 /**
-  * An abstract representation of a scalar constant in a specific mathematical field,
+  * An abstract representation of a scalar constant in a specific mathematical Valuable,
   * for example, π (pi), 1, 0, but not `e`.
   *
   * This class extends `NamedConstant`, tying the scalar constant to a particular
-  * `Field` instance and associating it with a specific name. It is designed to
+  * `Valuable` instance and associating it with a specific name. It is designed to
   * represent immutable scalar constants in mathematical expressions, leveraging
-  * the properties and operations of the `Field`.
+  * the properties and operations of the `Valuable`.
   *
-  * @param x    the `Field` instance representing the value of the scalar constant.
+  * @param x    the `Valuable` instance representing the value of the scalar constant.
   * @param name the name associated with the scalar constant.
   */
-abstract class ScalarConstant(x: Field, name: String) extends NamedConstant(x, name)
+abstract class ScalarConstant(x: Valuable, name: String) extends NamedConstant(x, name)
 
 /**
   * Represents the mathematical constant zero.
   * This object extends the `ScalarConstant` class, providing implementation specific to zero.
   */
-case object Zero extends ScalarConstant(Constants.zero, "0") {
+case object Zero extends ScalarConstant(WholeNumber.zero, "0") {
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Negate =>
       Some(this)
     case Exp =>
@@ -543,19 +531,19 @@ case object Zero extends ScalarConstant(Constants.zero, "0") {
   * - A context definition for the constant.
   * - A string representation of the constant.
   */
-case object Half extends ScalarConstant(Constants.half, "\u00BD") {
+case object Half extends ScalarConstant(RationalNumber.half, "\u00BD") {
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Negate =>
-      Literal.someLiteral(-Constants.half) // TESTME
+      Literal.someLiteral(-RationalNumber.half) // TESTME
     case Reciprocal =>
       Some(Two) // TESTME
     case _ =>
@@ -569,17 +557,17 @@ case object Half extends ScalarConstant(Constants.half, "\u00BD") {
   * `One` is a case object that extends `ScalarConstant`, indicating that it is a well-defined,
   * immutable, and atomic mathematical value.
   */
-case object One extends ScalarConstant(Constants.one, "1") {
+case object One extends ScalarConstant(WholeNumber.one, "1") {
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Negate =>
       Some(MinusOne)
     case Reciprocal =>
@@ -599,20 +587,20 @@ case object One extends ScalarConstant(Constants.one, "1") {
   * MinusOne is a specific instance of the `ScalarConstant` class, which evaluates to
   * the numerical value -1 regardless of the context.
   *
-  * This constant can be used in mathematical expressions involving fields and
-  * supports operations defined in the `Field` trait.
+  * This constant can be used in mathematical expressions involving Valuables and
+  * supports operations defined in the `Valuable` trait.
   */
-case object MinusOne extends ScalarConstant(Constants.minusOne, "-1") {
+case object MinusOne extends ScalarConstant(-WholeNumber.one, "-1") {
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Negate =>
       Some(One)
     case Reciprocal =>
@@ -628,17 +616,17 @@ case object MinusOne extends ScalarConstant(Constants.minusOne, "-1") {
   * This object evaluates to the numeric constant `2` within the given context.
   * It can be used in mathematical expressions and operations involving constants.
   */
-case object Two extends ScalarConstant(Constants.two, "2") {
+case object Two extends ScalarConstant(WholeNumber.two, "2") {
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Reciprocal =>
       Some(Half)
     case Negate =>
@@ -651,17 +639,17 @@ case object Two extends ScalarConstant(Constants.two, "2") {
 /**
   * ConstPi represents the mathematical constant π (pi) exactly.
   */
-case object ConstPi extends ScalarConstant(Constants.pi, "π") {
+case object ConstPi extends ScalarConstant(Angle.pi, "π") {
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Sine =>
       Some(Zero)
     case Cosine =>
@@ -675,17 +663,17 @@ case object ConstPi extends ScalarConstant(Constants.pi, "π") {
   * The constant e.
   * Yes, this is an exact number.
   */
-case object ConstE extends NamedConstant(Constants.e, "e") {
+case object ConstE extends NamedConstant(NatLog.e, "e") {
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case Ln =>
       Some(One)
     case _ =>
@@ -697,41 +685,41 @@ case object ConstE extends NamedConstant(Constants.e, "e") {
   * The constant i (viz., the square root of 2)
   * Yes, this is an exact number.
   */
-case object ConstI extends NamedConstant(Constants.i, "i") { // TESTME
+case object ConstI extends NamedConstant(Valuable(Constants.i), "i") { // TESTME
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match {
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match {
     case _ =>
       None
   }
 }
 
 /**
-  * Represents an infinite value in the field of expressions.
+  * Represents an infinite value in the Valuable of expressions.
   *
   * The `Infinity` object is a special case of `NamedConstant` with a value of positive infinity.
   * It is immutable and serves as a singleton instance to represent the mathematical concept of infinity
-  * in calculations or expressions. It overrides certain behaviors of `FieldExpression` to handle
+  * in calculations or expressions. It overrides certain behaviors of `ValueExpression` to handle
   * operations specific to infinity.
   */
-case object Infinity extends NamedConstant(Rational.infinity, "∞") {
+case object Infinity extends NamedConstant(Valuable(Rational.infinity), "∞") {
   /**
-    * Applies the given `ExpressionMonoFunction` to the current context of the `FieldExpression`
+    * Applies the given `ExpressionMonoFunction` to the current context of the `ValueExpression`
     * and attempts to produce an atomic result.
     *
     * @param f the `ExpressionMonoFunction` to be applied. This function determines how the
-    *          evaluation will transform the current `FieldExpression` into a potential result.
-    * @return an `Option` containing an `FieldExpression` if the evaluation succeeds,
+    *          evaluation will transform the current `ValueExpression` into a potential result.
+    * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[FieldExpression] = f match { // TESTME
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = f match { // TESTME
     case Reciprocal =>
       Some(Zero)
     case Exp =>
@@ -802,7 +790,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] = expression.maybeFactor
+  override def maybeFactor: Option[Factor] = expression.maybeFactor
 
   /**
     * Method to render this Structure in a presentable manner.
@@ -812,20 +800,23 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
   def render: String = name
 
   /**
-    * Action to evaluate this `Expression` as a `Field`, if possible.
+    * Action to evaluate this `Expression` as a `Valuable`, if possible.
     * NOTE: no simplification or factor-based conversion occurs here.
     *
-    * @return an optional `Field`.
+    * @return an optional `Valuable`.
     */
-  def evaluate(context: Context): Option[Field] = expression.evaluate(context)
+  def evaluate(context: Context): Option[Valuable] = expression.evaluate(context)
 
   /**
     * Computes and returns an approximate numerical value for this Approximatable.
-    * All `Fields`, `PowerSeries` and `Expressions` that implement this method should work except for complex quantities.
+    * All `Valuables`, `PowerSeries` and `Expressions` that implement this method should work except for complex quantities.
     *
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */
-  def approximation: Option[Real] = expression.approximation
+  def approximation: Option[Real] = {
+    val result: Option[core.Real] = expression.approximation
+    result.map(x => Real(x.toDouble))
+  }
 
   /**
     * Determines if the provided object is equal to the current instance.
@@ -845,7 +836,7 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
   /**
     * Computes the hash code for this instance of `AbstractTranscendental`.
     *
-    * @return an integer representing the hash code of the `expression` field.
+    * @return an integer representing the hash code of the `expression` Valuable.
     */
   override def hashCode(): Int = expression.hashCode()
 
@@ -873,7 +864,7 @@ case object Pi extends AbstractTranscendental("\uDED1", ConstPi)
   * Case object representing the transcendental constant `e`.
   *
   * Extends the `AbstractTranscendental` class, providing implementations specific to
-  * the mathematical constant `e` (Euler's number), known for its importance in the field
+  * the mathematical constant `e` (Euler's number), known for its importance in the Valuable
   * of mathematics, particularly in calculus and exponential growth behavior.
   *
   * The `name` parameter is set to "xD835DF00", which represents a unique identifier for
@@ -918,7 +909,7 @@ case object LgE extends AbstractTranscendental("log2e", Two.ln.reciprocal.simpli
   *
   * The Euler-Mascheroni constant is a transcendental entity commonly used in number theory and analysis.
   */
-case object EulerMascheroni extends AbstractTranscendental("𝛾", gamma)
+case object EulerMascheroni extends AbstractTranscendental("𝛾", Literal(Valuable(gamma)))
 
 /**
   * The `Root` trait represents a mathematical root derived from a specific equation.
@@ -961,10 +952,10 @@ trait Root extends AtomicExpression {
   def add(other: Root): Option[Root]
 
   /**
-    * Retrieves an optional value of type `Field` associated with this `Root`.
+    * Retrieves an optional value of type `Valuable` associated with this `Root`.
     * The result will be defined if either the base or the offset is zero (in the case of a quadratic root).
     *
-    * @return an `Option[Field]` that may contain the value. If no value is associated, returns `None`.
+    * @return an `Option[Valuable]` that may contain the value. If no value is associated, returns `None`.
     */
   def maybeValue: Option[Field]
 
@@ -1184,14 +1175,14 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   lazy val solution: Solution = algebraic.solve
 
   /**
-    * Lazily computes an optional `Field` value (`maybeValue`) based on the type of the solution
+    * Lazily computes an optional `Valuable` value (`maybeValue`) based on the type of the solution
     * and specific cases associated with the given `solution` and `equation`.
     *
     * The computation involves pattern matching on the type and properties of the `solution`.
     *
-    * - For a `LinearSolution`, a `Field` is created using the solution's value and the `PureNumber` factor.
+    * - For a `LinearSolution`, a `Valuable` is created using the solution's value and the `PureNumber` factor.
     * - For a `QuadraticSolution`, specific conditions are checked (e.g., offset is zero, base and factor conditions),
-    * to determine how the corresponding `Field` is computed, which may include a calculation with a branch.
+    * to determine how the corresponding `Valuable` is computed, which may include a calculation with a branch.
     * - For special cases related to the `Quadratic` golden ratio equation, named constants `phi` or `psi` are returned,
     * depending on the branch.
     * - Returns `None` if none of the conditions match.
@@ -1206,7 +1197,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
       Some(Field(base, PureNumber))
     case QuadraticSolution(base, offset, factor, branch) if Value.isZero(base) && (factor == PureNumber || branch == 0) =>
       val radicalTerm = if branch == 0 then offset else Value.negate(offset)
-      Some(Real(one.make(radicalTerm, factor)))
+      Some(com.phasmidsoftware.number.core.Real(one.make(radicalTerm, factor)))
     case _ =>
       (equ, branch) match {
         case (Quadratic.goldenRatioEquation, 0) =>
@@ -1223,7 +1214,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     *
     * @return an optional `Factor`.
     */
-  def maybeFactor: Option[Factor] = solution match {
+  override def maybeFactor: Option[Factor] = solution match {
     case LinearSolution(_) =>
       Some(PureNumber)
     case QuadraticSolution(Value.zero, offset, _, _) if Value.isZero(offset) =>
@@ -1246,35 +1237,38 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   def simplifyAtomic: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
       case r: AbstractRoot =>
-        em.matchIfDefined(r.maybeValue)(r) flatMap matchAndSimplify
+        // TODO refactor maybeValue so that it yields Option[Valuable]
+        em.matchIfDefined(r.maybeValue)(r).flatMap{
+          x => matchAndSimplify(Valuable(x))
+        }
     }
 
   /**
-    * Action to evaluate this `Expression` as a `Field`, if possible.
+    * Action to evaluate this `Expression` as a `Valuable`, if possible.
     * NOTE: no simplification or factor-based conversion occurs here.
     *
-    * @return an optional `Field`.
+    * @return an optional `Valuable`.
     */
-  def evaluate(context: Context): Option[Field] =
+  def evaluate(context: Context): Option[Valuable] =
     maybeValue match {
-      case x@Some(value) if context.fieldQualifies(value) =>
-        x
+      case x@Some(value) if context.valuableQualifies(Valuable(value)) =>
+        Some(Valuable(value))
       case _ =>
-        Option.when(context == AnyContext)(algebraic)
+        Option.when(context == AnyContext)(Valuable(algebraic))
     }
 
   /**
     * Computes and returns an approximate numerical value for this Approximatable.
-    * All Fields, PowerSeries and Expressions that implement this method should work except for complex quantities.
+    * All Valuables, PowerSeries and Expressions that implement this method should work except for complex quantities.
     *
     * @return if possible, returns a `Real` representing the approximation of this expression.
     */
   def approximation: Option[Real] =
     maybeValue match {
       case Some(value) =>
-        value.approximation
+        value.approximation.map(r => Real.convertFromOldReal(r))
       case None =>
-        solution.asNumber map (Real(_))
+        solution.asNumber.map(n => Real.convertFromOldReal(com.phasmidsoftware.number.core.Real(n)))
     }
 
   /**
@@ -1357,12 +1351,12 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   /**
     * Compares this `AbstractRoot` instance with another object for equality.
     * The method checks if the other object is of a compatible type and
-    * whether all relevant fields of both objects are equal.
+    * whether all relevant Valuables of both objects are equal.
     *
     * @param other the object to compare for equality with this instance
     * @return true if the given object is an instance of `AbstractRoot`,
     *         has `canEqual` compatibility with this instance, and
-    *         if all relevant fields are equal; otherwise, false
+    *         if all relevant Valuables are equal; otherwise, false
     */
   override def equals(other: Any): Boolean =
     other match {
@@ -1375,9 +1369,9 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     }
 
   /**
-    * Generates a hash code for the instance based on its `equ` and `branch` fields.
+    * Generates a hash code for the instance based on its `equ` and `branch` Valuables.
     *
-    * @return an integer hash code value obtained by hashing the `equ` and `branch` fields.
+    * @return an integer hash code value obtained by hashing the `equ` and `branch` Valuables.
     */
   override def hashCode(): Int =
     Objects.hash(equ, branch)
@@ -1410,15 +1404,15 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
   }
 
   /**
-    * Matches the given `Field` instance and attempts to simplify its representation
-    * into an `Expression`. This involves wrapping the `Field` in a `Literal` and
+    * Matches the given `Valuable` instance and attempts to simplify its representation
+    * into an `Expression`. This involves wrapping the `Valuable` in a `Literal` and
     * applying atomic simplification transformations.
     *
-    * @param field the `Field` to match and simplify.
+    * @param Valuable the `Valuable` to match and simplify.
     * @return a `MatchResult` containing the resulting `Expression`.
     */
-  private def matchAndSimplify(field: Field): em.MatchResult[Expression] =
-    em.Match(Literal(field)) flatMap simplifyAtomic
+  private def matchAndSimplify(Valuable: Valuable): em.MatchResult[Expression] =
+    em.Match(Literal(Valuable)).flatMap(simplifyAtomic)
 }
 
 /**

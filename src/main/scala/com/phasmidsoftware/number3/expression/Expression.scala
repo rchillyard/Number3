@@ -6,8 +6,10 @@ package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.Number.convertInt
-import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.{Approximatable, ComplexPolar, Constants, Field, Number, NumberException, NumberLike, Real}
+import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+import com.phasmidsoftware.number.core.{Approximatable, ComplexPolar, Constants, NumberException, NumberLike}
+import com.phasmidsoftware.number3.algebra.{Number, RationalNumber, Scalar, Valuable, WholeNumber, Valuable as apply} // TODO huh?
+import com.phasmidsoftware.number3.core.{AnyContext, Context}
 import com.phasmidsoftware.number3.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number3.misc.FP.recover
@@ -37,7 +39,7 @@ trait Expression extends NumberLike with Approximatable {
     *
     * @return an optional `Field`.
     */
-  def evaluate(context: Context): Option[Field]
+  def evaluate(context: Context): Option[Valuable]
 
   /**
     * Evaluates this `Expression` in the context of `AnyContext` without simplification or factor-based conversion.
@@ -46,7 +48,7 @@ trait Expression extends NumberLike with Approximatable {
     *
     * @return an `Option[Field]` containing the evaluated `Field` if evaluation is successful, or `None` otherwise.
     */
-  lazy val evaluateAsIs: Option[Field] =
+  lazy val evaluateAsIs: Option[Valuable] =
     evaluate(AnyContext)
 
   /**
@@ -72,14 +74,29 @@ trait Expression extends NumberLike with Approximatable {
   }
 
   /**
+    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
+    *
+    * @return an optional `Factor`.
+    */
+  lazy val maybeFactor: Option[Factor] =
+    evaluateAsIs match {
+      case Some(scalar: Scalar) =>
+        scalar.maybeFactor
+      case Some(_) =>
+        None // TODO implement also for Algebraics, `ComplexCartesian`, etc. 
+      case None =>
+        None
+    }
+
+  /**
     * Materializes the current `Expression` by simplifying and evaluating it as a `Field`.
     * If the evaluation fails, an `ExpressionException` is thrown, indicating a logic error.
     *
     * @return the materialized `Field` representation of the `Expression`.
     */
-  def materialize: Field = {
+  def materialize: Valuable = {
     val simplified = simplify
-    recover(simplified.evaluateAsIs orElse simplified.approximation)(ExpressionException(s"materialize: logic error on $this"))
+    recover(simplified.evaluateAsIs orElse simplified.approximation.map(Valuable(_)))(ExpressionException(s"materialize: logic error on $this"))
   }
 
   /**
@@ -91,9 +108,15 @@ trait Expression extends NumberLike with Approximatable {
     */
   def asNumber: Option[Number] =
     if isExact then
-      evaluateAsIs flatMap (_.asNumber)
+      evaluateAsIs match {
+        case Some(x: Number) => Some(x)
+        case _ => None
+      }
     else
-      materialize.asNumber
+      materialize match {
+        case x: Number => Some(x)
+        case _ => None
+      }
 
   /**
     * Method to determine the depth of this Expression.
@@ -231,12 +254,14 @@ object Expression {
       case z: AtomicExpression =>
         z.evaluateAsIs flatMap (_.asNumber) match {
           case Some(q) =>
-            Literal(q.sqrt)
+            println("Expression.sqrt: this is where we used to do a short-cut for numbers")
+            // XXX this was the old code: Literal(q.sqrt)
+            x ∧ Valuable.half
           case _ =>
-            x ∧ Constants.half // TESTME
+            x ∧ Valuable.half // TESTME
         }
       case _ =>
-        x ∧ Constants.half // TESTME
+        x ∧ Valuable.half // TESTME
     }
 
     /**
@@ -309,13 +334,22 @@ object Expression {
   }
 
   /**
+    * Converts a given string into a `Valuable` representation.
+    * This method allows implicit conversion from `String` to `Valuable`.
+    *
+    * @param w the input string to be converted into a `Valuable`.
+    * @return a `Valuable` instance parsed from the provided string.
+    */
+  implicit def fromString(w: String): Expression = apply(w)
+
+  /**
     * Converts a given number into an Expression by wrapping it as a Real.
     *
     * @param x the number to be converted into an Expression
     * @return an Expression representing the input number
     */
-  implicit def convert(x: Number): Expression =
-    apply(Real(x))
+  implicit def convert(x: com.phasmidsoftware.number.core.Number): Expression =
+    apply(Valuable(com.phasmidsoftware.number.core.Real(x)))
 
   /**
     * The following constants are helpful in getting an expression started.
@@ -334,7 +368,7 @@ object Expression {
     * @param x the `Field` instance to be converted into an `Expression`
     * @return an `Expression` representing the input `Field`, either as a predefined constant or a wrapped literal
     */
-  def apply(x: Field): Expression = x match {
+  def apply(x: Valuable): Expression = x match {
     case Constants.zero =>
       Zero // TESTME (applies to all except default case)
     case Constants.one =>
@@ -351,6 +385,8 @@ object Expression {
       Literal(x)
   }
 
+  def apply(w: String): Expression = parse(w) getOrElse Noop
+  
   /**
     * Method to parse a String as an Expression.
     *
@@ -367,7 +403,7 @@ object Expression {
     * @param f the `Field` to be converted into an `Expression`
     * @return an `Expression` instance representing the input `Field`
     */
-  implicit def convertFieldToExpression(f: Field): Expression =
+  implicit def convertFieldToExpression(f: Valuable): Expression =
     Expression(f)
 
   /**
@@ -379,7 +415,7 @@ object Expression {
     * @return an `Expression` that represents the given integer
     */
   implicit def convertIntToExpression(x: Int): Expression =
-    Expression(x)
+    Expression(WholeNumber(x))
 
   /**
     * Converts a `Rational` number into an `Expression`.
@@ -388,7 +424,7 @@ object Expression {
     * @return an `Expression` representing the input `Rational` number.
     */
   implicit def convertRationalToExpression(x: Rational): Expression =
-    Expression(x)
+    Expression(RationalNumber(x))
 
   /**
     * The following method is helpful in getting an expression started

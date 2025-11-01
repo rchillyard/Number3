@@ -4,23 +4,26 @@
 
 package com.phasmidsoftware.number3.expression
 
-import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.inner.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, Number, Real}
+import com.phasmidsoftware.number3.core.Context.{AnyLog, AnyRoot, AnyScalar}
+import com.phasmidsoftware.number.core.inner.{Euler, Factor, Log10, Log2, MonadicOperationAtan, NatLog, Operations, PureNumber, Radian, Rational, SquareRoot, Value}
+import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, NumberException, Real}
+import com.phasmidsoftware.number3.algebra.{Additive, Angle, CanPower, Logarithm, Multiplicative, MultiplicativeWithPower, Nat, Number, Radians, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number3.core.{AnyContext, Complex, Context, ImpossibleContext, RestrictedContext, Structure}
+import com.phasmidsoftware.number3.expression.ExpressionFunction.{lift1, lift2}
 import com.phasmidsoftware.number3.misc.FP
 
 import scala.Option.when
 
 /**
   * Represents a named, generic computation or transformation from an input of type `P`
-  * to an output value of type `Field`. The `ExpressionFunction` trait defines
-  * an abstract function by extending the `(P => Field)` function type. It can be
+  * to an output value of type `Valuable`. The `ExpressionFunction` trait defines
+  * an abstract function by extending the `(P => Valuable)` function type. It can be
   * used to model mathematical or computational expressions with a specific name.
   * It is the super-type of `ExpressionMonoFunction` and `ExpressionBiFunction`.
   *
   * @tparam P the type of the input parameter to the function
   */
-sealed trait ExpressionFunction[P] extends (P => Field) {
+sealed trait ExpressionFunction[P] extends (P => Valuable) {
   /**
     * Returns the name of the expression function.
     *
@@ -30,16 +33,85 @@ sealed trait ExpressionFunction[P] extends (P => Field) {
 }
 
 /**
+  * Object containing utility methods for working with functions in the context of
+  * mathematical or computational expressions. The `ExpressionFunction` object provides
+  * helpers to lift operations between `Field` types to operations between `Valuable` types.
+  */
+object ExpressionFunction {
+  /**
+    * Lifts a function from `Field => Field` to a function that maps
+    * `Valuable => Valuable`. The function transforms an input `Valuable` into
+    * another `Valuable` by applying the provided `Field => Field` function, handling
+    * various types of `Valuable` instances through pattern matching.
+    *
+    * NOTE this may be temporary, since we should be able to use the `Valuable` without resorting to the old `Field` type.
+    *
+    * @param f a function that maps a `Field` to a transformed `Field`, which will be
+    *          used to derive the resulting `Valuable` from the input.
+    * @return a function that takes a `Valuable` as input and returns a transformed
+    *         `Valuable` after applying the underlying `Field => Field` transformation.
+    */
+  def lift1(f: Field => Field): Valuable => Valuable = {
+    v => Valuable(f(valuableToField(v)))
+  }
+  def lift2(f: (Field, Field) => Field): (Valuable, Valuable) => Valuable = {
+    (v1, v2) => Valuable(f(valuableToField(v1), valuableToField(v2)))
+  }
+
+  private def rationalToFIeld(rational: Rational, factor: Factor) = Real(ExactNumber(Value.fromRational(rational), factor))
+
+  private def intToField(x: Int, factor: Factor) = Real(ExactNumber(Value.fromInt(x), factor))
+
+  /**
+    * Converts a `Valuable` instance into a corresponding `Field` representation.
+    * The method handles various types of `Valuable` through pattern matching,
+    * including `Complex`, `Nat`, `Number`, `Angle`, and `NatLog`.
+    *
+    * This conversion provides a mechanism to transform different numerical
+    * representations into a unified `Field` type.
+    * 
+    * CONSIDER returning an Option[Field] instead of throwing an exception.
+    *
+    * @param v the `Valuable` instance to be converted to a `Field`
+    * @return a `Field` representation of the input `Valuable`
+    * @throws NumberException if the input `Valuable` cannot be converted to a `Field`
+    */
+  def valuableToField(v: Valuable): Field = v match {
+    case Complex(complex) =>
+      complex
+    case nat: Nat =>
+      intToField(nat.asInt, PureNumber)
+    case number: Number =>
+      number.toRational match {
+        case Some(rational) => rationalToFIeld(rational, PureNumber)
+        case None => ??? // TODO implement by approximation
+      }
+    case Angle(radians) =>
+      radians.toRational match {
+        case Some(rational) => rationalToFIeld(rational, Radian)
+        case None => ??? // TODO implement by approximation
+      }
+    case com.phasmidsoftware.number3.algebra.NatLog(x) =>
+      x.toRational match {
+        case Some(rational) => rationalToFIeld(rational, PureNumber)
+        case None => ??? // TODO implement by approximation
+      }
+    case _ =>
+      throw NumberException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field")
+  }
+}
+
+/**
   * A lazy monadic expression function.
   *
   * TODO need to mark whether this function is exact or not (but I can't think of many which are exact).
   *
-  * TODO implement also for other fields than Numbers.
+  * TODO implement also for other Valuables than Numbers.
   *
   * @param f    the function Number => Number.
   * @param name the name of this function.
   */
-sealed abstract class ExpressionMonoFunction(val name: String, val f: Field => Field) extends ExpressionFunction[Field] {
+sealed abstract class ExpressionMonoFunction(val name: String, val f: Valuable => Valuable) extends ExpressionFunction[Valuable] {
 
   /**
     * Specifies the context in which the parameter of the function `f` must be evaluated.
@@ -50,22 +122,22 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Field => F
   def paramContext(context: Context): Context
 
   /**
-    * Attempts to evaluate the given `Field` exactly using this `ExpressionMonoFunction`.
-    * If the operation can be performed exactly, it returns the resulting `Field` wrapped
+    * Attempts to evaluate the given `Valuable` exactly using this `ExpressionMonoFunction`.
+    * If the operation can be performed exactly, it returns the resulting `Valuable` wrapped
     * in an `Option`. If the operation cannot be performed exactly, it returns `None`.
     *
-    * @param x the input parameter of type `Field` to be evaluated.
-    * @return an `Option` containing the exact result as a `Field` if the evaluation succeeds, or `None` if it does not.
+    * @param x the input parameter of type `Valuable` to be evaluated.
+    * @return an `Option` containing the exact result as a `Valuable` if the evaluation succeeds, or `None` if it does not.
     */
-  def applyExact(x: Field): Option[Field]
+  def applyExact(x: Valuable): Option[Valuable]
 
   /**
-    * Evaluate this function on Field x.
+    * Evaluate this function on Valuable x.
     *
     * @param x the parameter to the function.
     * @return the result of f(x).
     */
-  def apply(x: Field): Field = f(x)
+  def apply(x: Valuable): Valuable = f(x)
 
   /**
     * Generate helpful debugging information about this ExpressionMonoFunction.
@@ -87,18 +159,18 @@ object ExpressionMonoFunction {
     * @param arg the `ExpressionMonoFunction` instance from which components are extracted.
     * @return an `Option` containing a tuple of the function `Number => Number` and the name `String` of the `ExpressionMonoFunction`, or `None` if the input is null.
     */
-  def unapply(arg: ExpressionMonoFunction): Option[(String, Field => Field)] =
+  def unapply(arg: ExpressionMonoFunction): Option[(String, Valuable => Valuable)] =
     Some(arg.name, arg.f) // TESTME
 }
 
 /**
-  * Represents a bi-functional operation on two `Field` arguments that returns a `Field` result.
+  * Represents a bi-functional operation on two `Valuable` arguments that returns a `Valuable` result.
   * Provides additional metadata such as the function's name, whether the function is exact,
   * and optional identity elements.
   *
-  * CONSIDER changing `isExact` to a predicate based on two `Field` objects.
+  * CONSIDER changing `isExact` to a predicate based on two `Valuable` objects.
   *
-  * @param f              the binary evaluation function to be applied to two `Field` arguments.
+  * @param f              the binary evaluation function to be applied to two `Valuable` arguments.
   * @param name           the name of the function, used for debugging and descriptive purposes.
   * @param isExact        a boolean indicating if the function is exact in all its computations.
   *                       Even if false, there may be special cases that are exact.
@@ -112,11 +184,11 @@ object ExpressionMonoFunction {
   */
 sealed abstract class ExpressionBiFunction(
                                             val name: String,
-                                            val f: (Field, Field) => Field,
+                                            val f: (Valuable, Valuable) => Valuable,
                                             val isExact: Boolean,
-                                            val maybeIdentityL: Option[Field],
-                                            val maybeIdentityR: Option[Field]
-                                          ) extends ExpressionFunction[(Field, Field)] {
+                                            val maybeIdentityL: Option[Valuable],
+                                            val maybeIdentityR: Option[Valuable]
+                                          ) extends ExpressionFunction[(Valuable, Valuable)] {
 
   /**
     * Indicates whether the binary operation represented by this instance commutes,
@@ -126,15 +198,15 @@ sealed abstract class ExpressionBiFunction(
   lazy val commutes: Boolean = maybeIdentityL.isDefined && maybeIdentityR.isEmpty
 
   /**
-    * Applies a trivial binary function to the provided `Field` elements `a` and `b`.
+    * Applies a trivial binary function to the provided `Valuable` elements `a` and `b`.
     * Typically, returns a default or neutral result without performing any meaningful operation.
     *
-    * @param a the first operand, a `Field` instance.
-    * @param b the second operand, a `Field` instance.
-    * @return an `Option[Field]` containing the result of the trivial operation,
+    * @param a the first operand, a `Valuable` instance.
+    * @param b the second operand, a `Valuable` instance.
+    * @return an `Option[Valuable]` containing the result of the trivial operation,
     *         or `None` to signify no computation or transformation.
     */
-  def trivialEvaluation(a: Field, b: Field): Option[Field] = None
+  def trivialEvaluation(a: Valuable, b: Valuable): Option[Valuable] = None
 
   /**
     * Evaluate this function on x.
@@ -143,17 +215,17 @@ sealed abstract class ExpressionBiFunction(
     * @param b the second parameter to the function.
     * @return the result of f(x).
     */
-  def apply(a: Field, b: Field): Field =
+  def apply(a: Valuable, b: Valuable): Valuable =
     f(a, b)
 
   /**
     * Alternative apply method which satisfies the type declaration.
-    * Applies the binary function `f` to the given tuple of `Field` elements.
+    * Applies the binary function `f` to the given tuple of `Valuable` elements.
     *
-    * @param ff a tuple containing two `Field` elements, representing the inputs to the binary function.
-    * @return a `Field` that is the result of applying the binary function to the input tuple.
+    * @param ff a tuple containing two `Valuable` elements, representing the inputs to the binary function.
+    * @return a `Valuable` that is the result of applying the binary function to the input tuple.
     */
-  def apply(ff: (Field, Field)): Field =
+  def apply(ff: (Valuable, Valuable)): Valuable =
     f.tupled(ff)
 
   /**
@@ -178,28 +250,28 @@ sealed abstract class ExpressionBiFunction(
   def rightContext(factor: Factor)(context: Context): Context
 
   /**
-    * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
+    * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
     * and returns an optional result.
     * The evaluation succeeds only if the operation satisfies specific conditions
     * (e.g., exact representations or mathematical constraints).
     *
-    * @param a the first operand, a `Field` instance.
-    * @param b the second operand, a `Field` instance.
-    * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
+    * @param a the first operand, a `Valuable` instance.
+    * @param b the second operand, a `Valuable` instance.
+    * @return an `Option[Valuable]` containing the result of the operation if it can be computed exactly,
     *         or `None` if the operation fails to meet exactness requirements.
     */
-  def applyExact(a: Field, b: Field): Option[Field]
+  def applyExact(a: Valuable, b: Valuable): Option[Valuable]
 
   /**
-    * Evaluates two expressions `x` and `y` in a given context and determines the resulting `Field` based on specific identity and evaluation rules.
+    * Evaluates two expressions `x` and `y` in a given context and determines the resulting `Valuable` based on specific identity and evaluation rules.
     * Trivial identities are recognized and evaluated appropriately.
     *
     * @param x       the first expression to be evaluated.
     * @param y       the second expression to be evaluated.
     * @param context the evaluation context providing the necessary environment for resolving expressions.
-    * @return an `Option[Field]` containing the result of the evaluation if successful, or `None` if evaluation fails.
+    * @return an `Option[Valuable]` containing the result of the evaluation if successful, or `None` if evaluation fails.
     */
-  def evaluate(x: Expression, y: Expression)(context: Context): Option[Field] = (x.evaluateAsIs, y.evaluateAsIs) match {
+  def evaluate(x: Expression, y: Expression)(context: Context): Option[Valuable] = (x.evaluateAsIs, y.evaluateAsIs) match {
     case (Some(a), _) if maybeIdentityL contains a =>
       y.evaluate(context)
     case (_, Some(b)) if maybeIdentityR contains b =>
@@ -209,7 +281,7 @@ sealed abstract class ExpressionBiFunction(
     case _ =>
       val xy = doEvaluate(x, y)(context)
       lazy val yx = FP.whenever(commutes)(doEvaluate(y, x)(context))
-      context.qualifyingField(xy orElse yx)
+      context.qualifyingValuable(xy orElse yx)
   }
 
   /**
@@ -223,10 +295,10 @@ sealed abstract class ExpressionBiFunction(
     *
     * @param x the first expression to be evaluated in the left-hand context.
     * @param y the second expression to be evaluated in the right-hand context derived from the result of `x`.
-    * @return an `Option[Field]` containing the result of the exact binary operation on the evaluated results
+    * @return an `Option[Valuable]` containing the result of the exact binary operation on the evaluated results
     *         of `x` and `y`, or `None` if any step in the process fails.
     */
-  private def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Field] =
+  private def doEvaluate(x: Expression, y: Expression)(context: Context): Option[Valuable] =
     for
       a <- x.evaluate(leftContext(context))
       f <- a.maybeFactor
@@ -240,10 +312,10 @@ sealed abstract class ExpressionBiFunction(
     *
     * @param x the first expression to be evaluated.
     * @param y the second expression to be evaluated.
-    * @return an `Option[Field]` containing the result of applying the binary function to the
+    * @return an `Option[Valuable]` containing the result of applying the binary function to the
     *         evaluated results of `x` and `y`, or `None` if either evaluation fails.
     */
-  def evaluateAsIs(x: Expression, y: Expression): Option[Field] =
+  def evaluateAsIs(x: Expression, y: Expression): Option[Valuable] =
     for a <- x.evaluateAsIs; b <- y.evaluateAsIs yield f(a, b)
 
   /**
@@ -264,13 +336,13 @@ object ExpressionBiFunction {
   /**
     * Extracts the components of an `ExpressionBiFunction` instance.
     * TESTME ?? Not currently used.
-    * CONSIDER returning other fields.
+    * CONSIDER returning other Valuables.
     *
-    * @param f the binary function of type `((Field, Field)) => Field` to be matched and deconstructed.
-    * @return an `Option` containing a tuple of the function `(Field, Field) => Field` and its associated name `String`
+    * @param f the binary function of type `((Valuable, Valuable)) => Valuable` to be matched and deconstructed.
+    * @return an `Option` containing a tuple of the function `(Valuable, Valuable) => Valuable` and its associated name `String`
     *         if the input matches an `ExpressionBiFunction`, or `None` otherwise.
     */
-  def unapply(f: ExpressionBiFunction): Option[((Field, Field) => Field, String, Option[Field], Option[Field])] = f match {
+  def unapply(f: ExpressionBiFunction): Option[((Valuable, Valuable) => Valuable, String, Option[Valuable], Option[Valuable])] = f match {
     case e: ExpressionBiFunction =>
       Some(e.f, e.name, e.maybeIdentityL, e.maybeIdentityR)
   }
@@ -278,10 +350,10 @@ object ExpressionBiFunction {
 
 /**
   * Represents an arctangent operation as a binary function.
-  * Calculates the angle (in radians) whose tangent is the quotient of the two provided fields.
+  * Calculates the angle (in radians) whose tangent is the quotient of the two provided Valuables.
   * If either input is not a real number, the result will be `NaN` encapsulated in a `Real`.
   *
-  * - Operates on two `Field` values as the input.
+  * - Operates on two `Valuable` values as the input.
   * - Uses the `atan` function to compute the angle between the two numbers.
   * - Returns a `Real` result if both inputs can be interpreted as numbers; otherwise, returns `Real(Number.NaN)`.
   *
@@ -289,7 +361,7 @@ object ExpressionBiFunction {
   * - This operation is not commutative.
   * - May yield inexact results if the inputs are not exact.
   */
-case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, None) {
+case object Atan extends ExpressionBiFunction("atan", ExpressionFunction.lift2(Real.atan), false, None, None) {
   /**
     * Identifies and retrieves a restricted evaluation context suitable for left-hand operations.
     *
@@ -312,7 +384,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
     RestrictedContext(PureNumber) or AnyRoot
 
   /**
-    * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
+    * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
     * and returns an optional result.
     * The evaluation succeeds only if the operation satisfies specific conditions
     * (e.g., exact representations or mathematical constraints).
@@ -321,23 +393,23 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
     * For example, other angles based pi/3.
     * TESTME
     *
-    * @param a the first operand, a `Field` instance.
-    * @param b the second operand, a `Field` instance.
-    * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
+    * @param a the first operand, a `Valuable` instance.
+    * @param b the second operand, a `Valuable` instance.
+    * @return an `Option[Valuable]` containing the result of the operation if it can be computed exactly,
     *         or `None` if the operation fails to meet exactness requirements.
     */
-  def applyExact(a: Field, b: Field): Option[Field] =
+  def applyExact(a: Valuable, b: Valuable): Option[Valuable] =
     (a, b) match {
-      case (x, Constants.zero) if x.signum > 0 =>
-        Some(Real(Number.zeroR))
-      case (x, Constants.zero) if x.signum < 0 =>
-        Some(Constants.pi) // TESTME
-      case (Constants.one, Constants.one) =>
-        Some(Constants.piBy4)
+      case (x: Scalar, Valuable.zero) if x.signum > 0 =>
+        Some(Angle.zero)
+      case (x: Scalar, Valuable.zero) if x.signum < 0 =>
+        Some(Angle.pi) // TESTME
+      case (Valuable.one, Valuable.one) =>
+        Some(Angle.piBy4)
       case (Constants.one, Constants.root3) =>
-        Some(Constants.piBy3)
+        Some(Angle.piBy3)
       case (Constants.zero, Constants.one) =>
-        Some(Constants.piBy2)
+        Some(Angle.piBy2)
       case (Real(ExactNumber(x, PureNumber)), Real(ExactNumber(y, PureNumber))) => // TESTME
         for
           q <- Value.maybeRational(x)
@@ -346,7 +418,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
           // TODO test this--I have no idea if this is correct
           d = if Value.signum(x) == Value.signum(y) then 1 else -1
           v <- Operations.doTransformValueMonadic(Value.fromRational(r))(MonadicOperationAtan(d).functions)
-        yield Real(ExactNumber(v, Radian))
+        yield Valuable(Real(ExactNumber(v, Radian)))
       case _ =>
         None // TESTME
     }
@@ -360,7 +432,7 @@ case object Atan extends ExpressionBiFunction("atan", Real.atan, false, None, No
   * This class supports restricted evaluation contexts and provides mechanisms
   * for exact computation or fallback to default behavior when exact evaluation is not possible.
   */
-case object Log extends ExpressionBiFunction("log", Real.log, false, None, None) {
+case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None, None) {
   /**
     * Identifies and retrieves a restricted evaluation context suitable for left-hand operations.
     *
@@ -383,34 +455,34 @@ case object Log extends ExpressionBiFunction("log", Real.log, false, None, None)
     RestrictedContext(PureNumber)
 
   /**
-    * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
+    * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
     * and returns an optional result.
     * The evaluation succeeds only if the operation satisfies specific conditions
     * (e.g., exact representations or mathematical constraints).
     *
     * TESTME
     *
-    * @param a the field whose log we required, a `Field` instance.
-    * @param b the base, a `Field` instance.
-    * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
+    * @param a the Valuable whose log we required, a `Valuable` instance.
+    * @param b the base, a `Valuable` instance.
+    * @return an `Option[Valuable]` containing the result of the operation if it can be computed exactly,
     *         or `None` if the operation fails to meet exactness requirements.
     */
-  def applyExact(a: Field, b: Field): Option[Field] =
+  def applyExact(a: Valuable, b: Valuable): Option[Valuable] =
     (a, b) match {
-      case _ if b <= Constants.one =>
+      case (_, base: Number) if base <= Number.one =>
         None // CONSIDER throwing an exception here instead
-      case (Constants.one, _) =>
-        Some(Constants.zero)
+      case (Valuable.one, _) =>
+        Some(Valuable.zero)
       case (Real(x@ExactNumber(_, Log2)), Constants.two) =>
-        Some(Real(x.make(PureNumber)))
+        Some(Valuable(Real(x.make(PureNumber))))
       case (Real(x@ExactNumber(_, Log10)), Constants.ten) =>
-        Some(Real(x.make(PureNumber)))
+        Some(Valuable(Real(x.make(PureNumber))))
       case (Real(x@ExactNumber(_, NatLog)), Constants.e) => // XXX not strictly necessary as this will be handled by the default case
-        Some(Real(x.make(PureNumber)))
+        Some(Valuable(Real(x.make(PureNumber))))
       case (Real(x@ExactNumber(_, Euler)), Constants.e) =>
-        Some(ComplexPolar(Number.one, x.make(Radian).simplify))
+        Some(Valuable(ComplexPolar(com.phasmidsoftware.number.core.Number.one, x.make(Radian).simplify)))
       case _ if a == b =>
-        Some(Constants.one)
+        Some(Valuable.one)
       case _ =>
         Some(f(a, b))
     }
@@ -424,7 +496,7 @@ case object Log extends ExpressionBiFunction("log", Real.log, false, None, None)
   * This object provides functionality to compute the natural logarithm (ln) of a given Number.
   * The underlying implementation utilizes the `log` method of the Number type.
   */
-case object Ln extends ExpressionMonoFunction("ln", x => x.ln) {
+case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
   /**
     * Regardless of the value of `context`, the required `Context` for the parameter is `PureNumber`.
     *
@@ -435,23 +507,23 @@ case object Ln extends ExpressionMonoFunction("ln", x => x.ln) {
     AnyScalar or AnyLog // CONSIDER should we be allowing Log2 and Log10?  // TESTME
 
   /**
-    * Applies an exact mapping transformation on the given `Field`.
-    * The method matches the input `Field` to predefined constants
+    * Applies an exact mapping transformation on the given `Valuable`.
+    * The method matches the input `Valuable` to predefined constants
     * and returns the corresponding result wrapped in an `Option`.
     *
-    * @param x the input `Field` to be evaluated.
-    * @return an `Option` containing the resulting `Field` if the input matches a predefined constant;
+    * @param x the input `Valuable` to be evaluated.
+    * @return an `Option` containing the resulting `Valuable` if the input matches a predefined constant;
     *         otherwise, `None`.
     */
-  def applyExact(x: Field): Option[Field] = x match {
-    case Constants.e =>
-      Some(Constants.one)
-    case Constants.one =>
-      Some(Constants.zero)
-    case Constants.zero =>
-      Some(Constants.negInfinity)
-    case Constants.minusOne =>
-      Some(-ComplexPolar(Number.pi, Number.piBy2))
+  def applyExact(x: Valuable): Option[Valuable] = x match {
+    case Valuable.e =>
+      Some(Valuable.one)
+    case Valuable.one =>
+      Some(Valuable.zero)
+    case Valuable.zero =>
+      Some(Valuable.negInfinity)
+    case Valuable.minusOne =>
+      Some(Valuable(-ComplexPolar(com.phasmidsoftware.number.core.Number.pi, com.phasmidsoftware.number.core.Number.piBy2)))
     case _ =>
       None
   }
@@ -462,7 +534,7 @@ case object Ln extends ExpressionMonoFunction("ln", x => x.ln) {
   * This case object extends ExpressionMonoFunction and applies the exp operation on a given number.
   * It defines the exponential operation for transformation or evaluation within expressions.
   */
-case object Exp extends ExpressionMonoFunction("exp", x => x.exp) {
+case object Exp extends ExpressionMonoFunction("exp", lift1(x => x.exp)) {
   /**
     * Ignores the provided `context` and returns `AnyScalar`.
     *
@@ -473,23 +545,23 @@ case object Exp extends ExpressionMonoFunction("exp", x => x.exp) {
     AnyScalar // TESTME
 
   /**
-    * Computes the result of applying the exponential function to a specific `Field` value.
+    * Computes the result of applying the exponential function to a specific `Valuable` value.
     * This method provides predefined results for certain input cases:
     * - Negative infinity maps to zero.
     * - Zero maps to one.
     * - One maps to the mathematical constant `e`.
     * - For all other inputs, no result is computed.
     *
-    * @param x the input `Field` value on which the exact exponential operation is applied.
-    * @return `Some(Field)` if the input matches a predefined case, or `None` otherwise.
+    * @param x the input `Valuable` value on which the exact exponential operation is applied.
+    * @return `Some(Valuable)` if the input matches a predefined case, or `None` otherwise.
     */
-  def applyExact(x: Field): Option[Field] = x match {
-    case Constants.negInfinity =>
-      Some(Constants.zero)
-    case Constants.zero =>
-      Some(Constants.one) // TESTME
-    case Constants.one =>
-      Some(Constants.e)
+  def applyExact(x: Valuable): Option[Valuable] = x match {
+    case Valuable.negInfinity =>
+      Some(Valuable.zero)
+    case Valuable.zero =>
+      Some(Valuable.one) // TESTME
+    case Valuable.one =>
+      Some(Valuable.e)
     case _ =>
       None
   }
@@ -504,7 +576,7 @@ case object Exp extends ExpressionMonoFunction("exp", x => x.exp) {
   *
   * The function is exact and operates lazily.
   */
-case object Negate extends ExpressionMonoFunction("-", x => -x) {
+case object Negate extends ExpressionMonoFunction("-", lift1(x => -x)) {
   /**
     * Ignores the specified `context` and returns `AnyScalar`.
     *
@@ -514,21 +586,20 @@ case object Negate extends ExpressionMonoFunction("-", x => -x) {
   def paramContext(context: Context): Context = AnyScalar // TESTME
 
   /**
-    * Applies an exact mathematical operation to negate certain types of exact numeric fields.
+    * Applies an exact mathematical operation to negate certain types of exact numeric Valuables.
     * This method specifically handles cases where the input is a `Real` containing an `ExactNumber`
     * with either a `PureNumber` or `Radian` factor.
     *
-    * @param x the input field to which the exact operation is applied.
-    *          Only fields matching predefined patterns are processed; others return `None`.
-    * @return an `Option[Field]` containing the negated `Field` if the input matches the expected pattern,
+    * @param x the input Valuable to which the exact operation is applied.
+    *          Only Valuables matching predefined patterns are processed; others return `None`.
+    * @return an `Option[Valuable]` containing the negated `Valuable` if the input matches the expected pattern,
     *         otherwise `None`.
     */
-  def applyExact(x: Field): Option[Field] = x match {
-    // CONSIDER combining these cases by using `Scalar`
-    case Real(ExactNumber(v, f@PureNumber)) =>
-      Some(Real(ExactNumber(Value.negate(v), f)))
-    case Real(ExactNumber(v, f@Radian)) =>
-      Some(Real(ExactNumber(Value.negate(v), f)))
+  def applyExact(x: Valuable): Option[Valuable] = x match {
+    case Valuable(Real(ExactNumber(v, f@PureNumber))) =>
+      Some(Valuable(Real(ExactNumber(Value.negate(v), f))))
+    case Valuable(Real(ExactNumber(v, f@Radian))) =>
+      Some(Valuable(Real(ExactNumber(Value.negate(v), f))))
     case _ =>
       None
   }
@@ -542,27 +613,29 @@ case object Negate extends ExpressionMonoFunction("-", x => -x) {
   *
   * The operation is performed lazily and adheres to the behavior defined in its parent class.
   */
-case object Reciprocal extends ExpressionMonoFunction("rec", x => x.invert) {
+case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert)) {
   /**
-    * Attempts to compute the reciprocal (exact inverse) of the given `Field`.
+    * Attempts to compute the reciprocal (exact inverse) of the given `Valuable`.
     * For specific cases of `Real` representations, such as `ExactNumber` with pure, logarithmic, or root factors,
     * the method determines the inverse or applies negation as appropriate.
-    * Complex or unsupported `Field` cases are ignored, and `None` is returned.
+    * Complex or unsupported `Valuable` cases are ignored, and `None` is returned.
     *
-    * @param x the input `Field` to which the exact reciprocal operation should be applied.
-    * @return an `Option[Field]` containing the exact reciprocal if it can be computed, otherwise `None`.
+    * @param x the input `Valuable` to which the exact reciprocal operation should be applied.
+    * @return an `Option[Valuable]` containing the exact reciprocal if it can be computed, otherwise `None`.
     */
-  def applyExact(x: Field): Option[Field] = x match {
-    case Real(ExactNumber(v, f@PureNumber)) =>
-      Value.inverse(v) map (x =>
-        // NOTE: experimental code. If it works well, we could use it elsewhere.
-        Constants.pureConstants.getOrElse(x,
-          Real(ExactNumber(x, f))))
-    case Real(ExactNumber(v, f@Logarithmic(_))) =>
-      Some(Real(ExactNumber(Value.negate(v), f))) // TESTME
-    case Real(ExactNumber(v, f@NthRoot(_))) =>
-      Value.inverse(v) map (x =>
-        Real(ExactNumber(x, f)))
+  def applyExact(x: Valuable): Option[Valuable] = x match {
+    case Valuable(Real(ExactNumber(v, f@PureNumber))) =>
+      Value.inverse(v).map (x =>
+        // NOTE: experimental code. If it works well, we could use it elsewhere. {
+        val real: Real = Constants.pureConstants.getOrElse(x,
+          Real(ExactNumber(x, f)))
+        Valuable(real)
+      )
+    case Valuable(Real(ExactNumber(v, f@com.phasmidsoftware.number.core.inner.Logarithmic(_)))) =>
+      Some(Valuable(Real(ExactNumber(Value.negate(v), f)))) // TESTME
+    case Valuable(Real(ExactNumber(v, f@com.phasmidsoftware.number.core.inner.NthRoot(_)))) =>
+      Value.inverse(v).map (x =>
+        Valuable(Real(ExactNumber(x, f))))
     case _ =>
       None
   }
@@ -579,12 +652,12 @@ case object Reciprocal extends ExpressionMonoFunction("rec", x => x.invert) {
 }
 
 /**
-  * Represents a sum operation as a binary function that adds two `Field` values.
+  * Represents a sum operation as a binary function that adds two `Valuable` values.
   *
   * This object extends `ExpressionBiFunction` by defining its operation as addition (`add`)
   * with the corresponding symbol "+" and is flagged as not always exact (`isExact = false`).
   */
-case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = false, Some(Constants.zero), maybeIdentityR = None) {
+case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExact = false, Some(Number.zero), maybeIdentityR = None) {
   /**
     * Defines the `Context` appropriate for evaluating the left-hand parameter of this function.
     *
@@ -604,46 +677,52 @@ case object Sum extends ExpressionBiFunction("+", (x, y) => x add y, isExact = f
     context
 
   /**
-    * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
+    * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
     * and returns an optional result.
     * The evaluation succeeds only if the operation satisfies specific conditions
     * (e.g., exact representations or mathematical constraints).
     * In this case, the evaluation succeeds only if the factors of each parameter are compatible.
     * Otherwise, the result is `None`. TODO CHECK
     *
-    * @param a the first operand, an exact `Field` instance.
-    * @param b the second operand, an exact `Field` instance.
-    * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
+    * @param a the first operand, an exact `Valuable` instance.
+    * @param b the second operand, an exact `Valuable` instance.
+    * @return an `Option[Valuable]` containing the result of the operation if it can be computed exactly,
     *         or `None` if the operation fails to meet exactness requirements.
     */
-  def applyExact(a: Field, b: Field): Option[Field] =
-    Some(a add b)
+  def applyExact(a: Valuable, b: Valuable): Option[Valuable] = {
+    (a, b) match {
+      case (x: Additive[Structure], y: Structure) =>
+        Some((x + y).asInstanceOf[Valuable]) // TODO CHECK does this work???
+      case _ =>
+        None
+    }
+  }
 }
 
 /**
-  * Represents a specific implementation of the `ExpressionBiFunction` that performs multiplication between two `Field` values.
+  * Represents a specific implementation of the `ExpressionBiFunction` that performs multiplication between two `Valuable` values.
   *
   * This object embodies a binary operation where the function takes two inputs and computes their product using the `multiply` method
-  * defined on `Field`. The operation is represented by the symbol "*".
+  * defined on `Valuable`. The operation is represented by the symbol "*".
   *
   * - The operation is marked as exact, ensuring the result is always precise when the inputs are exact.
   * - It inherits the commutative property from `ExpressionBiFunction`, as multiplication is commutative.
   */
-case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, isExact = true, Some(Constants.one), maybeIdentityR = None) {
+case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply y), isExact = true, Some(Valuable.one), maybeIdentityR = None) {
   /**
-    * Evaluates two `Field` instances under certain trivial conditions and determines the result.
+    * Evaluates two `Valuable` instances under certain trivial conditions and determines the result.
     *
-    * This method returns `Some(Constants.zero)` if either of the input `Field` instances is
+    * This method returns `Some(Constants.zero)` if either of the input `Valuable` instances is
     * equal to `Constants.zero`. Otherwise, it returns `None`.
     *
-    * @param a the first `Field` instance to evaluate.
-    * @param b the second `Field` instance to evaluate.
-    * @return an `Option[Field]` containing `Constants.zero` if trivial conditions are met;
+    * @param a the first `Valuable` instance to evaluate.
+    * @param b the second `Valuable` instance to evaluate.
+    * @return an `Option[Valuable]` containing `Constants.zero` if trivial conditions are met;
     *         otherwise, `None`.
     */
-  override def trivialEvaluation(a: Field, b: Field): Option[Field] = (a, b) match {
-    case (Constants.zero, _) | (_, Constants.zero) =>
-      Some(Constants.zero)
+  override def trivialEvaluation(a: Valuable, b: Valuable): Option[Valuable] = (a, b) match {
+    case (Valuable.zero, _) | (_, Valuable.zero) =>
+      Some(Valuable.zero)
     case _ =>
       None
   }
@@ -685,7 +764,7 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
   }
 
   /**
-    * Multiplies two Field instances under specific conditions and returns the result as an optional Field.
+    * Multiplies two Valuable instances under specific conditions and returns the result as an optional Valuable.
     *
     * The method checks the type and characteristics of the second operand `b` (the multiplier)
     * and applies an exact mathematical operation to the first operand `a` (the multiplicand)
@@ -693,14 +772,24 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
     *
     * The final check on `isExact` should be redundant, but it's here to be safe.
     *
-    * @param a the first operand, a Field instance serving as the multiplicand.
-    * @param b the second operand, a Field instance serving as the multiplier. This operand is evaluated
+    * @param a the first operand, a Valuable instance serving as the multiplicand.
+    * @param b the second operand, a Valuable instance serving as the multiplier. This operand is evaluated
     *          to determine the applicability of exact computations.
-    * @return an `Option[Field]` containing the resulting Field if the operation is valid and applicable,
+    * @return an `Option[Valuable]` containing the resulting Valuable if the operation is valid and applicable,
     *         or `None` if the conditions for exact multiplication are not met.
     */
-  def applyExact(a: Field, b: Field): Option[Field] =
-    Option.when(a.isExact && b.isExact)(a multiply b) filter (_.isExact)
+  def applyExact(a: Valuable, b: Valuable): Option[Valuable] = (a, b) match {
+    case (Valuable.one, _) =>
+      Some(b)
+    case (_, Valuable.one) =>
+      Some(a)
+    case (Valuable.zero, _) | (_, Valuable.zero) =>
+      Some(Valuable.zero)
+    case (x: Multiplicative[Structure], y: Structure) =>
+      Option.when(x.isExact && y.isExact)((x * y).asInstanceOf[Valuable]).filter(_.isExact)
+    case _ =>
+      None
+  }
 }
 
 /**
@@ -711,18 +800,18 @@ case object Product extends ExpressionBiFunction("*", (x, y) => x multiply y, is
   * TODO check on Constants.zero as identityL.
   *
   * Extends `ExpressionBiFunction` where the specific function is implemented
-  * using the `power` method from the `Field` class.
+  * using the `power` method from the `Valuable` class.
   */
-case object Power extends ExpressionBiFunction("∧", (x, y) => x.power(y), isExact = false, None, Some(Constants.one)) {
+case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)), isExact = false, None, Some(Valuable.one)) {
   /**
-    * Evaluates two `Field` instances and determines a trivial result based on predefined conditions.
-    * Specifically, it checks if the first `Field` instance is equivalent to the constant `zero`.
+    * Evaluates two `Valuable` instances and determines a trivial result based on predefined conditions.
+    * Specifically, it checks if the first `Valuable` instance is equivalent to the constant `zero`.
     *
-    * @param a the first operand, a `Field` instance, which is evaluated to see if it's `zero`.
-    * @param b the second operand, a `Field` instance, which is ignored in this implementation.
-    * @return an `Option[Field]`, where `Some(a)` is returned if `a` is `zero`; otherwise, `None`.
+    * @param a the first operand, a `Valuable` instance, which is evaluated to see if it's `zero`.
+    * @param b the second operand, a `Valuable` instance, which is ignored in this implementation.
+    * @return an `Option[Valuable]`, where `Some(a)` is returned if `a` is `zero`; otherwise, `None`.
     */
-  override def trivialEvaluation(a: Field, b: Field): Option[Field] = a match {
+  override def trivialEvaluation(a: Valuable, b: Valuable): Option[Valuable] = a match {
     case Constants.zero =>
       Some(a) // TESTME
     case _ =>
@@ -752,20 +841,22 @@ case object Power extends ExpressionBiFunction("∧", (x, y) => x.power(y), isEx
     AnyScalar // ignore both parameters
 
   /**
-    * Applies a binary operation to the provided `Field` elements `a` and `b`, with stricter evaluation rules,
+    * Applies a binary operation to the provided `Valuable` elements `a` and `b`, with stricter evaluation rules,
     * and returns an optional result.
     * The evaluation succeeds only if the operation satisfies specific conditions
     * (e.g., exact representations or mathematical constraints).
     *
-    * @param a the first operand, a `Field` instance.
-    * @param b the second operand, a `Field` instance.
-    * @return an `Option[Field]` containing the result of the operation if it can be computed exactly,
+    * @param a the first operand, a `Valuable` instance.
+    * @param b the second operand, a `Valuable` instance.
+    * @return an `Option[Valuable]` containing the result of the operation if it can be computed exactly,
     *         or `None` if the operation fails to meet exactness requirements.
     */
-  def applyExact(a: Field, b: Field): Option[Field] = (a, b) match {
-    case (Real(x@ExactNumber(_, _)), Real(y@ExactNumber(_, PureNumber))) =>
-      val result: Number = x.doPower(y)
-      when(result.isExact)(Real(result))
+  def applyExact(a: Valuable, b: Valuable): Option[Valuable] = (a, b) match {
+    case (x: CanPower[Scalar], y: Scalar) if x.isExact && y.isExact =>
+      for {
+        f <- y.maybeFactor if f==PureNumber
+        result <- x.doPower(y) if result.isExact
+      } yield result
     case _ =>
       None // TESTME
   }
@@ -781,7 +872,7 @@ case object Power extends ExpressionBiFunction("∧", (x, y) => x.power(y), isEx
   *
   * @param sine a boolean indicating whether the sine function should be used (`true` for sine, `false` for cosine).
   */
-abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine then "sin" else "cos", x => if sine then x.sin else x.cos) {
+abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine then "sin" else "cos", lift1(x => if sine then x.sin else x.cos)) {
   /**
     * Regardless of the value of `context`, the required `Context` for the parameter is `Radian`.
     *
@@ -792,22 +883,22 @@ abstract class SineCos(sine: Boolean) extends ExpressionMonoFunction(if sine the
     RestrictedContext(Radian) // TESTME
 
   /**
-    * Applies the sine or cosine function to a given `Field` value if the value matches specific constants.
+    * Applies the sine or cosine function to a given `Valuable` value if the value matches specific constants.
     * Returns an exact result for known trigonometric values of zero, π/2, π, and 3π/2.
     *
-    * @param x the input `Field` value to be evaluated.
-    * @return an `Option[Field]` containing the result of the sine or cosine function if the input matches a known constant,
+    * @param x the input `Valuable` value to be evaluated.
+    * @return an `Option[Valuable]` containing the result of the sine or cosine function if the input matches a known constant,
     *         or `None` if the input does not match any predefined constants.
     */
-  def applyExact(x: Field): Option[Field] = x match {
-    case Constants.zero =>
-      Some(if sine then Constants.zero else Constants.one)
-    case Constants.piBy2 =>
-      Some(if sine then Constants.one else Constants.zero)
-    case Constants.pi =>
-      Some(if sine then Constants.zero else -Constants.one)
-    case Constants.piBy2Times3 =>
-      Some(if sine then -Constants.one else Constants.zero) // TESTME
+  def applyExact(x: Valuable): Option[Valuable] = x match {
+    case Angle.zero =>
+      Some(if sine then Valuable.zero else Valuable.one)
+    case Angle.`piBy2` =>
+      Some(if sine then Valuable.one else Valuable.zero)
+    case Angle.pi =>
+      Some(if sine then Valuable.zero else Valuable.minusOne)
+    case Angle.piBy2Times3 =>
+      Some(if sine then Valuable.minusOne else Valuable.zero) // TESTME
     case _ =>
       None // TESTME
   }

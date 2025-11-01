@@ -7,6 +7,8 @@ package com.phasmidsoftware.number3.core
 import com.phasmidsoftware.number3.algebra
 import com.phasmidsoftware.number3.algebra.{Real, Valuable}
 
+import scala.reflect.ClassTag
+
 /**
   * Represents an Algebraic Structure.
   * In common parlance, we might call such an object, a "number" or "quantity" or a mathematical thing.
@@ -22,7 +24,7 @@ trait Structure extends Valuable {
     * @param t the input object of type `T` which is a subtype of `Structure`.
     * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
     */
-  def convert[T <: Structure](t: T): Option[T]
+  def convert[T <: Structure: ClassTag](t: T): Option[T]
 
   /**
     * Converts this `Structure` object into an optional `java.lang.Number` provided that the conversion can be
@@ -76,10 +78,10 @@ object Structure {
 }
 
 /**
-  * This is a placeholder for a Complex number to demonstrate where it should appear in the type hierarchy.
+  * This is a placeholder for a Complex number to demonstrate where it should appear in the type hierarchy (it should extend Structure).
   *
   * @see com.phasmidsoftware.number.core.Complex
   */
-trait Complex extends Structure
+case class Complex(complex: com.phasmidsoftware.number.core.Complex) extends  Valuable
 
 //trait Scalar extends Structure with Ordered[Scalar]

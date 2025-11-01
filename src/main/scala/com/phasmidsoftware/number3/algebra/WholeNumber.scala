@@ -12,6 +12,7 @@ import com.phasmidsoftware.number3.core.Structure
 import spire.math.SafeLong
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 
 /**
   * A case class representing a whole number.
@@ -53,7 +54,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure](t: T): Option[T] = t match {
+  def convert[T <: Structure: ClassTag](t: T): Option[T] = t match {
     case _: RationalNumber =>
       Some(RationalNumber(Rational(x.toBigInt)).asInstanceOf[T])
     case _: Real =>
@@ -63,11 +64,37 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
   }
 
   /**
+    * Represents the additive identity element for the type `T`.
+    *
+    * The additive identity, commonly referred to as "zero," is the element in an
+    * additive algebraic structure that, when added to any element of the structure,
+    * results in the same element. For any element `x`, `x + zero` and `zero + x` should
+    * equal `x`.
+    */
+  val zero: WholeNumber = wholeNumberIsCommutativeGroup.empty
+
+  /**
+    * Converts this `Number` into its corresponding `Rational` representation, if possible.
+    *
+    * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
+    *         if it can be converted, or `None` if the conversion is not possible.
+    */
+  def toRational: Option[Rational] = Some(Rational(x.toBigInt))
+
+  /**
+    * Determines the sign of the scalar value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = x.compare(SafeLong.zero)
+
+  /**
     * Determines if the current number is equal to zero.
     *
     * @return true if the number is zero, false otherwise
     */
-  def isZero: Boolean = x == 0L
+  def isZero: Boolean = x == SafeLong.zero
 
   /**
     * Method to determine if this Structure object is exact.
@@ -161,6 +188,9 @@ object WholeNumber {
     * the group structure of WholeNumbers.
     */
   val zero: WholeNumber = WholeNumber(0L)
+  val one: WholeNumber = WholeNumber(1L)
+  val minusOne: WholeNumber = WholeNumber(-1L)
+  val two: WholeNumber = WholeNumber(2L)
 
   /**
     * Provides an implicit `Show` instance for the `WholeNumber` class, enabling conversion

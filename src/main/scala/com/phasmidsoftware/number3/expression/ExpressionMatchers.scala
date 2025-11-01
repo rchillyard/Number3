@@ -5,11 +5,14 @@
 package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
-import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.{Field, Number, Real}
+import com.phasmidsoftware.number.core.inner.PureNumber
+import com.phasmidsoftware.number.core.{Field, Real}
 import com.phasmidsoftware.number.matchers.*
 import com.phasmidsoftware.number.misc.Bumperator
+import com.phasmidsoftware.number3.algebra.Monotone
+import com.phasmidsoftware.number3.core.RestrictedContext
 import com.phasmidsoftware.number3.expression.Expression.{isIdentityFunction, matchSimpler}
+import com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
 
 import scala.language.implicitConversions
@@ -117,7 +120,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       (fo, f.maybeIdentityL) match {
         case (Some(field1), Some(field2)) if field1 == field2 =>
           someLiteral(field1)
-        case (Some(Real(Number.zeroR)), Some(field2)) if field2.isZero =>
+        case (Some(com.phasmidsoftware.number.core.Real(com.phasmidsoftware.number.core.Number.zeroR)), Some(field2: Monotone)) if field2.isZero =>
           someLiteral(field2)
         case _ =>
           None
@@ -152,7 +155,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         fx.canMultiply(fy)
       case Power =>
         y.evaluateAsIs match {
-          case Some(y) => fx.canRaise(fy, y)
+          case Some(com.phasmidsoftware.number3.algebra.Valuable(z: Field)) => fx.canRaise(fy, z)
           case _ => false
         }
       case _ =>
@@ -173,10 +176,10 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * @return an ExpressionMatcher[Field].
     */
   def value: ExpressionMatcher[Field] = {
-    case Literal(x, _) => Match(x) // TESTME
-    case FieldExpression(x, _) => Match(x)
-    case x@Number(_, _) => Match(Real(x)) // TESTME
-    case x: FieldExpression => matchIfDefined(x.evaluateAsIs)(x)
+    case Literal(com.phasmidsoftware.number3.algebra.Valuable(x), _) => Match(x) // TESTME
+    case ValueExpression(com.phasmidsoftware.number3.algebra.Valuable(x), _) => Match(x)
+    case x@com.phasmidsoftware.number.core.Number(_, _) => Match(Real(x)) // TESTME
+    case x: ValueExpression => matchIfDefined(x.evaluateAsIs)(x).map(valuableToField)
     case x => Miss("value", x)
   }
 

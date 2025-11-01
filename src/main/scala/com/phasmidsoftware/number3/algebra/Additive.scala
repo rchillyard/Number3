@@ -12,6 +12,16 @@ import com.phasmidsoftware.number3.core.Structure
   */
 trait Additive[T <: Structure] {
   /**
+    * Represents the additive identity element for the type `T`.
+    *
+    * The additive identity, commonly referred to as "zero," is the element in an
+    * additive algebraic structure that, when added to any element of the structure,
+    * results in the same element. For any element `x`, `x + zero` and `zero + x` should
+    * equal `x`.
+    */
+  val zero: T
+
+  /**
     * Adds the specified `T` to this `T` instance.
     *
     * @param t an instance of `T` to be added to this `T`

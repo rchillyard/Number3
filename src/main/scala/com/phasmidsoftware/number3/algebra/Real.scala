@@ -9,6 +9,7 @@ import com.phasmidsoftware.number3.algebra.Real.realIsRing
 import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
 
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
@@ -49,7 +50,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @param t a prototype of the required output.
     * @return an Option wrapping the input number if the conversion is successful, otherwise None
     */
-  def convert[T <: Structure](t: T): Option[T] = t match {
+  def convert[T <: Structure: ClassTag](t: T): Option[T] = t match {
     case _: RationalNumber =>
       FP.whenever(isExact)(Rational.createExact(value).toOption).asInstanceOf[Option[T]]
     case _: Real =>
@@ -77,6 +78,40 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     */
   def isZero: Boolean =
     compare(Real.zero) == 0
+
+  /**
+    * Represents the additive identity element for the type `T`.
+    *
+    * The additive identity, commonly referred to as "zero," is the element in an
+    * additive algebraic structure that, when added to any element of the structure,
+    * results in the same element. For any element `x`, `x + zero` and `zero + x` should
+    * equal `x`.
+    */
+  val zero: Real = realIsRing.zero
+  
+  /**
+    * Represents the multiplicative identity element of the structure.
+    *
+    * The `one` value serves as the neutral element for the multiplication operation, meaning
+    * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
+    */
+  val one: Real = realIsRing.one
+
+  /**
+    * Converts this `Number` into its corresponding `Rational` representation, if possible.
+    *
+    * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
+    *         if it can be converted, or `None` if the conversion is not possible.
+    */
+  def toRational: Option[Rational] = None
+
+  /**
+    * Determines the sign of the scalar value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = compare(zero)
 
   /**
     * Compares the current `Number` instance with another `Number` instance exactly.
@@ -276,6 +311,18 @@ object Real {
     */
   def apply(value: Double): Real = apply(value, Some(Fuzziness.doublePrecision))
 
+  /**
+    * Constructs a new `Real` instance based on the values of an existing `Real`.
+    *
+    * This method takes a `Real` instance as an input and creates a new `Real`
+    * with the same numerical value but potentially adjusted fuzziness.
+    *
+    * @param real the input `Real` used to initialize the new `Real` instance
+    * @return a `Real` instance initialized with the value of the input `Real`
+    */
+  def convertFromOldReal(real: com.phasmidsoftware.number.core.Real): Real =
+    new Real(real.toDouble, real.asNumber.flatMap(_.fuzz))
+    
   /**
     * Creates a `Real` instance with a value of 0 and a default fuzziness level.
     *

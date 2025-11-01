@@ -11,6 +11,8 @@ import com.phasmidsoftware.number3.algebra.Angle.angleIsCommutativeGroup
 import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
 
+import scala.reflect.ClassTag
+
 /**
   * A case class representing an angle in radians. This class implements the `Additive` and `Radians` traits,
   * allowing operations such as addition, subtraction, and various type conversions.
@@ -24,6 +26,14 @@ import com.phasmidsoftware.number3.misc.FP
   */
 case class Angle(radians: Number) extends Additive[Angle] with Radians {
 
+  /**
+    * Represents the zero value of the `Angle` class.
+    *
+    * This is a predefined constant which corresponds to an `Angle` of zero radians.
+    * It is used as the additive identity in operations involving angles.
+    */
+  val zero: Angle = Angle.zero
+  
   /**
     * Compares the current `Angle` instance with another `Number` to determine their exact order.
     *
@@ -52,7 +62,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure](t: T): Option[T] = t match {
+  def convert[T <: Structure: ClassTag](t: T): Option[T] = t match {
     case _: Real =>
       radians.approximation.map(x => x.scaleByPi).asInstanceOf[Option[T]]
     case _ =>
@@ -65,6 +75,14 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean = radians.isZero
+
+  /**
+    * Determines the sign of the scalar value represented by this instance.
+    * Returns an integer indicating whether the value is positive, negative, or zero.
+    *
+    * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
+    */
+  def signum: Int = compareExact(Angle.zero).get
 
   /**
     * Method to determine if this Structure object is exact.
@@ -150,6 +168,32 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
   }
 
   /**
+    * Scales the instance of type T by the given integer multiplier.
+    *
+    * This method performs a multiplication operation between the current instance and
+    * the specified integer, returning an optional result. The result is defined if
+    * the scaling operation is valid for the specific implementation.
+    *
+    * @param that the integer multiplier used to scale the instance
+    * @return an Option containing the scaled result of type T, or None if the operation is invalid
+    */
+  infix def doScaleInt(that: Int): Option[Angle] =
+    radians.doScaleInt(that).map(x => Angle.apply(x.asInstanceOf[RationalNumber]))
+  
+  /**
+    * Scales the current instance using the provided `Number`.
+    *
+    * The method performs a scaling operation by applying the given `Number` to the current instance,
+    * producing an optional result of type `T`. If the scaling operation cannot be defined for the given `Number`,
+    * it returns `None`.
+    *
+    * @param that the `Number` used to scale the current instance
+    * @return an `Option[T]` containing the result of the scaling operation if successful, or `None` if the operation cannot be performed
+    */
+  infix def doScale(that: Number): Option[Angle] =
+    radians.doScale(that).map(Angle.apply)
+
+  /**
     * Computes the potential factor associated with this instance.
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
@@ -168,7 +212,6 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
     *         of this `Number`, or `None` if no approximation is available.
     */
   def approximation: Option[Real] = convert(Real.zero)
-
 }
 
 /**
@@ -222,12 +265,15 @@ object Angle {
   /**
     * Represents an angle equivalent to π/2 radians.
     *
-    * The value `pi_2` is a constant instance of the `Angle` class initialized using
+    * The value `piBy2` is a constant instance of the `Angle` class initialized using
     * a `RationalNumber` constructed with a value of 1/2. This corresponds
     * to π/2 radians in mathematical terms.
     */
-  val pi_2: Angle = Angle(RationalNumber(Rational.half))
-
+  val piBy2: Angle = Angle(RationalNumber(Rational.half))
+  val piBy3: Angle = Angle(RationalNumber(Rational.third))
+  val piBy4: Angle = Angle(RationalNumber(Rational(1,4)))
+  val piBy2Times3: Angle = Angle(RationalNumber(Rational(3,2)))
+  
   /**
     * Provides an implicit `Show` instance for the `Angle` class, enabling conversion
     * of an `Angle` instance to a string representation using its `render` method.

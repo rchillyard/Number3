@@ -184,7 +184,7 @@ trait CatsKernelInstances {
   // Real: delegate to underlying Number semantics
   implicit val realEq: Eq[Real] = Eq.instance((a, b) => a.x === b.x)
   implicit val realPartialOrder: PartialOrder[Real] =
-    PartialOrder.by[Real, Number](_.x)(numberPartialOrder)
+    PartialOrder.by[Real, Number](_.x)(using numberPartialOrder)
 
   implicit val realShow: Show[Real] = Show.show(_.render)
 

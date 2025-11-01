@@ -20,7 +20,7 @@ val catsVersion = "2.13.0"
 val scalaTestVersion = "3.2.19"
 
 libraryDependencies ++= Seq(
-  "com.phasmidsoftware" % "number_2.13" % "1.2.12",
+  "com.phasmidsoftware" % "number_2.13" % "1.2.12-SNAPSHOT",
 //  "com.phasmidsoftware" %% "flog" % "1.0.10",
 //  "com.phasmidsoftware" %% "matchers" % "1.0.11",
 //  "org.apache.commons" %% "commons-math3" % "3.6.1",

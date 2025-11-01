@@ -5,8 +5,10 @@
 package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
-import com.phasmidsoftware.number.core.inner.*
+import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Constants, Field, Number, Real}
+import com.phasmidsoftware.number3.algebra.Valuable
+import com.phasmidsoftware.number3.core.{Context, ImpossibleContext, RestrictedContext}
 import com.phasmidsoftware.number3.expression.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number3.misc.FP
@@ -14,6 +16,8 @@ import com.phasmidsoftware.number3.misc.FP
 import java.util.Objects
 import scala.language.implicitConversions
 import scala.util.Try
+
+type OldNumber = Number
 
 /**
   * An abstract class which extends Expression while providing an instance of ExpressionMatchers for use
@@ -78,7 +82,7 @@ sealed trait CompositeExpression extends Expression {
     expr =>
       expr.evaluateAsIs match {
         case Some(f) =>
-          em.Match(Expression(f)) map (_.simplify)
+          em.Match(Expression(f)).map(_.simplify)
         case _ =>
           em.Miss("matchSimpler: cannot be simplified", expr)
       }
@@ -101,14 +105,6 @@ sealed trait CompositeExpression extends Expression {
     */
   def render: String =
     materialize.render
-
-  /**
-    * Method to determine what `Factor`, if there is such, this `Structure` object is based on.
-    *
-    * @return an optional `Factor`.
-    */
-  def maybeFactor: Option[Factor] =
-    evaluateAsIs flatMap (_.maybeFactor)
 }
 
 /**
@@ -148,7 +144,7 @@ object CompositeExpression {
     * @param xs The sequence of `Field` instances used to create the `Aggregate`.
     * @return An `Aggregate` instance containing the converted `Literal` expressions.
     */
-  def create(f: ExpressionBiFunction, xs: Field*): Expression =
+  def create(f: ExpressionBiFunction, xs: Valuable*): Expression =
     apply(f, xs map (x => Literal(x, None))) // TESTME
 }
 
@@ -180,17 +176,17 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *
     * @return the materialized Field.
     */
-  def evaluate(context: Context): Option[Field] =
+  def evaluate(context: Context): Option[Valuable] =
     x match {
       case AtomicExpression(field) =>
         // NOTE: here we catch any exceptions that are thrown by applyExact.
         // CONSIDER: we should never throw exceptions (see e.g., ComplexPolar.apply).
         FP.toOption(Try(f.applyExact(field))).flatten
       case _ =>
-        x.evaluate(context) map f
+        x.evaluate(context).map(f)
     }
   // NOTE that the equivalent method for BiFunction is as follows
-  //  context.qualifyingField(f.evaluate(a, b)(context))
+  //  context.qualifyingValuable(f.evaluate(a, b)(context))
 
 
   /**
@@ -201,7 +197,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
     *         approximation is successfully computed; otherwise, `None`.
     */
   def approximation: Option[Real] =
-    x.approximation map f match {
+    x.approximation map (Valuable(_)) map f match {
       case Some(r: Real) =>
         Some(r)
       case _ =>
@@ -238,7 +234,7 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
       case UniFunction(BiFunction(x, b, Log), Reciprocal) =>
         em.Match(BiFunction(b, x, Log))
       // XXX we check for certain exact literal function results
-      case UniFunction(e: FieldExpression, f) if e.monadicFunction(f).isDefined =>
+      case UniFunction(e: ValueExpression, f) if e.monadicFunction(f).isDefined =>
         em.matchIfDefined(e.monadicFunction(f))(e)
       case UniFunction(r: Root, Reciprocal) =>
         em.Match(r.reciprocal)
@@ -352,7 +348,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           //          case Product => r1.solution multiply r2.solution
           case _ => None
         }
-        val eo: Option[Expression] = so map (Algebraic(_))
+        val eo: Option[Expression] = so map (s => Literal(Valuable(Algebraic(s))))
         em.matchIfDefined(eo)(b)
 
 
@@ -468,8 +464,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *
     * @return the materialized Field.
     */
-  def evaluate(context: Context): Option[Field] =
-    context.qualifyingField(f.evaluate(a, b)(context))
+  def evaluate(context: Context): Option[Valuable] =
+    context.qualifyingValuable(f.evaluate(a, b)(context))
 
   /**
     * Provides the terms that comprise this `CompositeExpression`.
@@ -495,7 +491,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     * @return an `Option[Real]` representing the computed approximation if possible; otherwise, `None`.
     */
   def approximation: Option[Real] =
-    (for x <- a.approximation; y <- b.approximation yield f(x, y)) match {
+    (for x <- a.approximation; y <- b.approximation yield f(Valuable(x), Valuable(y))) match {
       case Some(r: Real) =>
         Some(r)
       case _ =>
@@ -572,9 +568,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     */
   private def matchRoot(r: Root, x: Expression, f: ExpressionBiFunction): em.MatchResult[Expression] = (r, x, f) match {
     case (r, p, Power) =>
-      p.evaluate(RestrictedContext(PureNumber)) flatMap (_.toRational) match {
-        case Some(n) =>
-          em.Match(r.power(n))
+      p.evaluate(RestrictedContext(PureNumber)) match {
+        case Some(n: com.phasmidsoftware.number3.algebra.Number) =>
+          em.matchIfDefined(n.toRational.map(r.power))(BiFunction(r, p, Power))
         case None =>
           em.Miss("BiFunction:matchRoot Power", BiFunction(r, p, Power))
       }
@@ -873,14 +869,14 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return an `Option[Field]` representing the result of the evaluation. Returns `None`
     *         if the evaluation cannot produce a valid field or if an invalid context is encountered.
     */
-  def evaluate(context: Context): Option[Field] = {
+  def evaluate(context: Context): Option[Valuable] = {
 
     // NOTE we combine the expressions of this `Aggregate` but maintain a context which in general changes as we combine terms.
     // The initial context is determined by the parameter `context` and the function's `leftContext` method.
     // The resulting tuple of optional Field and Context is then matched.
     // If the context is impossible (for example, we multiplied a pure number by a logarithmic number such as `e`,
     // then we cannot evaluate this `Aggregate` exactly.
-    xs.foldLeft[(Option[Field], Context)]((function.maybeIdentityL, function.leftContext(context)))(combineExpressions) match {
+    xs.foldLeft[(Option[Valuable], Context)]((function.maybeIdentityL, function.leftContext(context)))(combineExpressions) match {
       case (_, ImpossibleContext) =>
         None
       case (fo, _) =>
@@ -931,9 +927,11 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     *         or `None` if the approximation could not be determined.
     */
   def approximation: Option[Real] = { // TESTME
-    val identity: Field = function.maybeIdentityL.getOrElse(Constants.zero) // NOTE should never require the default
-    val maybeFields: Seq[Option[Field]] = xs.map(e => e.approximation)
-    FP.sequence(maybeFields) map (xs => xs.foldLeft[Field](identity)(function.apply)) match {
+    val identity: Valuable = function.maybeIdentityL.getOrElse(Valuable.zero) // NOTE should never require the default
+    val maybeFields: Seq[Option[Valuable]] = for {
+      x <- xs
+    } yield x.approximation.map(Valuable(_))
+    FP.sequence(maybeFields) map (xs => xs.foldLeft[Valuable](identity)(function.apply)) match {
       case Some(r: Real) =>
         Some(r)
       case _ =>
@@ -962,7 +960,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return a new tuple containing an updated optional field and context after combining
     *         the accumulator and the given expression.
     */
-  private def combineExpressions(accum: (Option[Field], Context), x: Expression): (Option[Field], Context) = {
+  private def combineExpressions(accum: (Option[Valuable], Context), x: Expression): (Option[Valuable], Context) = {
     val (fo, context) = accum
     combineFieldsAndContexts(x, fo, context)
   }
@@ -980,7 +978,7 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     * @return a tuple consisting of an updated optional field and the resulting context after processing the
     *         given expression with the provided field and context.
     */
-  private def combineFieldsAndContexts(x: Expression, fo: Option[Field], context: Context): (Option[Field], Context) =
+  private def combineFieldsAndContexts(x: Expression, fo: Option[Valuable], context: Context): (Option[Valuable], Context) =
     (for a <- fo; b <- x.evaluate(context) yield {
       val field = function(a, b)
       field -> (for factor <- field.maybeFactor yield function.rightContext(factor)(context))
