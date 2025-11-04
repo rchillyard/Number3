@@ -6,7 +6,7 @@ version := "2.0.1"
 
 scalaVersion := "3.7.3"
 
-scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation")
+scalacOptions ++= Seq("-explain", "-encoding", "UTF-8", "-unchecked", "-deprecation")
 //scalacOptions ++= Seq("-encoding", "UTF-8", "-unchecked", "-deprecation", "-source:future-migration", "-rewrite", "-Vprint:typer")
 
 //Compile / excludeFilter := {

@@ -571,7 +571,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       p.evaluate(RestrictedContext(PureNumber)) match {
         case Some(n: com.phasmidsoftware.number3.algebra.Number) =>
           em.matchIfDefined(n.toRational.map(r.power))(BiFunction(r, p, Power))
-        case None =>
+        case _ =>
           em.Miss("BiFunction:matchRoot Power", BiFunction(r, p, Power))
       }
     case (q1@QuadraticRoot(e1, b1), q2@QuadraticRoot(e2, b2), f) if e1 == e2 =>

@@ -301,7 +301,7 @@ object RationalNumber {
     * @return the zero value as a `RationalNumber` instance.
     */
   def zero: RationalNumber =
-    rationalNumberIsField.zero
+    RationalNumber(Rational.zero)
 
   /**
     * Provides the multiplicative identity element for `RationalNumber`.
@@ -312,7 +312,7 @@ object RationalNumber {
     * @return a `RationalNumber` instance representing the multiplicative identity `1`.
     */
   def one: RationalNumber =
-    rationalNumberIsField.one
+    RationalNumber(Rational.one)
 
   val half: RationalNumber = RationalNumber(Rational.half)
   
@@ -330,7 +330,7 @@ object RationalNumber {
       *
       * @return the zero value of the `RationalNumber` type
       */
-    def zero: RationalNumber =
+    val zero: RationalNumber =
       RationalNumber(Rational.zero)
 
     /**
@@ -338,7 +338,7 @@ object RationalNumber {
       *
       * @return A `RationalNumber` instance equal to one.
       */
-    def one: RationalNumber =
+    val one: RationalNumber =
       RationalNumber(Rational.one)
 
     /**

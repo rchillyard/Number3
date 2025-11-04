@@ -19,7 +19,7 @@ trait Additive[T <: Structure] {
     * results in the same element. For any element `x`, `x + zero` and `zero + x` should
     * equal `x`.
     */
-  val zero: T
+  def zero: T
 
   /**
     * Adds the specified `T` to this `T` instance.

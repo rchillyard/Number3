@@ -6,9 +6,8 @@ package com.phasmidsoftware.number3.algebra
 
 import algebra.CommutativeMonoid
 import cats.Show
-import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
+import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number3.algebra.Logarithm.LogarithmIsCommutativeMonoid
 import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
@@ -37,7 +36,7 @@ abstract class Logarithm(val value: Number) extends Additive[Logarithm] with Tra
   /**
     * Compares this `Logarithm` instance with another `Logarithm` instance.
     *
-    * This method compares the `value` values of the current `Logarithm` instance 
+    * This method compares the `value` values of the current `Logarithm` instance
     * and the specified `Logarithm` instance using their natural order.
     *
     * @param that the `Logarithm` instance to compare with the current instance
@@ -199,7 +198,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
     * results in the same element. For any element `value`, `value + zero` and `zero + value` should
     * equal `value`.
     */
-  val zero: Logarithm = NatLog(WholeNumber.zero)
+  lazy val zero: Logarithm = NatLog(WholeNumber.zero)
 
   /**
     * Defines a transformation that transforms a `Monotone` instance into a corresponding `Scalar` value. 
@@ -313,7 +312,7 @@ object Logarithm {
       *
       * @return an `Logarithm` instance with zero value, acting as the identity element in the group structure.
       */
-    def empty: Logarithm = NatLog.one
+    lazy val empty: Logarithm = NatLog(WholeNumber.zero)
 
     /**
       * Combines two `Logarithm` instances by adding their respective value.

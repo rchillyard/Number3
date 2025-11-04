@@ -3,7 +3,6 @@ package com.phasmidsoftware.number3.algebra
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber}
-import com.phasmidsoftware.number3.core.Structure
 
 /**
   * Represents a `Scalar`, which is a `Monotone` that is linear with other scalar quantities and
@@ -43,7 +42,7 @@ trait Scalar extends Monotone with CanAdd[Scalar] {
     * This value indicates the magnitude by which a scalar is scaled,
     * and the conversion factor to yield a `PureNumber`.
     */
-  val scaleFactor: Double
+  def scaleFactor: Double
 
   /**
     * Attempts to yield a factor for the instance, if available.

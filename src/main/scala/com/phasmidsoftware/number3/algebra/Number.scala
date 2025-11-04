@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
 import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number3.misc.FP
 
 import scala.language.implicitConversions
@@ -128,7 +127,7 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
     * The `scaleFactor` represents a multiplier that influences computations or adjustments involving this number.
     * It is commonly used to scaleFactor or manipulate the magnitude of the number in various arithmetic or operational contexts.
     */
-  val scaleFactor: Double = 1.0
+  lazy val scaleFactor: Double = 1.0
 }
 
 /**

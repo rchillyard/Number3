@@ -5,16 +5,16 @@
 package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
-import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
-import com.phasmidsoftware.number.core.{Approximatable, ComplexPolar, Constants, NumberException, NumberLike}
-import com.phasmidsoftware.number3.algebra.{Number, RationalNumber, Scalar, Valuable, WholeNumber, Valuable as apply}
+import com.phasmidsoftware.number.{core, mill}
+import com.phasmidsoftware.number.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
+import com.phasmidsoftware.number3.algebra.{RationalNumber, Scalar, Valuable, WholeNumber}
 import com.phasmidsoftware.number3.core.{AnyContext, Context}
 import com.phasmidsoftware.number3.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number3.misc.FP.recover
-import com.phasmidsoftware.number3.parse.ShuntingYardParser
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -442,7 +442,38 @@ object Expression {
     * NOTE that it might be a problem with render instead.
     */
   def parse(x: String): Option[Expression] =
-    ShuntingYardParser.parseInfix(x).toOption flatMap (_.evaluate)
+    mill.Expression.parseToExpression(x).map(convertMillExpressionToExpression)
+
+  /**
+    * Converts a `mill.Expression` into an `Expression` by interpreting the structure 
+    * and applying the appropriate transformations based on the expression type. 
+    * Supports terminal, monadic, and dyadic expressions with specific operators.
+    *
+    * @param expr The `mill.Expression` to be converted.
+    * @return The corresponding `Expression` after applying the transformations.
+    * @throws ExpressionException if an unknown operator is encountered.
+    */
+  def convertMillExpressionToExpression(expr: mill.Expression): Expression =
+    expr match {
+      case TerminalExpression(value) => Literal(value)
+      case MonadicExpression(expression, str) =>
+        str match {
+          case "-" => -convertMillExpressionToExpression(expression)
+          case "/" => convertMillExpressionToExpression(expression).reciprocal
+          case "√" => convertMillExpressionToExpression(expression).sqrt
+          case "ln" => convertMillExpressionToExpression(expression).ln
+          case "exp" => convertMillExpressionToExpression(expression).exp
+          case "sin" => convertMillExpressionToExpression(expression).sin
+          case "cos" => convertMillExpressionToExpression(expression).cos
+          case _ => throw ExpressionException(s"convertMillExpressionToExpression: unknown operator: $str")
+        }
+      case DyadicExpression(left, right, operator) =>
+        operator match {
+          case "+" => convertMillExpressionToExpression(left) + convertMillExpressionToExpression(right)
+          case "*" => convertMillExpressionToExpression(left) * convertMillExpressionToExpression(right)
+          case "∧" => convertMillExpressionToExpression(left) ∧ convertMillExpressionToExpression(right)
+        }
+    }
 
   /**
     * Converts a `Field` instance into an `Expression`.

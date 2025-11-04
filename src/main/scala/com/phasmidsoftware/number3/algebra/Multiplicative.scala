@@ -19,7 +19,7 @@ trait Multiplicative[T <: Structure] {
     * The `one` value serves as the neutral element for the multiplication operation, meaning
     * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
     */
-  val one: T
+  def one: T
   
   /**
     * Multiplies the specified `T` by this `T` instance.

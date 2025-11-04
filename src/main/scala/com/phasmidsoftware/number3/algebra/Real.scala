@@ -5,10 +5,10 @@ import cats.Show
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber, NumberException}
+import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number3.algebra.Real.realIsRing
 import com.phasmidsoftware.number3.core.Structure
 import com.phasmidsoftware.number3.misc.FP
-import com.phasmidsoftware.number3.parse.NumberParser
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -88,7 +88,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * results in the same element. For any element `x`, `x + zero` and `zero + x` should
     * equal `x`.
     */
-  val zero: Real = realIsRing.zero
+  lazy val zero: Real = realIsRing.zero
   
   /**
     * Represents the multiplicative identity element of the structure.
@@ -96,7 +96,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * The `one` value serves as the neutral element for the multiplication operation, meaning
     * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
     */
-  val one: Real = realIsRing.one
+  lazy val one: Real = realIsRing.one
 
   /**
     * Converts this `Number` into its corresponding `Rational` representation, if possible.
@@ -104,7 +104,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
     *         if it can be converted, or `None` if the conversion is not possible.
     */
-  def toRational: Option[Rational] = None
+  lazy val toRational: Option[Rational] = None
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -112,7 +112,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *
     * @return 1 if the value is positive, -1 if the value is negative, and 0 if the value is zero
     */
-  def signum: Int = compare(zero)
+  lazy val signum: Int = compare(zero)
 
   /**
     * Compares the current `Number` instance with another `Number` instance exactly.
@@ -169,7 +169,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *
     * @return a string representation of the `Real`
     */
-  def render: String = new core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
+  lazy val render: String = new core.FuzzyNumber(Value.fromDouble(Some(value)), PureNumber, fuzz).render
 
   /**
     * Performs an addition operation between the current scalar and another scalar.
@@ -287,7 +287,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     *
     * @return a new `Real` instance with its value scaled by π
     */
-  private[algebra] def scaleByPi: Real =
+  private[algebra] lazy val scaleByPi: Real =
     Real(value * Real.pi.value, Some(Fuzziness.doublePrecision))
 }
 
@@ -334,7 +334,7 @@ object Real {
     * @return a `Real` instance initialized with the value and fuzziness derived from the input `core.Real`
     */
   def apply(x: core.Real): Real = apply(x.toDouble, x.asNumber.flatMap(_.fuzz))
-  
+
   /**
     * Parses a string representation of a number and constructs a `Real` instance.
     * If the input string cannot be parsed into a valid number, a `NumberException` is thrown.
@@ -346,7 +346,7 @@ object Real {
     val z: Try[core.Real] = NumberParser.parseNumber(w).map(x => core.Real(x))
     FP.getOrThrow[Real](z.map(x => Real(x)).toOption, NumberException(s"Real.apply(String): cannot parse $w"))
   }
-  
+
   /**
     * Constructs a new `Real` instance based on the values of an existing `Real`.
     *
@@ -364,14 +364,14 @@ object Real {
     *
     * @return a `Real` representing the value zero with default fuzziness
     */
-  def zero: Real = apply(0)
+  val zero: Real = apply(0)
 
   /**
     * Returns a `Real` representing the value one with double precision fuzziness.
     *
     * @return a `Real` instance initialized with the numeric value 1 and a default level of fuzziness.
     */
-  def one: Real = apply(1)
+  val one: Real = apply(1)
 
   /**
     * Returns a `Real` representing the mathematical constant π (pi)
@@ -490,14 +490,14 @@ object Real {
       *
       * @return the additive identity (zero) as a `Real`
       */
-    def zero: Real = fromInt(0)
+    lazy val zero: Real = fromInt(0)
 
     /**
       * Returns the multiplicative identity element of the `Real` type.
       *
       * @return a `Real` instance representing the value "1"
       */
-    def one: Real = fromInt(1)
+    lazy val one: Real = fromInt(1)
 
     /**
       * Parses a given string representation and attempts to convert it into an Option of Real.

@@ -1,10 +1,9 @@
 package com.phasmidsoftware.number3.algebra
 
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, GeneralNumber, NumberExceptionWithCause}
-import com.phasmidsoftware.number3.core.{Complex, Structure}
+import com.phasmidsoftware.number.core.{Constants, NumberExceptionWithCause}
+import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField
-import com.phasmidsoftware.number3.parse.NumberParser
 
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -67,19 +66,19 @@ trait Valuable {
   * enabling parsing and conversion of strings to `Valuable` representations.
   */
 object Valuable {
-  val zero: Valuable = Number.zero
-  val one: Valuable = Number.one
-  val minusOne: Valuable = Number.minusOne
-  val two: Valuable = Scalar(2)
-  val half: Valuable = RationalNumber(Rational.half)
-  val pi: Valuable = Angle.pi
-  val piBy2: Valuable = Angle.piBy2
-  val piBy4: Valuable = Angle.piBy4
-  val e: Valuable = NatLog.e
-  val infinity: Valuable = RationalNumber.zero.inverse
-  val negInfinity: Valuable = RationalNumber(Rational.negInfinity)
-  val root2: Valuable = Valuable(Constants.root2)
-  val root3: Valuable = Valuable(Constants.root3)
+  lazy val zero: Valuable = Number.zero
+  lazy val one: Valuable = Number.one
+  lazy val minusOne: Valuable = Number.minusOne
+  lazy val two: Valuable = Scalar(2)
+  lazy val half: Valuable = RationalNumber(Rational.half)
+  lazy val pi: Valuable = Angle.pi
+  lazy val piBy2: Valuable = Angle.piBy2
+  lazy val piBy4: Valuable = Angle.piBy4
+  lazy val e: Valuable = NatLog.e
+  lazy val infinity: Valuable = RationalNumber.zero.inverse
+  lazy val negInfinity: Valuable = RationalNumber(Rational.negInfinity)
+  lazy val root2: Valuable = Valuable(Constants.root2)
+  lazy val root3: Valuable = Valuable(Constants.root3)
   
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed
