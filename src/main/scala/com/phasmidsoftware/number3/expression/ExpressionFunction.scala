@@ -52,6 +52,7 @@ object ExpressionFunction {
   def lift1(f: Field => Field): Valuable => Valuable = {
     v => Valuable(f(valuableToField(v)))
   }
+
   def lift2(f: (Field, Field) => Field): (Valuable, Valuable) => Valuable = {
     (v1, v2) => Valuable(f(valuableToField(v1), valuableToField(v2)))
   }
@@ -67,7 +68,7 @@ object ExpressionFunction {
     *
     * This conversion provides a mechanism to transform different numerical
     * representations into a unified `Field` type.
-    * 
+    *
     * CONSIDER returning an Option[Field] instead of throwing an exception.
     * CONSIDER moving this somewhere more appropriate.
     *
@@ -624,7 +625,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
     */
   def applyExact(x: Valuable): Option[Valuable] = x match {
     case Valuable(Real(ExactNumber(v, f@PureNumber))) =>
-      Value.inverse(v).map (x =>
+      Value.inverse(v).map(x =>
         // NOTE: experimental code. If it works well, we could use it elsewhere. {
         val real: Real = Constants.pureConstants.getOrElse(x,
           Real(ExactNumber(x, f)))
@@ -633,7 +634,7 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
     case Valuable(Real(ExactNumber(v, f@com.phasmidsoftware.number.core.inner.Logarithmic(_)))) =>
       Some(Valuable(Real(ExactNumber(Value.negate(v), f)))) // TESTME
     case Valuable(Real(ExactNumber(v, f@com.phasmidsoftware.number.core.inner.NthRoot(_)))) =>
-      Value.inverse(v).map (x =>
+      Value.inverse(v).map(x =>
         Valuable(Real(ExactNumber(x, f))))
     case _ =>
       None
@@ -853,7 +854,7 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
   def applyExact(a: Valuable, b: Valuable): Option[Valuable] = (a, b) match {
     case (x: CanPower[Scalar] @unchecked, y: Scalar) if x.isExact && y.isExact =>
       for {
-        f <- y.maybeFactor if f==PureNumber
+        f <- y.maybeFactor if f == PureNumber
         result <- x.doPower(y) if result.isExact
       } yield result
     case _ =>

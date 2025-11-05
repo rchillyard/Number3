@@ -9,7 +9,7 @@ import scala.language.implicitConversions
   * Represents a pure number that can be compared, approximated, and converted to other types.
   *
   * `Number` is a trait that extends the `Scalar` trait, adding functionality for ordered comparison.
-  * 
+  *
   * CONSIDER why does it not extend Ordered[Number]?
   */
 trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
@@ -71,7 +71,7 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
     * in the form of a `Real`, which encapsulates uncertainty or imprecision
     * in its value. If no meaningful approximation is possible for the number, it
     * returns `None`.
-    * 
+    *
     * CONSIDER moving this method up into Scalar.
     *
     * @return an `Option[Real]` containing the approximate representation
@@ -87,12 +87,12 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
     * by repeatedly adding the instance to itself `n - 1` times.
     *
     * This is really scaleInt(n).
-    * 
+    *
     * @param n the multiplier, an integer value by which the current `Number` instance is to be multiplied
     * @return a new `Number` instance representing the result of the multiplication
     */
   def *(n: Int): Option[Number] =
-    Range(1,n).foldLeft[Option[Number]](Some(this)) { // CONSIDER putting "Range(1,n)" back to "1 until n".
+    Range(1, n).foldLeft[Option[Number]](Some(this)) { // CONSIDER putting "Range(1,n)" back to "1 until n".
       case (Some(a), _) =>
         (this doPlus a).asInstanceOf[Option[Number]] // TODO check that this is OK
       case (None, _) => None
@@ -120,7 +120,7 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
     * @return a scaled Real with the same relative error as this.
     */
   def scale(scalar: Scalar): Option[Number]
-  
+
   /**
     * A scale factor applied to this `Number`.
     *
@@ -154,6 +154,7 @@ object Number {
     * It is a predefined constant in the `Number` object.
     */
   val two: Number = WholeNumber.two
+
   /**
     *
     */

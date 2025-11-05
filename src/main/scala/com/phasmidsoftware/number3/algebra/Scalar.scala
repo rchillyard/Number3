@@ -73,7 +73,7 @@ trait Scalar extends Monotone with CanAdd[Scalar] {
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean
-  
+
   /**
     * Determines the sign of the scalar value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.
@@ -149,6 +149,7 @@ object Scalar {
     }
   }
 }
+
 /**
   * The `Radians` trait represents a scalar quantity expressed in radians, a unit of angular measure.
   * It extends the `Scalar` trait, inheriting its properties and behaviors for numerical operations

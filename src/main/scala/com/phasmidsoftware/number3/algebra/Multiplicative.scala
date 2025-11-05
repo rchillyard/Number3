@@ -20,7 +20,7 @@ trait Multiplicative[T <: Structure] {
     * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
     */
   def one: T
-  
+
   /**
     * Multiplies the specified `T` by this `T` instance.
     *
@@ -78,6 +78,6 @@ trait MultiplicativeWithPower[T <: Structure] extends Multiplicative[T] {
     * @param n the exponent to which the instance is raised; must be a non-negative integer
     * @return a new `MultiplicativeWithPower[T]` instance representing this instance raised to the `n`th power
     */
-  def power(n: Int): MultiplicativeWithPower[T] = 
+  def power(n: Int): MultiplicativeWithPower[T] =
     (1 until n).foldLeft(this)((r, s) => (r * this.asInstanceOf[T]).asInstanceOf[MultiplicativeWithPower[T]])
 }

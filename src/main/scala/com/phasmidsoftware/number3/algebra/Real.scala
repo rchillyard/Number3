@@ -53,7 +53,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @param t a prototype of the required output.
     * @return an Option wrapping the input number if the conversion is successful, otherwise None
     */
-  def convert[T <: Structure: ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: RationalNumber =>
       FP.whenever(isExact)(Rational.createExact(value).toOption).asInstanceOf[Option[T]]
     case _: Real =>
@@ -91,7 +91,7 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * equal `x`.
     */
   lazy val zero: Real = realIsRing.zero
-  
+
   /**
     * Represents the multiplicative identity element of the structure.
     *
@@ -360,7 +360,7 @@ object Real {
     */
   def convertFromOldReal(real: core.Real): Real =
     new Real(real.toDouble, real.asNumber.flatMap(_.fuzz))
-    
+
   /**
     * Creates a `Real` instance with a value of 0 and a default fuzziness level.
     *

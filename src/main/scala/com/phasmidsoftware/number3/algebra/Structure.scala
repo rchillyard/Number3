@@ -25,7 +25,7 @@ trait Structure extends Valuable {
     * @param t the input object of type `T` which is a subtype of `Structure`.
     * @return an `Option` containing a transformed instance of type `T` if the conversion is successful, or `None` otherwise.
     */
-  def convert[T <: Structure: ClassTag](t: T): Option[T]
+  def convert[T <: Structure : ClassTag](t: T): Option[T]
 
   /**
     * Converts this `Structure` object into an optional `java.lang.Number` provided that the conversion can be
@@ -83,7 +83,7 @@ object Structure {
   *
   * @see com.phasmidsoftware.number.core.Complex
   */
-case class Complex(complex: com.phasmidsoftware.number.core.Complex) extends  Valuable {
+case class Complex(complex: com.phasmidsoftware.number.core.Complex) extends Valuable {
   /**
     * Method to render this `Valuable` for presentation to the user.
     *

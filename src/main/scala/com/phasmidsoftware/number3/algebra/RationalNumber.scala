@@ -47,7 +47,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
     */
   val one: RationalNumber = rationalNumberIsField.one
-  
+
   /**
     * Compares the current `Number` instance with another `Number` instance exactly.
     *
@@ -80,7 +80,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @tparam T the type of the number, which must be a subtype of `Number`
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible
     */
-  def convert[T <: Structure: ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: Real =>
       Some(Real(r.toDouble, None).asInstanceOf[T])
     case _: WholeNumber =>
@@ -123,8 +123,8 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @param that the integer multiplier used to scale the instance
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
-   def doScaleInt(that: Int): Option[RationalNumber] = 
-     doScale(RationalNumber(Rational(that))).asInstanceOf[Option[RationalNumber]]
+  def doScaleInt(that: Int): Option[RationalNumber] =
+    doScale(RationalNumber(Rational(that))).asInstanceOf[Option[RationalNumber]]
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -315,7 +315,7 @@ object RationalNumber {
     RationalNumber(Rational.one)
 
   val half: RationalNumber = RationalNumber(Rational.half)
-  
+
   /**
     * Provides an implicit implementation of the `Field` type class for the `RationalNumber` type.
     *

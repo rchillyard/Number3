@@ -54,7 +54,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure: ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: RationalNumber =>
       Some(RationalNumber(Rational(x.toBigInt)).asInstanceOf[T])
     case _: Real =>

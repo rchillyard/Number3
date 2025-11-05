@@ -33,7 +33,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
     * It is used as the additive identity in operations involving angles.
     */
   val zero: Angle = Angle.zero
-  
+
   /**
     * Compares the current `Angle` instance with another `Number` to determine their exact order.
     *
@@ -62,7 +62,7 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure: ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: Real =>
       radians.approximation.map(x => x.scaleByPi).asInstanceOf[Option[T]]
     case _ =>
@@ -279,8 +279,8 @@ object Angle {
     */
   val piBy2: Angle = Angle(RationalNumber(Rational.half))
   val piBy3: Angle = Angle(RationalNumber(Rational.third))
-  val piBy4: Angle = Angle(RationalNumber(Rational(1,4)))
-  val piBy2Times3: Angle = Angle(RationalNumber(Rational(3,2)))
+  val piBy4: Angle = Angle(RationalNumber(Rational(1, 4)))
+  val piBy2Times3: Angle = Angle(RationalNumber(Rational(3, 2)))
   val twoPi: Angle = Angle(RationalNumber(Rational.two))
   val negPi: Angle = Angle(RationalNumber(Rational.negOne))
 

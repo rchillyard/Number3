@@ -5,7 +5,7 @@
 package com.phasmidsoftware.number3.core
 
 import com.phasmidsoftware.number.core.NumberException
-import com.phasmidsoftware.number.core.inner.{CubeRoot, Euler, Factor, Log10, Log2, NatLog, PureNumber, Radian, SquareRoot}
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number3.algebra.{Nat, Scalar, Valuable}
 
 /**
@@ -38,11 +38,11 @@ trait Context {
     * @return `true` if the `Valuable` qualifies; otherwise, throws a `NumberException` for unsupported types
     */
   def valuableQualifies(v: Valuable): Boolean = v match {
-    case nat: Nat => 
+    case nat: Nat =>
       true
-    case scalar: Scalar => 
+    case scalar: Scalar =>
       scalar.maybeFactor.exists(factorQualifies)
-    case _ => 
+    case _ =>
       throw NumberException(s"Context.valuableQualifies: $v")
   }
 

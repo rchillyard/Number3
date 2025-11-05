@@ -48,7 +48,7 @@ trait Valuable {
     * @return Some(x) where x is a Double if this is exact, else None.
     */
   def maybeDouble: Option[Double]
-  
+
   /**
     * Optionally retrieves a factor associated with this `Valuable` if one exists (this is a Scalar).
     *
@@ -79,7 +79,7 @@ object Valuable {
   lazy val negInfinity: Valuable = RationalNumber(Rational.negInfinity)
   lazy val root2: Valuable = Valuable(Constants.root2)
   lazy val root3: Valuable = Valuable(Constants.root3)
-  
+
   /**
     * Parses the given string into a `Valuable` representation. If the string cannot be parsed
     * into a valid `Number`, an exception is thrown.
@@ -97,7 +97,7 @@ object Valuable {
     }
 
   def apply(x: Long): Valuable = WholeNumber(x)
-  
+
   /**
     * Creates a `Valuable` instance based on the given `Field`.
     * If the `Field` is a `Real` object, it converts it into a `Scalar` representation.
@@ -112,10 +112,10 @@ object Valuable {
     field match {
       case com.phasmidsoftware.number.core.Real(n) =>
         Scalar(n)
-        // TODO add other field types such as Complex, Algebraic, etc.
+      // TODO add other field types such as Complex, Algebraic, etc.
       case _ => throw new IllegalArgumentException(s"Valuable.apply: field is not a Number: $field")
     }
-    
+
   /**
     * Extractor method to convert a `Valuable` instance into an `Option` containing its corresponding `Field` representation.
     * This allows for safe pattern matching and handling of `Valuable` objects that may or may not be convertible to a `Field`.
@@ -125,7 +125,7 @@ object Valuable {
     */
   def unapply(v: Valuable): Option[com.phasmidsoftware.number.core.Field] =
     Try(valuableToField(v)).toOption
-    
+
   /**
     * Converts a given string into a `Valuable` representation.
     * This method allows implicit conversion from `String` to `Valuable`.

@@ -6,10 +6,9 @@ package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.ComplexPolar.±
-import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
-import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
+import com.phasmidsoftware.number.core.inner.{NatLog, SquareRoot}
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, ExactNumber, GeneralNumber, NumberException, Real}
 import com.phasmidsoftware.number3.algebra.*
 import com.phasmidsoftware.number3.core.{Complex, FuzzyEquality}
@@ -22,8 +21,6 @@ import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
-import scala.util.Success
 
 class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfter with FuzzyEquality {
 

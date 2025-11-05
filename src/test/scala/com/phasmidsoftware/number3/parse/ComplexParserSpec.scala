@@ -4,7 +4,7 @@ import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Number}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
-import scala.util._
+import scala.util.*
 
 class ComplexParserSpec extends AnyFlatSpec with should.Matchers {
 

@@ -12,7 +12,6 @@ import com.phasmidsoftware.number.misc.Bumperator
 import com.phasmidsoftware.number3.algebra.{Monotone, Valuable}
 import com.phasmidsoftware.number3.core.RestrictedContext
 import com.phasmidsoftware.number3.expression.Expression.{isIdentityFunction, matchSimpler}
-import com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
 
 import scala.language.implicitConversions
@@ -178,7 +177,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
   def value: ExpressionMatcher[Valuable] = {
     case Literal(v, _) => Match(v) // TESTME
     case ValueExpression(v, _) => Match(v)
-//    case x@com.phasmidsoftware.number.core.Number(_, _) => Match(Real(x)) // TESTME
+    //    case x@com.phasmidsoftware.number.core.Number(_, _) => Match(Real(x)) // TESTME
     case x: ValueExpression => matchIfDefined(x.evaluateAsIs)(x)
     case x => Miss("value", x)
   }

@@ -17,7 +17,7 @@ import scala.reflect.ClassTag
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
 trait Monotone extends Structure with CanScaleWhole[Monotone] {
-  
+
   /**
     * Method to determine if this `Structure` object is exact.
     * For instance, `Number.pi` is exact, although if you converted it into a `PureNumber`, it would no longer be exact.
@@ -55,7 +55,7 @@ trait Monotone extends Structure with CanScaleWhole[Monotone] {
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean
-  
+
   /**
     * Determines the sign of the Monotone value represented by this instance.
     * Returns an integer indicating whether the value is positive, negative, or zero.

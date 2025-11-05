@@ -45,7 +45,7 @@ abstract class Logarithm(val value: Number) extends Additive[Logarithm] with Tra
     *         - zero if this `Logarithm` is equal to `that`
     *         - a positive value if this `Logarithm` is greater than `that`
     */
-  def compare(that: Logarithm): Int = 
+  def compare(that: Logarithm): Int =
     value.compare(that.value)
 
   /**
@@ -58,7 +58,7 @@ abstract class Logarithm(val value: Number) extends Additive[Logarithm] with Tra
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure: ClassTag](t: T): Option[T] = t match {
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: Real =>
       transformation
     case _ =>
@@ -189,7 +189,7 @@ abstract class Logarithm(val value: Number) extends Additive[Logarithm] with Tra
 case class NatLog(x: Number) extends Logarithm(x) {
 
   val base: Number = Real(math.E)
-  
+
   /**
     * Represents the additive identity element for the type `T`.
     *
@@ -210,17 +210,17 @@ case class NatLog(x: Number) extends Logarithm(x) {
   def transformation[T: ClassTag]: Option[T] = {
     val c = implicitly[ClassTag[T]]
     if (c.runtimeClass == classOf[Real]) {
-      val result: Real = 
-      value match {
-        case WholeNumber.one | RationalNumber(Rational.one) => 
-          Real(math.E)
-        case Real(value, fuzz) =>
-          Real(math.log(value), fuzz)
-        case _ => 
-          ???
-      }
+      val result: Real =
+        value match {
+          case WholeNumber.one | RationalNumber(Rational.one) =>
+            Real(math.E)
+          case Real(value, fuzz) =>
+            Real(math.log(value), fuzz)
+          case _ =>
+            ???
+        }
       Some(result.asInstanceOf[T])
-    } 
+    }
     else
       None
   }

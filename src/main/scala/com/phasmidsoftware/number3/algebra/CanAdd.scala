@@ -2,7 +2,7 @@ package com.phasmidsoftware.number3.algebra
 
 /**
   * Behavior of type that can be added to an instance of a similar type.
-  * 
+  *
   * @tparam T the underlying type.
   */
 trait CanAdd[T] {
@@ -40,7 +40,7 @@ trait CanScaleWhole[T] {
     * @param that the integer multiplier used to scale the instance
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
-   def doScaleInt(that: Int): Option[T]
+  def doScaleInt(that: Int): Option[T]
 }
 
 /**
@@ -65,7 +65,7 @@ trait CanScale[T] {
     * @param that the `Number` multiplier used to scale the current instance
     * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
     */
-   def doScale(that: Number): Option[T]
+  def doScale(that: Number): Option[T]
 }
 
 /**

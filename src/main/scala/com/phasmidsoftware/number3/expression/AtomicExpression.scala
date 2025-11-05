@@ -9,10 +9,10 @@ import com.phasmidsoftware.number.core.Constants.gamma
 import com.phasmidsoftware.number.core.Number.one
 import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
-import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Radian, Rational, Value}
-import com.phasmidsoftware.number.core.{Constants, ExactNumber, Field, Number}
-import com.phasmidsoftware.number3.algebra.{Additive, Angle, Multiplicative, MultiplicativeWithInverse, Nat, NatLog, RationalNumber, Real, Scalar, Valuable, WholeNumber}
-import com.phasmidsoftware.number3.core.{AnyContext, Complex, Context, Structure}
+import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
+import com.phasmidsoftware.number.core.{Constants, Field, Number}
+import com.phasmidsoftware.number3.algebra.{Additive, Angle, MultiplicativeWithInverse, Nat, NatLog, RationalNumber, Real, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number3.core.{AnyContext, Complex, Context}
 import com.phasmidsoftware.number3.expression.Expression.em
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
 
@@ -128,7 +128,7 @@ case object Noop extends AtomicExpression {
     * @return a String
     */
   def render: String = "Noop"
-  
+
   /**
     *
     */
@@ -145,10 +145,10 @@ case object Noop extends AtomicExpression {
   * it into a valuable field representation and then casting it to the core `Real`.
   *
   * TESTME: this is a hack.
-  * 
+  *
   * @param r The new `Real` type that needs to be converted to the old `Real` type.
   */
-def newRealToOldReal(r: Real) = 
+def newRealToOldReal(r: Real) =
   ExpressionFunction.valuableToField(r).asInstanceOf[core.Real]
 
 /**
@@ -198,7 +198,7 @@ sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option
       Option.when(scalar.maybeFactor.isDefined && context.valuableQualifies(scalar))(value)
     case _ => ???
   }
-  
+
   /**
     * Attempts to approximate the current Valuable expression as a Real number.
     *
@@ -364,19 +364,19 @@ case class Literal(override val value: Valuable, override val maybeName: Option[
       someLiteral((-r).asInstanceOf[Valuable])
     case (Reciprocal, r: MultiplicativeWithInverse[?]) =>
       someLiteral(r.inverse.asInstanceOf[Valuable])
-      // TODO implement all of these cases
-//    case (Reciprocal, a: Algebraic) =>
-//      someLiteral(a.invert)
-//    case (Reciprocal, c: Complex) =>
-//      someLiteral(c.complex.invert) // TODO refactor this
-//    case (Ln, r@Real(x,None)) =>
-//      someLiteral(r.ln)
-//    case (Exp, r@Real(x,None)) =>
-//      someLiteral(r.exp)
-//    case (Sine, r@Real(x,None)) =>
-//      someLiteral(r.sin)
-//    case (Cosine, r@Real(x,None)) =>
-//      someLiteral(r.cos)
+    // TODO implement all of these cases
+    //    case (Reciprocal, a: Algebraic) =>
+    //      someLiteral(a.invert)
+    //    case (Reciprocal, c: Complex) =>
+    //      someLiteral(c.complex.invert) // TODO refactor this
+    //    case (Ln, r@Real(x,None)) =>
+    //      someLiteral(r.ln)
+    //    case (Exp, r@Real(x,None)) =>
+    //      someLiteral(r.exp)
+    //    case (Sine, r@Real(x,None)) =>
+    //      someLiteral(r.sin)
+    //    case (Cosine, r@Real(x,None)) =>
+    //      someLiteral(r.cos)
     // TODO implement for other functions
     case _ =>
       None
@@ -453,7 +453,7 @@ object Literal {
     case _ =>
       Literal(Scalar(x))
   }
-  
+
   def apply(x: Algebraic): Expression = Literal(Valuable(x))
 
   def someLiteral(x: Valuable): Option[Literal] = Some(Literal(x))
@@ -1232,7 +1232,7 @@ abstract class AbstractRoot(equ: Equation, branch: Int) extends Root {
     em.Matcher[Expression, Expression]("Root.simplifyAtomic") {
       case r: AbstractRoot =>
         // TODO refactor maybeValue so that it yields Option[Valuable]
-        em.matchIfDefined(r.maybeValue)(r).flatMap{
+        em.matchIfDefined(r.maybeValue)(r).flatMap {
           x => matchAndSimplify(Valuable(x))
         }
     }

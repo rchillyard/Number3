@@ -5,17 +5,17 @@
 package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
-import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number3.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number3.algebra.{RationalNumber, Scalar, Valuable, WholeNumber}
 import com.phasmidsoftware.number3.core.{AnyContext, Context}
 import com.phasmidsoftware.number3.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
-import com.phasmidsoftware.number3.misc.FP.recover
 import com.phasmidsoftware.number3.mill
+import com.phasmidsoftware.number3.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
+import com.phasmidsoftware.number3.misc.FP.recover
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -171,6 +171,7 @@ object ExpressionHelper {
       val interleaved = parts.zip(args).flatMap { case (s, a) => Seq(s, a.toString) } ++ parts.drop(args.length)
       Expression(interleaved.mkString)
 }
+
 /**
   * The `Expression` companion object provides utilities for creating, manipulating, and parsing expressions.
   *
