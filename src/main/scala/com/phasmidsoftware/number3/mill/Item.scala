@@ -5,8 +5,6 @@
 package com.phasmidsoftware.number3.mill
 
 import com.phasmidsoftware.number.core.*
-import com.phasmidsoftware.number3.expression.Expression.*
-import com.phasmidsoftware.number3.expression.{Expression, Literal}
 
 /**
   * Trait to model the behavior of an item that goes into the Mill.
@@ -14,7 +12,7 @@ import com.phasmidsoftware.number3.expression.{Expression, Literal}
 trait Item
 
 /**
-  * Subclass of Item which represents a dyadic operator.
+  * Sub-class of Item which represents a dyadic operator.
   *
   * @param precedence        the precedence level of the operator.
   * @param leftAssociativity the left-associativity of the operator.
@@ -38,7 +36,7 @@ object Dyadic {
     *
     */
   implicit object DyadicOrdering extends Ordering[Dyadic] {
-    def compare(x: Dyadic, y: Dyadic): Int = if (x.leftAssociativity && x.precedence <= y.precedence) || (!x.leftAssociativity && x.precedence < y.precedence) then -1 else 0
+    def compare(x: Dyadic, y: Dyadic): Int = if ((x.leftAssociativity && x.precedence <= y.precedence) || (!x.leftAssociativity && x.precedence < y.precedence)) -1 else 0
   }
 }
 
@@ -53,94 +51,94 @@ trait Monadic extends Item
 trait Anadic extends Item
 
 /**
-  * Multiply operator (subtype of Dyadic).
+  * Multiply operator (sub-type of Dyadic).
   */
 case object Multiply extends Dyadic(3)
 
 /**
-  * Divide operator (subtype of Dyadic).
+  * Divide operator (sub-type of Dyadic).
   */
 case object Divide extends Dyadic(3)
 
 /**
-  * Add operator (subtype of Dyadic).
+  * Add operator (sub-type of Dyadic).
   */
 case object Add extends Dyadic(2)
 
 /**
-  * Subtract operator (subtype of Dyadic).
+  * Subtract operator (sub-type of Dyadic).
   */
 case object Subtract extends Dyadic(2)
 
 /**
-  * Power operator (subtype of Dyadic).
+  * Power operator (sub-type of Dyadic).
   */
 case object Power extends Dyadic(4, false)
 
 /**
-  * CHS (change sign) operator (subtype of Monadic).
+  * CHS (change sign) operator (sub-type of Monadic).
   */
 case object Chs extends Monadic
 
 /**
-  * Inv (invert) operator (subtype of Monadic).
+  * Inv (invert) operator (sub-type of Monadic).
   */
 case object Inv extends Monadic
 
 /**
-  * Sqrt (square root) operator (subtype of Monadic).
+  * Sqrt (square root) operator (sub-type of Monadic).
   */
 case object Sqrt extends Monadic
 
 /**
-  * Sin (sine) operator (subtype of Monadic).
+  * Sin (sine) operator (sub-type of Monadic).
   */
 case object Sin extends Monadic
 
 /**
-  * Cos (cosine) operator (subtype of Monadic).
+  * Cos (cosine) operator (sub-type of Monadic).
   */
 case object Cos extends Monadic
 
 /**
-  * Ln (natural logarithm) operator (subtype of Monadic).
+  * Ln (natural logarithm) operator (sub-type of Monadic).
   */
 case object Ln extends Monadic
 
 /**
-  * Exponent (e&#94;x) operator (subtype of Monadic).
+  * Exponent (e&#94;x) operator (sub-type of Monadic).
   */
 case object Exponent extends Monadic
 
 /**
-  * Swap operator (subtype of Item).
+  * Swap operator (sub-type of Item).
   */
 case object Swap extends Item
 
 /**
-  * Clr (clear) operator (subtype of Item).
+  * Clr (clear) operator (sub-type of Item).
   */
 case object Clr extends Item
 
 /**
-  * Noop (no-op) operator (subtype of Item).
+  * Noop (no-op) operator (sub-type of Item).
   */
 case object Noop extends Item
 
 /**
-  * Open (open parenthesis) operator (subtype of Item).
+  * Open (open parenthesis) operator (sub-type of Item).
   */
 case object Open extends Item
 
 
 /**
-  * Close (close parenthesis) operator (subtype of Item).
+  * Close (close parenthesis) operator (sub-type of Item).
   */
 case object Close extends Item
 
 
 /**
-  * Expr (expression) operator (subtype of Item).
+  * Expr (expression) operator (sub-type of Item).
   * In old-fashioned terminology, x is the augend for the + operator,
   * and the multiplier for the * operator.
   */
@@ -174,7 +172,7 @@ object Expr {
     * @param x a Number.
     * @return Expr(Literal(x)).
     */
-  def apply(x: Number): Expr = Expr(Literal(x))
+  def apply(x: Number): Expr = Expr(TerminalExpression(x))
 }
 
 /**
@@ -204,8 +202,8 @@ object Item {
     */
   def apply(s: String): Item = s.toLowerCase match {
     // XXX Dyadic operators
-    case "^" => Power
     case "∧" => Power
+    case "^" => Power
     case "+" => Add
     case "-" | "−" | "–" => Subtract
     case "*" | "×" => Multiply

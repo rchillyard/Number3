@@ -1,8 +1,7 @@
 package com.phasmidsoftware.number3.parse
 
 import com.phasmidsoftware.number.core.*
-import com.phasmidsoftware.number3.expression.Expression
-import com.phasmidsoftware.number3.mill.{Expr, Item, Mill}
+import com.phasmidsoftware.number3.mill.{Expr, Item, Mill, TerminalExpression}
 
 import scala.util.Try
 
@@ -17,7 +16,7 @@ import scala.util.Try
 abstract class BaseMillParser extends BaseNumberParser {
 
   /**
-    * Parse the string w as an RPN expression.
+    * Parse the string w as a RPN expression.
     * The elements of the input include numbers, and various operators.
     *
     * @param w the String to parse.
@@ -32,7 +31,7 @@ abstract class BaseMillParser extends BaseNumberParser {
     def toItems: Seq[Item] = this match {
       case AnadicTerm(x) => x match {
         case Left(w) => Seq(Item(w))
-        case Right(n) => Seq(Expr(Expression(com.phasmidsoftware.number3.algebra.Valuable(Real(n)))))
+        case Right(n) => Seq(Expr(TerminalExpression(n)))
       }
       case MonadicTerm(x, os, p) => x.toItems ++ os.map(Item(_)) :+ Item(p)
       case DyadicTerm(x, p) => x.toItems ++ p.toItems
@@ -54,9 +53,9 @@ abstract class BaseMillParser extends BaseNumberParser {
   /**
     * MonadicTerm is a Term defined by a Term t, a list of Strings, and an operator op.
     *
-    * @param t  a Term, typically a `Number` or another term.
+    * @param t  a Term, typically a Number or another term.
     * @param os a possibly empty list of Strings, representing neutral operators such as the swap operator.
-    * @param op a monadic operator, represented by a String.
+    * @param op an monadic operator, represented by a String.
     */
   case class MonadicTerm(t: Term, os: List[String], op: String) extends Term {
     override def toString: String = s"$t $os $op"
@@ -85,15 +84,15 @@ abstract class BaseMillParser extends BaseNumberParser {
     *
     * @return a Parser[Mill].
     */
-  def mill: Parser[Mill] = repSepSp(term) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems) *))
+  def mill: Parser[Mill] = repSepSp(term) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems): _*))
 
   /**
     * A term is either of the form:
-    * `DyadicOp term term` (net pop) or:
-    * `MonadicOp term` (not unchanged) or:
-    * `AnadicOp` (net push).
+    * DyadicOp term term (net pop) or:
+    * MonadicOp term (not unchanged) or:
+    * AnadicOp (net push).
     *
-    * @return a `Parser[Term]`
+    * @return a Parser[Term]
     */
   def term: Parser[Term] = (dyadicTerm | monadicTerm | anadicTerm) :| "term"
 

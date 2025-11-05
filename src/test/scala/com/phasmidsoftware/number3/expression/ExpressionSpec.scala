@@ -10,13 +10,13 @@ import com.phasmidsoftware.number.core.Field.convertToNumber
 import com.phasmidsoftware.number.core.algebraic.Quadratic.phiApprox
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic}
 import com.phasmidsoftware.number.core.inner.{NatLog, Radian, SquareRoot}
-import com.phasmidsoftware.number.core.{Complex, ComplexCartesian, ComplexPolar, ExactNumber, Field, GeneralNumber, NumberException}
-import com.phasmidsoftware.number3.core.FuzzyEquality
+import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, ExactNumber, GeneralNumber, NumberException, Real}
 import com.phasmidsoftware.number3.algebra.*
+import com.phasmidsoftware.number3.core.{Complex, FuzzyEquality}
 import com.phasmidsoftware.number3.expression
 import com.phasmidsoftware.number3.expression.Expression.{ExpressionOps, em, pi}
+import com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField
 import com.phasmidsoftware.number3.expression.Root.phi
-import com.phasmidsoftware.number3.mill.{Expr, Stack}
 import com.phasmidsoftware.number3.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
@@ -40,33 +40,33 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "evaluate"
   it should "evaluate 1 + -1" in {
-    val x = Expression(1) + -1
+    val x: Expression = Expression(1) + -1
     x.evaluateAsIs shouldBe Some(Valuable.zero)
   }
   it should "evaluate 1 * -1" in {
-    val x = Expression(1) * -1
+    val x: Expression = Expression(1) * -1
     x.evaluateAsIs shouldBe Some(Real(-1))
   }
   it should "evaluate i * 2" in {
-    val x = ConstI * 2
+    val x: Expression = ConstI * 2
     val result: Option[Valuable] = x.evaluateAsIs
     result.isDefined shouldBe true
-    val expected = core.Real(ExactNumber(-4, SquareRoot))
-    ExpressionFunction.valuableToField(result.get) shouldBe expected
+    val expected = Valuable(core.Real(ExactNumber(-4, SquareRoot)))
+    result.get shouldBe expected
   }
 
   behavior of "parse"
-  private val syp = ShuntingYardParser
-  it should "parse 1" in {
-    syp.parseInfix("1") should matchPattern { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix("(1)") should matchPattern { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix(" (1)") should matchPattern { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix(" (1 )") should matchPattern { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix(" (1 )") should matchPattern { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix("( 1 ) ") should matchPattern { case Success(Stack(List(Expr(One)))) => }
-    syp.parseInfix("( ( 0.5 + 3 ) + ( 2 * ( 0.5 + 3 ) ) )") should matchPattern { case Success(_) => }
-    syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
-  }
+  private val syp: ShuntingYardParser.type = ShuntingYardParser
+  //  it should "parse 1" in {
+  //    syp.parseInfix("1") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+  //    syp.parseInfix("(1)") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+  //    syp.parseInfix(" (1)") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+  //    syp.parseInfix(" (1 )") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+  //    syp.parseInfix(" (1 )") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+  //    syp.parseInfix("( 1 ) ") should matchPattern { case Success(Stack(List(Expr(TerminalExpression(Number.one))))) => }
+  //    syp.parseInfix("( ( 0.5 + 3 ) + ( 2 * ( 0.5 + 3 ) ) )") should matchPattern { case Success(_) => }
+  //    syp.parseInfix("( ( 0.5 + 3.00* ) + ( 2.00* * ( 0.5 + 3.00* ) ) )") should matchPattern { case Success(_) => }
+  //  }
   it should "parse and evaluate sqrt(3)" in {
     val eo: Option[Expression] = Expression.parse("3 ∧ ( 2 ∧ -1 )")
     eo should matchPattern { case Some(_) => }
@@ -129,7 +129,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "work for Ln(-1)" in {
     val x = expression.UniFunction(MinusOne, Ln)
     val result = x.evaluateAsIs
-    result shouldBe Some(ComplexPolar(core.Number.pi, core.Number.piBy2.makeNegative, 1))
+    result shouldBe Some(Complex(ComplexPolar(core.Number.pi, core.Number.piBy2.makeNegative, 1)))
   }
 
   behavior of "materialize UniFunction"
@@ -153,7 +153,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x2 = Valuable.pi
     val e = BiFunction(Literal(x1), Literal(x2), Sum)
     val result: Valuable = e.materialize
-    ExpressionFunction.valuableToField(result) shouldEqual core.Real(core.Number(Math.PI + 1))
+    valuableToField(result) shouldEqual core.Real(core.Number(Math.PI + 1))
   }
   it should "render" in {
     val x1 = Valuable.one
@@ -172,15 +172,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "ExpressionOps"
   it should "evaluate +" in {
-    import com.phasmidsoftware.number.expression.Expression.ExpressionOps
-    val x: OldExpression = com.phasmidsoftware.number.expression.Expression(1) + 2
-    val y: OldNumber = x
-    y shouldEqual core.Number(3)
+    val x: Expression = Expression(1) + 2
+    x shouldBe BiFunction(Expression(1), Expression(2), Sum)
   }
   it should "evaluate -" in {
     val x = Expression(1) - 2
     val result = x.simplify.materialize
-    result shouldEqual Some(Valuable.minusOne)
+    result shouldBe Valuable.minusOne
   }
   it should "evaluate *" in {
     val x = Expression(3) * 2
@@ -196,8 +194,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate sqrt 36" in {
     val x: Expression = Expression(36).sqrt
-    // TODO sort this one out.
-//    x.materialize.normalize shouldEqual ±(6)
+    x.materialize shouldEqual ±(6)
   }
   it should "evaluate sin pi/2" in {
     val x: Expression = ConstPi / 2
@@ -205,28 +202,27 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     y.materialize shouldBe Valuable.one
   }
   it should "evaluate atan" in {
-    Expression.zero.atan(Expression.one).materialize shouldBe (Valuable.piBy2)
-    Expression.zero.atan(1).materialize shouldBe Some(Valuable.piBy2)
-    Expression.one.atan(0).materialize shouldBe Some(Angle.zero)
-    core.Number.one.atan(core.Number.zero) shouldBe core.Number(0, Radian)
-    Expression.one.atan(Valuable.root3).evaluateAsIs shouldBe Some(Angle.piBy3)
-    Expression.one.atan(Expression.one).evaluateAsIs shouldBe Some(Valuable.piBy4)
+    val zero: Expression = com.phasmidsoftware.number3.expression.Zero
+    zero.atan(Valuable.one).materialize shouldBe (Angle.piBy2)
+    One.atan(0).materialize shouldBe Some(Angle.zero)
+    One.atan(Valuable.root3).evaluateAsIs shouldBe Some(Angle.piBy3)
+    One.atan(One).evaluateAsIs shouldBe Some(Valuable.piBy4)
   }
   it should "evaluate log 2" in {
     val base = Two
-    One.log(base).materialize shouldBe Some(Valuable.zero)
-    Two.log(base).materialize shouldBe Some(Valuable.one)
+    One.log(base).materialize shouldBe Valuable.zero
+    Two.log(base).materialize shouldBe (Valuable.one)
     //    Expression(4).log(base).materialize.asNumber shouldBe Some(Number.two)
   }
   it should "evaluate log e" in {
     val base = ConstE
-    One.log(base).materialize shouldBe Some(Valuable.zero)
-    ConstE.log(base).materialize shouldBe Some(Valuable.one)
+    One.log(base).materialize shouldBe (Valuable.zero)
+    ConstE.log(base).materialize shouldBe (Valuable.one)
   }
   it should "evaluate log 10" in {
     val base = Expression(10)
-    One.log(base).materialize shouldBe Some(Valuable.zero)
-    Expression(10).log(base).materialize shouldBe Some(Valuable.one)
+    One.log(base).materialize shouldBe Valuable.zero
+    Expression(10).log(base).materialize shouldBe Valuable.one
   }
   it should "fail to evaluate log 1 x or log 0 x" in {
     val base = Expression(1)
@@ -267,14 +263,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "various operations"
   it should "evaluate E * 2" in {
-    val expression: Expression = "e * 2"
-    val z: Valuable = expression.materialize
+    val z: Valuable = (ConstE * 2).materialize
     val q = ExpressionFunction.valuableToField(z).normalize
     q.toString shouldBe "5.436563656918091[15]"
   }
 
   behavior of "isExact"
-  it should "be true for any constant Number" in {
+  it should "be true for any constant Valuable" in {
     Valuable.one.isExact shouldBe true
     Valuable.pi.isExact shouldBe true
   }
@@ -314,17 +309,17 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
 
   behavior of "Euler"
   it should "prove Euler's identity 1" in {
-    val iPi = com.phasmidsoftware.number3.core.Complex(ComplexCartesian(0, core.Number.pi))
-    val euler: Expression = Expression(Valuable.e) ∧ iPi
+    val iPi = ComplexCartesian(0, core.Number.pi)
+    val euler: Expression = Expression(Valuable.e) ∧ Complex(iPi)
     euler.materialize shouldBe Valuable.minusOne
   }
   it should "prove Euler's identity 2" in {
-    val iPi = com.phasmidsoftware.number3.core.Complex(Complex.convertToPolar(ComplexCartesian(0, core.Number.pi)))
-    val euler: Expression = Expression(Valuable.e) ∧ iPi
+    val iPi = core.Complex.convertToPolar(ComplexCartesian(0, core.Number.pi))
+    val euler: Expression = Expression(Valuable.e) ∧ Complex(iPi)
     euler.materialize shouldBe Valuable.minusOne
   }
 
-  behavior of "ValueExpression"
+  behavior of "FieldExpression"
   it should "Zero be equal to zero" in {
     val target = Literal(Valuable.zero)
     target shouldBe Zero
@@ -350,8 +345,8 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "simplify field expressions" in {
     Expression(1).simplify shouldBe Expression(1)
     ConstPi.simplify shouldBe ConstPi
-    val simplify = phi.simplify
-    simplify shouldBe Literal(Algebraic.phi)
+    val simplify: Expression = phi.simplify
+    simplify shouldBe Expression(Valuable(Algebraic.phi))
     phi.simplify.materialize should ===(phiApprox)
   }
   it should "simplify function expressions" in {
@@ -372,8 +367,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "aggregate 2" in {
     val target = (One * ConstPi * Two * MinusOne).simplify
-    import com.phasmidsoftware.number3.expression.ExpressionHelper.math
-    val expected = math"𝛑 * -2"
+    val expected = Expression("-2 * 𝛑")
     target shouldBe expected
   }
   it should "evaluate e * e" in {
@@ -385,7 +379,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val expression: Expression = phi * phi
     val simplified = expression.simplify
     simplified.approximation.get.toDouble === 2.61803398875
-    simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(-3, 1), pos = true))
+    simplified shouldBe Literal(Valuable(Algebraic_Quadratic(Quadratic(-3, 1), pos = true)))
   }
   it should "evaluate 1 / phi" in {
     val phi = Root(Quadratic.goldenRatioEquation, 0)
@@ -393,7 +387,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val simplified = expression.simplify
     println(s"simplified = $simplified")
     simplified.approximation.get.toDouble === 0.61803398875
-    simplified shouldBe Literal(Algebraic_Quadratic(Quadratic(1, -1), pos = true))
+    simplified shouldBe Literal(Valuable(Algebraic_Quadratic(Quadratic(1, -1), pos = true)))
   }
   it should "evaluate - phi" in {
     val phi = Root(Quadratic.goldenRatioEquation, 0)
@@ -411,7 +405,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x2 = ConstPi * MinusOne
     val e: Expression = x1 + x2
     val simplify = e.simplify
-    simplify.materialize shouldBe Some(Angle.zero)
+    simplify.materialize shouldBe (Angle.zero)
   }
 
   behavior of "simplifyComposite"

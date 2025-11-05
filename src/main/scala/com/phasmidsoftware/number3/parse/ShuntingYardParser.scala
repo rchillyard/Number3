@@ -1,7 +1,6 @@
 package com.phasmidsoftware.number3.parse
 
 import com.phasmidsoftware.number.core.*
-import com.phasmidsoftware.number3.expression.Expression
 import com.phasmidsoftware.number3.mill.*
 
 import scala.annotation.tailrec
@@ -47,7 +46,7 @@ object ShuntingYardParser extends BaseMillParser {
       * @return a new ShuntingYard which is the same as this but with token added.
       *         If token is an operator, it is added to the operators;
       *         If token is a number, it is added to the values;
-      *         If token is an open or close parenthesis, it is handled specially.
+      *         If token is a open or close parenthesis, it is handled specially.
       */
     def :+(token: InfixToken): ShuntingYard = token match {
       case InfixToken(Some(t), _) => t match {
@@ -55,7 +54,7 @@ object ShuntingYardParser extends BaseMillParser {
         case Right(number) => this :+ number
       }
       case InfixToken(None, x) =>
-        if x then this :+ openParenthesis // open parenthesis
+        if (x) this :+ openParenthesis // open parenthesis
         else switch // close parenthesis
     }
 
@@ -66,11 +65,11 @@ object ShuntingYardParser extends BaseMillParser {
       * @return a Try[Mill].
       */
     def toMill: Try[Mill] = switch match {
-      case ShuntingYard(values, Nil) => Try(Mill(values *))
+      case ShuntingYard(values, Nil) => Try(Mill(values: _*))
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 
-    private def :+(number: Number) = ShuntingYard(values :+ Expr(Expression(com.phasmidsoftware.number3.algebra.Valuable(Real(number)))), operators)
+    private def :+(number: Number) = ShuntingYard(values :+ Expr(TerminalExpression(number)), operators)
 
     @tailrec
     private def :+(operator: String): ShuntingYard = Item(operator) match {
@@ -79,7 +78,7 @@ object ShuntingYardParser extends BaseMillParser {
         case Open :: xs => ShuntingYard(values, o1 :: Open :: xs)
         case op +: xs => op match {
           case o2@Dyadic(_, _) =>
-            if implicitly[Ordering[Dyadic]].compare(o1, o2) < 0 then
+            if (implicitly[Ordering[Dyadic]].compare(o1, o2) < 0)
               ShuntingYard(values :+ o2, xs) :+ operator
             else
               ShuntingYard(values, o1 +: o2 +: xs)
@@ -99,10 +98,6 @@ object ShuntingYardParser extends BaseMillParser {
       }
   }
 
-  /**
-    * The ShuntingYard object provides functions for creating and populating instances of the ShuntingYard class.
-    * It is designed to represent infix mathematical expressions and process tokens using the Shunting Yard algorithm.
-    */
   object ShuntingYard {
     /**
       * Create a new, empty, ShuntingYard.
@@ -124,7 +119,7 @@ object ShuntingYardParser extends BaseMillParser {
     * An infix token which represents either a Token or an open/close parenthesis.
     *
     * @param to    an optional token.
-    * @param paren the `to` is `None`, then `paren` is interpreted as `Open` (for true) and `Close` (for false).
+    * @param paren the to is None, then paren is interpreted as Open (for true) and Close (for false).
     */
   case class InfixToken(to: Option[Token], paren: Boolean)
 
@@ -155,7 +150,7 @@ object ShuntingYardParser extends BaseMillParser {
     *
     * @return Parser[String].
     */
-  private def operator: Parser[String] = (dyadicOperator | monadicOperator | anadicOperator | neutralOperator2 | openParenthesis | closeParenthesis) :| "operator"
+  def operator: Parser[String] = (dyadicOperator | monadicOperator | anadicOperator | neutralOperator2 | openParenthesis | closeParenthesis) :| "operator"
 
   private val openParenthesis: String = "("
 

@@ -24,6 +24,8 @@ import scala.util.{Failure, Success, Try}
   *
   * NOTE that a Real with empty fuzz is considered to be exact.
   *
+  * CONSIDER defining an Imaginary type to represent imaginary numbers.
+  *
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */

@@ -5,8 +5,10 @@ import com.phasmidsoftware.number.core.inner.{NatLog, Rational}
 import com.phasmidsoftware.number.core.{Field, Number, Real}
 import com.phasmidsoftware.number3.algebra.Valuable
 import com.phasmidsoftware.number3.core.FuzzyEquality
-import com.phasmidsoftware.number3.expression.{Expression, Literal}
+import com.phasmidsoftware.number3.expression.Expression.convertMillExpressionToExpression
+import com.phasmidsoftware.number3.expression.{Expression, ExpressionFunction}
 import com.phasmidsoftware.number3.mill.Mill.parseInfix
+import com.phasmidsoftware.number3.mill.TerminalExpression
 import com.phasmidsoftware.number3.parse.MillParser
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -49,7 +51,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "apply(1)" in {
     val mill = Mill(one)
     mill.isEmpty shouldBe false
-    mill.evaluate shouldBe Some(Literal(1))
+    mill.evaluate shouldBe Some(TerminalExpression(1))
   }
   it should "process empty list of Items" in {
     val mill = Mill()
@@ -98,7 +100,7 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     checkMill(Real(Rational.half), List("2", "inv")) should matchPattern { case Succeeded => }
   }
   it should "process a String: 42 37 + 2 *" in {
-    val value: Option[Expression] = Mill.parse("42 37 + 2 *").toOption.flatMap(_.evaluate)
+    val value: Option[Expression] = Mill.parse("42 37 + 2 *").toOption.flatMap(_.evaluate).map(convertMillExpressionToExpression)
     value map (_.materialize) shouldBe Some(Real(158))
   }
 
@@ -128,25 +130,25 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   it should "parse and evaluate: 73 24 <> -" in {
     val my: Try[Mill] = p.parseMill("73 24 <> -")
     my should matchPattern { case Success(_) => }
-    val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
+    val eo = for (z <- my.toOption; q <- z.evaluate) yield convertMillExpressionToExpression(q).materialize
     eo shouldBe Some(Real(-49))
   }
   it should "parse and evaluate: \uD835\uDED1 cos" in {
     val my: Try[Mill] = p.parseMill("\uD835\uDED1 cos")
     my should matchPattern { case Success(_) => }
-    val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
+    val eo = for (z <- my.toOption; q <- z.evaluate) yield convertMillExpressionToExpression(q).materialize
     eo shouldBe Some(Real(-1))
   }
   it should "parse and evaluate: \uD835\uDF00 ln" in {
     val my: Try[Mill] = p.parseMill("\uD835\uDF00 ln")
     my should matchPattern { case Success(_) => }
-    val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
+    val eo = for (z <- my.toOption; q <- z.evaluate) yield convertMillExpressionToExpression(q).materialize
     eo shouldBe Some(Real(1))
   }
   it should "parse and evaluate: 2 exp" in {
     val my: Try[Mill] = p.parseMill("2 exp")
     my should matchPattern { case Success(_) => }
-    val eo = for (z <- my.toOption; q <- z.evaluate) yield q.materialize
+    val eo = for (z <- my.toOption; q <- z.evaluate) yield convertMillExpressionToExpression(q).materialize
     eo shouldBe Some(Real(Number(2, NatLog)))
   }
 
@@ -200,10 +202,10 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
     val w = "3 4 2 × 1 5 − 2 3 ∧ ∧ ÷ +"
     val value: Try[Mill] = p.parseMill(w)
     value should matchPattern { case Success(_) => }
-    val q: Option[Expression] = value.toOption flatMap (_.evaluate)
-    val z: Option[Valuable] = q map (_.materialize)
+    val q: Option[Expression] = value.toOption.flatMap(_.evaluate).map(convertMillExpressionToExpression)
+    val z = q map (_.materialize)
     z should matchPattern { case Some(_) => }
-    z.get === Valuable("3.000*")
+    com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField(z.get) shouldEqual Number("3.000*")
   }
 
   it should "parse and evaluate:  220xxxx with trailing space" in {
@@ -218,9 +220,9 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   it should "parse infix" in {
-    val result: Option[Valuable] = parseInfix("12 + 34  +  56  -  78  +  90  -  12").toOption.flatMap(_.evaluate).map(_.materialize)
+    val result: Option[Valuable] = parseInfix("12 + 34  +  56  -  78  +  90  -  12").toOption.flatMap(_.evaluate).map(convertMillExpressionToExpression).map(_.materialize)
     result.isDefined shouldBe true
-    result.get shouldBe Valuable(102)
+    ExpressionFunction.valuableToField(result.get) shouldBe Real(102)
   }
 
   private def checkMill(expected: Real, list: List[String]): Assertion = {
@@ -233,8 +235,8 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
 
   private def checkMill(expected: Field, mill: Mill): Assertion = {
-    val q: Option[Valuable] = mill.evaluate map (_.materialize)
+    val q: Option[Valuable] = mill.evaluate.map(convertMillExpressionToExpression).map(_.materialize)
     q should matchPattern { case Some(_) => }
-    q.get should === (expected)
+    ExpressionFunction.valuableToField(q.get) should ===(expected)
   }
 }

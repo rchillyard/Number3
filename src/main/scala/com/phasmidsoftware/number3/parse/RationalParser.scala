@@ -35,7 +35,7 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
   }
 
   case class RatioNumber(numerator: WholeNumber, denominator: WholeNumber) extends ValuableNumber {
-    def value: Try[Rational] = for n <- numerator.value; d <- denominator.value yield n / d
+    def value: Try[Rational] = for (n <- numerator.value; d <- denominator.value) yield n / d
   }
 
   case class RealNumber(sign: Boolean, integerPart: String, maybeFractionalPart: Option[String], exponent: Option[String]) extends ValuableNumber {
@@ -65,7 +65,7 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
   }
 
   /** An integer, without sign. */
-  private def unsignedWholeNumber: Parser[String] = logit("""\d+""".r)("unsignedWholeNumber") //^^ (x => debug(s"unsignedWholeNumber",x))
+  def unsignedWholeNumber: Parser[String] = logit("""\d+""".r)("unsignedWholeNumber") //^^ (x => debug(s"unsignedWholeNumber",x))
 
   private val E = "[eE]".r
 
@@ -73,6 +73,7 @@ abstract class BaseRationalParser extends SignificantSpaceParsers {
 
 object RationalParser extends BaseRationalParser {
   def parse(s: String): Try[Rational] = stringParser(rationalNumber, s).flatMap(_.value)
+
 
   /**
     * Method to parse the components (sign, integerPart, maybeFractionalPart, maybeExponent) of the input string.

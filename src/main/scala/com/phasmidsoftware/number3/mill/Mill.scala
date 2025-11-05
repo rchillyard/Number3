@@ -4,11 +4,8 @@
 
 package com.phasmidsoftware.number3.mill
 
-import com.phasmidsoftware.number3.expression.Expression
-import com.phasmidsoftware.number3.expression.Expression.ExpressionOps
 import com.phasmidsoftware.number3.parse.{MillParser, ShuntingYardParser}
 
-import scala.language.postfixOps
 import scala.util.Try
 
 /**
@@ -122,7 +119,7 @@ case class Stack(stack: List[Item]) extends Mill {
     * @return a tuple consisting of an Expression wrapped in Some, and the new Mill that's left behind.
     * @throws MillException this Mill is empty or some other logic error occurred.
     */
-  private def evaluateInternal: (Option[Expression], Mill) = pop match {
+  def evaluateInternal: (Option[Expression], Mill) = pop match {
     case (Some(Expr(e)), Empty) => (Some(e), Empty)
     case (Some(x), m: Stack) => m.evaluate1(x)
     case (None, _) => throw MillException(s"evaluate: this stack is empty")
@@ -224,9 +221,9 @@ case class Stack(stack: List[Item]) extends Mill {
     * @throws MillException operator f is not supported.
     */
   private def calculateMonadic(f: Monadic, x: Expression) = f match {
-    case Chs => x * Expression(-1)
-    case Inv => x reciprocal
-    case Sqrt => x sqrt
+    case Chs => x * TerminalExpression(-1)
+    case Inv => x.reciprocal
+    case Sqrt => x.sqrt
     case Ln => x.ln
     case Exponent => x.exp
     case Sin => x.sin
@@ -245,7 +242,7 @@ case class Stack(stack: List[Item]) extends Mill {
   private def calculateDyadic(f: Dyadic, x1: Expression, x2: Expression) = f match {
     case Multiply => x2 * x1
     case Add => x2 + x1
-    case Subtract => x2 + -x1
+    case Subtract => x2 + x1.negate // TODO CHECK this! Surely it should be x1 + x2.negate
     case Divide => x2 * x1.reciprocal
     case Power => x2 ∧ x1
   }
@@ -253,7 +250,7 @@ case class Stack(stack: List[Item]) extends Mill {
   private def evaluateSwap = {
     val (zo, m) = pop
     val (yo, n) = m.pop
-    val result: Option[(Option[Expression], Mill)] = (for z <- zo; y <- yo; x = n.push(z).push(y) yield x).map {
+    val result: Option[(Option[Expression], Mill)] = (for (z <- zo; y <- yo; x = n.push(z).push(y)) yield x).map {
       case mill: Stack => mill.evaluateInternal
       case _ => throw MillException(s"evaluateSwap: logic error")
     }
@@ -311,7 +308,7 @@ object Mill {
     * @param xs a comma-separated sequence of Item.
     * @return an appropriate Mill.
     */
-  def apply(xs: Item*): Mill = if xs.isEmpty then Empty else Stack(xs.reverse.to(List))
+  def apply(xs: Item*): Mill = if (xs.isEmpty) Empty else Stack(xs.reverse.to(List))
 
   /**
     * Alternative method of creating a Mill from a list of Items.

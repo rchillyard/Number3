@@ -8,13 +8,14 @@ import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
 import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
-import com.phasmidsoftware.number.{core, mill}
-import com.phasmidsoftware.number.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
+import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number3.mill.{DyadicExpression, MonadicExpression, TerminalExpression}
 import com.phasmidsoftware.number3.algebra.{RationalNumber, Scalar, Valuable, WholeNumber}
 import com.phasmidsoftware.number3.core.{AnyContext, Context}
 import com.phasmidsoftware.number3.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
 import com.phasmidsoftware.number3.misc.FP.recover
+import com.phasmidsoftware.number3.mill
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -192,6 +193,7 @@ object Expression {
   //  implicit object LoggableExpression extends LoggableExpression
   //
   //  val flog = Flog[ExpressionMatchers]
+
 
   /**
     * Implicit class to allow various operations to be performed on an Expression.

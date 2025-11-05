@@ -1,16 +1,26 @@
-package com.phasmidsoftware.number3.parse
+/*
+ * Copyright (c) 2025. Phasmid Software
+ */
 
-import com.phasmidsoftware.number.core.{Constants, Number}
-import com.phasmidsoftware.number3.expression.Expression
-import com.phasmidsoftware.number3.expression.Expression.convertMillExpressionToExpression
-import com.phasmidsoftware.number3.mill.{Mill, TerminalExpression}
+package com.phasmidsoftware.number3.mill
+
+import com.phasmidsoftware.number.core.Number
+import com.phasmidsoftware.number3.algebra.Valuable
+import com.phasmidsoftware.number3.mill.Expression
+import com.phasmidsoftware.number3.parse.ShuntingYardParser
 import org.scalactic.Equality
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 import scala.util.{Success, Try}
 
-class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
+class ExpressionSpec extends AnyFlatSpec with should.Matchers {
+
+  behavior of "Expression"
+
+  it should "parseToMillExpression" in {
+
+  }
 
   implicit object NumberEquality extends Equality[Number] {
     def areEqual(a: Number, b: Any): Boolean = b match {
@@ -24,70 +34,70 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "parseInfix 1" in {
     val sy = p.parseInfix("1")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate; n = convertMillExpressionToExpression(e)) yield n
+    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate) yield e
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number.one
+    xo.get.value shouldBe Number.one
   }
   it should "parseInfix 1 + 2" in {
     val sy = p.parseInfix("1 + 2")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate; n = convertMillExpressionToExpression(e)) yield n
+    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate) yield e
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number(3)
+    xo.get.value shouldBe Number(3)
   }
   it should "parseInfix ( 1 + 2 ) * 3" in {
     val sy = p.parseInfix("( 1 + 2 ) * 3")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate; n = convertMillExpressionToExpression(e)) yield n
+    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate) yield e
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number(9)
+    xo.get.value shouldBe Number(9)
   }
   // From https://www.hpmuseum.org/rpn.htm
   it should "parseInfix ( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ∧ 9" in {
     val sy = p.parseInfix("( ( ( 4 + 5 ) * ( 2 + 3 ) + 6 ) / ( 8 + 7 ) ) ∧ 9")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate; n = convertMillExpressionToExpression(e)) yield n
+    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate) yield e
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number("60716.992766464000")
+    xo.get.value shouldBe Number("60716.992766464000")
   }
   it should "parseInfix ( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ∧ 2 ) ∧ 3 )" in {
     val sy = p.parseInfix("( ( ( ( 4 + ( 4 × ( 2 / ( 1 − 5 ) ) ) ) ∧ 2 ) ∧ 3 )")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate; n = convertMillExpressionToExpression(e)) yield n
+    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate) yield e
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number(64)
+    xo.get.value shouldBe Number(64)
   }
   it should "parseInfix 3 + 4 × 2 / ( 1 − 5 ) ∧ 2 ∧ 3" in {
     val sy = p.parseInfix("3 + 4 × 2 / ( 1 - 5 ) ∧ 2 ∧ 3")
     sy should matchPattern { case Success(_) => }
     // 3 4 2 × 1 5 − 2 3 ∧ ∧ ÷ +
-    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate; n = convertMillExpressionToExpression(e)) yield n
+    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate) yield e
     xo should matchPattern { case Some(_) => }
-    xo.get shouldEqual Number(3.0001220703125)
+    xo.get.value shouldEqual Number(3.0001220703125)
   }
   it should "parseInfix ( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )" in {
     val sy = p.parseInfix("( 1 + ( ( 2 + 3 ) * ( 4 * 5 ) ) )")
     sy should matchPattern { case Success(_) => }
-    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate; n = convertMillExpressionToExpression(e)) yield n
+    val xo: Option[Expression] = for (s <- sy.toOption; e <- s.evaluate) yield e
     xo should matchPattern { case Some(_) => }
-    xo.get shouldBe Number(101)
+    xo.get.value shouldBe Number(101)
   }
   it should "parse Infix and evaluate:  9" in {
     val value: Try[Mill] = p.parseInfix("3 ∧ 2")
     value should matchPattern { case Success(_) => }
-    value map (_.evaluate) shouldBe TerminalExpression(9)
+    value map (_.evaluate) shouldBe Valuable(9)
   }
   it should "parse Infix and evaluate:  0.5" in {
     val value: Try[Mill] = p.parseInfix("2 ∧ -1")
     value should matchPattern { case Success(_) => }
-    value map (_.evaluate) shouldBe TerminalExpression(0.5)
+    value map (_.evaluate) shouldBe Valuable.half
   }
   it should "parse Infix and evaluate: sqrt(3)" in {
     val value: Option[Mill] = p.parseInfix("3 ∧ ( 2 ∧ -1 )").toOption
     value should matchPattern { case Some(_) => }
-    val z: Option[Expression] = value.flatMap(_.evaluate).map(convertMillExpressionToExpression)
-    val q = z map (_.materialize)
-    q shouldBe Some(Constants.root3)
+    val z: Option[Expression] = value.flatMap(_.evaluate)
+    z.isDefined shouldBe true
+    z.get.value shouldBe Number.root3
     // TESTME the result.
   }
   it should "shuntingYard" in {
@@ -104,4 +114,5 @@ class ShuntingYardParserSpec extends AnyFlatSpec with should.Matchers {
   it should "operator" in {
 
   }
+
 }

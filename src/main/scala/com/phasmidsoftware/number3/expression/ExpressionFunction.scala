@@ -4,15 +4,13 @@
 
 package com.phasmidsoftware.number3.expression
 
-import com.phasmidsoftware.number3.core.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number.core.inner.{Euler, Factor, Log10, Log2, MonadicOperationAtan, NatLog, Operations, PureNumber, Radian, Rational, SquareRoot, Value}
+import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, NumberException, Real}
-import com.phasmidsoftware.number3.algebra.{Additive, Angle, CanPower, Logarithm, Multiplicative, MultiplicativeWithPower, Nat, Number, Radians, Scalar, Valuable, WholeNumber}
-import com.phasmidsoftware.number3.core.{AnyContext, Complex, Context, ImpossibleContext, RestrictedContext, Structure}
+import com.phasmidsoftware.number3.algebra.{Additive, Angle, CanPower, Multiplicative, Nat, Number, Scalar, Valuable}
+import com.phasmidsoftware.number3.core.Context.{AnyLog, AnyRoot, AnyScalar}
+import com.phasmidsoftware.number3.core.{AnyContext, Context, ImpossibleContext, RestrictedContext, *}
 import com.phasmidsoftware.number3.expression.ExpressionFunction.{lift1, lift2}
 import com.phasmidsoftware.number3.misc.FP
-
-import scala.Option.when
 
 /**
   * Represents a named, generic computation or transformation from an input of type `P`
@@ -71,6 +69,7 @@ object ExpressionFunction {
     * representations into a unified `Field` type.
     * 
     * CONSIDER returning an Option[Field] instead of throwing an exception.
+    * CONSIDER moving this somewhere more appropriate.
     *
     * @param v the `Valuable` instance to be converted to a `Field`
     * @return a `Field` representation of the input `Valuable`
@@ -691,7 +690,7 @@ case object Sum extends ExpressionBiFunction("+", lift2((x, y) => x + y), isExac
     */
   def applyExact(a: Valuable, b: Valuable): Option[Valuable] = {
     (a, b) match {
-      case (x: Additive[Structure], y: Structure) =>
+      case (x: Additive[Structure] @unchecked, y: Structure) =>
         Some((x + y).asInstanceOf[Valuable]) // TODO CHECK does this work???
       case _ =>
         None
@@ -785,7 +784,7 @@ case object Product extends ExpressionBiFunction("*", lift2((x, y) => x multiply
       Some(a)
     case (Valuable.zero, _) | (_, Valuable.zero) =>
       Some(Valuable.zero)
-    case (x: Multiplicative[Structure], y: Structure) =>
+    case (x: Multiplicative[Structure] @unchecked, y: Structure) =>
       Option.when(x.isExact && y.isExact)((x * y).asInstanceOf[Valuable]).filter(_.isExact)
     case _ =>
       None
@@ -852,7 +851,7 @@ case object Power extends ExpressionBiFunction("∧", lift2((x, y) => x.power(y)
     *         or `None` if the operation fails to meet exactness requirements.
     */
   def applyExact(a: Valuable, b: Valuable): Option[Valuable] = (a, b) match {
-    case (x: CanPower[Scalar], y: Scalar) if x.isExact && y.isExact =>
+    case (x: CanPower[Scalar] @unchecked, y: Scalar) if x.isExact && y.isExact =>
       for {
         f <- y.maybeFactor if f==PureNumber
         result <- x.doPower(y) if result.isExact

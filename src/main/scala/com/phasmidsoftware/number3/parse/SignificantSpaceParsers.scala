@@ -60,7 +60,7 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam X the underlying type of p.
     */
   implicit class ParserOps[X](p: Parser[X]) {
-    def :|(name: String)(using ll: LogLevel): Parser[X] = logit(p)(name)
+    def :|(name: String)(implicit ll: LogLevel): Parser[X] = logit(p)(name)
   }
 
   /**
@@ -81,12 +81,12 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @param r a Regex.
     */
   implicit class RegexOps(r: Regex) {
-    def :|(name: String)(using ll: LogLevel): Parser[String] = logit(r)(name)
+    def :|(name: String)(implicit ll: LogLevel): Parser[String] = logit(r)(name)
   }
 
   /**
     * Tee method.
-    * This method will return its input; however, a side effect occurs which is to invoke f(x).
+    * This method will return its input, however, a side-effect occurs which is to invoke f(x).
     *
     * @param x an X value.
     * @param f a function which takes an X and yields Unit.
@@ -110,7 +110,7 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
     * @tparam T the underlying type of p and the result.
     * @return a Parser[T].
     */
-  def logit[T](p: => Parser[T])(name: => String)(using ll: LogLevel): Parser[T] = ll match {
+  def logit[T](p: => Parser[T])(name: => String)(implicit ll: LogLevel): Parser[T] = ll match {
     case LogDebug => log(p | failure(name))(name)
 
     case LogInfo =>
@@ -129,8 +129,8 @@ abstract class SignificantSpaceParsers extends JavaTokenParsers {
   implicit val enabled: Boolean = false
 
   // NOTE enabled and debug are not currently used.
-  protected def debug[X](x: X, w: => String)(using enabled: Boolean): X = {
-    if enabled then println(s"debug: $w: $x")
+  protected def debug[X](x: X, w: => String)(implicit enabled: Boolean): X = {
+    if (enabled) println(s"debug: $w: $x")
     x
   }
 
