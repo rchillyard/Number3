@@ -5,7 +5,6 @@
 package com.phasmidsoftware.number3.mill
 
 import com.phasmidsoftware.number.core.Number
-import com.phasmidsoftware.number3.algebra.Valuable
 import com.phasmidsoftware.number3.mill.Expression
 import com.phasmidsoftware.number3.parse.ShuntingYardParser
 import org.scalactic.Equality
@@ -85,12 +84,12 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers {
   it should "parse Infix and evaluate:  9" in {
     val value: Try[Mill] = p.parseInfix("3 ∧ 2")
     value should matchPattern { case Success(_) => }
-    value map (_.evaluate) shouldBe Valuable(9)
+    value.toOption flatMap (_.evaluate) map (_.value) shouldBe Some(Number(9))
   }
   it should "parse Infix and evaluate:  0.5" in {
     val value: Try[Mill] = p.parseInfix("2 ∧ -1")
     value should matchPattern { case Success(_) => }
-    value map (_.evaluate) shouldBe Valuable.half
+    value.toOption flatMap (_.evaluate) map (_.value) shouldBe Some(Number.half)
   }
   it should "parse Infix and evaluate: sqrt(3)" in {
     val value: Option[Mill] = p.parseInfix("3 ∧ ( 2 ∧ -1 )").toOption

@@ -7,12 +7,12 @@ package com.phasmidsoftware.number3.expression
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.{Field, Real}
-import com.phasmidsoftware.number.matchers.*
 import com.phasmidsoftware.number.misc.Bumperator
 import com.phasmidsoftware.number3.algebra.{Monotone, Valuable}
 import com.phasmidsoftware.number3.core.RestrictedContext
 import com.phasmidsoftware.number3.expression.Expression.{isIdentityFunction, matchSimpler}
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
+import com.phasmidsoftware.number3.matchers.*
 
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}

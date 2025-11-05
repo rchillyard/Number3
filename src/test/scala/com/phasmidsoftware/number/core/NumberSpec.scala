@@ -1115,7 +1115,9 @@ class NumberSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   }
   it should "be e∧2 for 2" in {
     val target = Number.two
-    target.exp should ===(Expression(Constants.e) * Constants.e)
+    val expected = ExactNumber(2, NatLog)
+    val actual = target.exp
+    actual shouldBe expected
   }
 
   behavior of "ln"

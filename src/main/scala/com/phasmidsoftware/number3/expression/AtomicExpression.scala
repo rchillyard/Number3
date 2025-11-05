@@ -408,7 +408,7 @@ object Literal {
     case 1 => One
     case -1 => MinusOne
     case 2 => Two
-    case _ => Literal(Rational(x))
+    case _ => Literal(WholeNumber(x), Some(x.toString))
   }
 
   /**

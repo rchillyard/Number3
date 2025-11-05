@@ -155,7 +155,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Valuable.pi
     p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
-    p(Sum ~ Two ~ Two) shouldBe em.Match(Literal(4))
+    p(Sum ~ Two ~ Two) shouldBe em.Match(Power ~ Two ~ Two)
     p(Sum ~ One ~ Two) shouldBe em.Match(Literal(3))
     p(Sum ~ One ~ Literal(root2)) should matchPattern { case em.Miss(_, _) => }
   }
@@ -166,7 +166,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
     p(Product ~ Two ~ One) shouldBe em.Match(Two)
     p(Product ~ One ~ Two) shouldBe em.Match(Two)
-    p(Product ~ Two ~ Two) shouldBe em.Match(Literal(4))
+    p(Product ~ Two ~ Two) shouldBe em.Match(Power ~ Two ~ Two)
     p(Product ~ Two ~ Literal(3)) shouldBe em.Match(Literal(6))
   }
   it should "handle Power" in {

@@ -110,7 +110,6 @@ case class DyadicExpression(left: Expression, right: Expression, operator: Strin
     case "∧" => left.value.doPower(right.value)
     case _ => throw new IllegalArgumentException(s"unknown operator $operator")
   }
-
 }
 
 /**
@@ -168,4 +167,6 @@ object Expression {
     */
   def parseToExpression(x: String): Option[Expression] =
     Mill.parseInfix(x).toOption.flatMap(_.evaluate)
+
+  given Conversion[Int, Expression] = i => TerminalExpression(i)
 }
