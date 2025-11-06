@@ -20,6 +20,8 @@ trait Scalar extends Monotone with CanAdd[Scalar] {
     * Compares this `Scalar` with another `Scalar` for exact equivalence.
     * This method checks if both instances can be compared exactly.
     *
+    * CONSIDER moving this up into Monotone and having `that` be a `Monotone`
+    *
     * @param that the `Scalar` instance to compare against
     * @return an `Option[Int]` value:
     *         - `Some(-1)` if this `Scalar` is less than `that`
