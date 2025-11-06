@@ -7,7 +7,7 @@ package com.phasmidsoftware.number3.algebra
 import cats.Show
 import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
-import com.phasmidsoftware.number3.core.Structure
+import com.phasmidsoftware.number3.algebra.Structure
 import com.phasmidsoftware.number3.misc.FP
 
 import scala.reflect.ClassTag

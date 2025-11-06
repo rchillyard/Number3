@@ -12,6 +12,12 @@ class RealSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Real"
 
+  it should "apply(String)" in {
+    val x = Real("1.5")
+    val y = Real("2")
+    val z = Real("3.1415927(31)")
+  }
+
   // Basic arithmetic operations
   it should "perform addition correctly" in {
     val x = Real(1)

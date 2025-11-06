@@ -7,7 +7,7 @@ import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Valu
 import com.phasmidsoftware.number.core.{Fuzziness, FuzzyNumber, NumberException}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number3.algebra.Real.realIsRing
-import com.phasmidsoftware.number3.core.Structure
+import com.phasmidsoftware.number3.algebra.Structure
 import com.phasmidsoftware.number3.misc.FP
 
 import scala.reflect.ClassTag

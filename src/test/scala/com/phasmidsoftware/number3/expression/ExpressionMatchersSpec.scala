@@ -105,7 +105,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
 
   behavior of "matchValue"
   it should "work with value 1" in {
-    val f: em.ExpressionMatcher[Valuable] = em.matchValue((Valuable.one))
+    val f: em.ExpressionMatcher[Valuable] = em.matchValue(Valuable.one)
     val e: Expression = one
     f(e).successful shouldBe true
   }

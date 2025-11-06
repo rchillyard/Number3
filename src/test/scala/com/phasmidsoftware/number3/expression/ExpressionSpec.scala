@@ -11,7 +11,7 @@ import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic
 import com.phasmidsoftware.number.core.inner.{NatLog, SquareRoot}
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, ExactNumber, GeneralNumber, NumberException, Real}
 import com.phasmidsoftware.number3.algebra.*
-import com.phasmidsoftware.number3.core.{Complex, FuzzyEquality}
+import com.phasmidsoftware.number3.core.FuzzyEquality
 import com.phasmidsoftware.number3.expression
 import com.phasmidsoftware.number3.expression.Expression.{ExpressionOps, em, pi}
 import com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField
@@ -200,7 +200,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate atan" in {
     val zero: Expression = com.phasmidsoftware.number3.expression.Zero
-    zero.atan(Valuable.one).materialize shouldBe (Angle.piBy2)
+    zero.atan(Valuable.one).materialize shouldBe Angle.piBy2
     One.atan(0).materialize shouldBe Angle.zero
     One.atan(Valuable.root3).evaluateAsIs shouldBe Some(Angle.piBy3)
     One.atan(One).evaluateAsIs shouldBe Some(Valuable.piBy4)
@@ -208,13 +208,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate log 2" in {
     val base = Two
     One.log(base).materialize shouldBe Valuable.zero
-    Two.log(base).materialize shouldBe (Valuable.one)
+    Two.log(base).materialize shouldBe Valuable.one
     //    Expression(4).log(base).materialize.asNumber shouldBe Some(Number.two)
   }
   it should "evaluate log e" in {
     val base = ConstE
-    One.log(base).materialize shouldBe (Valuable.zero)
-    ConstE.log(base).materialize shouldBe (Valuable.one)
+    One.log(base).materialize shouldBe Valuable.zero
+    ConstE.log(base).materialize shouldBe Valuable.one
   }
   it should "evaluate log 10" in {
     val base = Expression(10)
@@ -372,14 +372,14 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     expression.simplify shouldBe Literal(Valuable(core.Real(ExactNumber(2, NatLog))))
   }
   it should "evaluate phi * phi" in {
-    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val phi = com.phasmidsoftware.number3.expression.Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
     val simplified = expression.simplify
     simplified.approximation.get.toDouble === 2.61803398875
     simplified shouldBe Literal(Valuable(Algebraic_Quadratic(Quadratic(-3, 1), pos = true)))
   }
   it should "evaluate 1 / phi" in {
-    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val phi = com.phasmidsoftware.number3.expression.Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi.reciprocal
     val simplified = expression.simplify
     println(s"simplified = $simplified")
@@ -387,7 +387,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplified shouldBe Literal(Valuable(Algebraic_Quadratic(Quadratic(1, -1), pos = true)))
   }
   it should "evaluate - phi" in {
-    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val phi = com.phasmidsoftware.number3.expression.Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi.negate
     val simplified = expression.simplify
     simplified.approximation.get.toDouble === -1.61803398875
@@ -402,7 +402,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     val x2 = ConstPi * MinusOne
     val e: Expression = x1 + x2
     val simplify = e.simplify
-    simplify.materialize shouldBe (Angle.zero)
+    simplify.materialize shouldBe Angle.zero
   }
 
   behavior of "simplifyComposite"
@@ -415,7 +415,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
     simplified shouldBe Literal(Valuable(core.Real(ExactNumber(2, NatLog))))
   }
   it should "evaluate phi * phi" in {
-    val phi = Root(Quadratic.goldenRatioEquation, 0)
+    val phi = com.phasmidsoftware.number3.expression.Root(Quadratic.goldenRatioEquation, 0)
     val expression: Expression = phi * phi
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
     val y: em.MatchResult[Expression] = x.simplifyComposite(x)

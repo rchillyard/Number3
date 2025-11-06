@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
-import com.phasmidsoftware.number3.core.Structure
+import com.phasmidsoftware.number3.algebra.Structure
 
 /**
   * Represents an additive structure for types that extend `Structure`.

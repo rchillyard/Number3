@@ -9,7 +9,7 @@ import cats.Show
 import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number3.algebra.Logarithm.LogarithmIsCommutativeMonoid
-import com.phasmidsoftware.number3.core.Structure
+import com.phasmidsoftware.number3.algebra.Structure
 import com.phasmidsoftware.number3.misc.FP
 
 import scala.reflect.ClassTag
@@ -20,6 +20,7 @@ import scala.reflect.ClassTag
   * The `Logarithm` class defines properties and operations related to logarithmic
   * values. This class serves as a base class for implementing logarithmic computations,
   * adhering to specific mathematical principles such as addition, scaling, and rendering.
+  * CONSIDER renaming this as Exp
   *
   * @constructor Creates a new instance of `Logarithm` with the specified value.
   * @param value the numerical value representing the logarithm
@@ -178,13 +179,10 @@ abstract class Logarithm(val value: Number) extends Additive[Logarithm] with Tra
 /**
   * A case class representing a Logarithm. This class implements the `Additive` and `Radians` traits,
   * allowing operations such as addition, subtraction, and various type conversions.
-  * Logarithm represents the "circle group," which is a compact Abelian (commutative) group under Logarithm addition,
-  * where the addition wraps around the circle.
-  * It is compact in that it is bounded by -𝛑 and 𝛑.
   *
   * Logarithm does not support ordering or comparison.
   *
-  * @param value the value of the Logarithm.
+  * @param x the value of the Logarithm.
   */
 case class NatLog(x: Number) extends Logarithm(x) {
 
@@ -228,8 +226,8 @@ case class NatLog(x: Number) extends Logarithm(x) {
   /**
     * Compares the current `Logarithm` instance with another `Number` to determine their exact order.
     *
-    * If the provided `Number` is an `Logarithm`, this method compares their underlying radian values.
-    * If the provided `Number` is not an `Logarithm`, the comparison cannot be performed, and `None` is returned.
+    * If the provided `Number` is a `Logarithm`, this method compares their underlying radian values.
+    * If the provided `Number` is not a `Logarithm`, the comparison cannot be performed, and `None` is returned.
     *
     * @param that the `Number` instance to compare with the current `Logarithm` instance
     * @return an `Option[Int]`, where `Some(-1)` indicates that the current `Logarithm` is less than the provided `Logarithm`,
@@ -263,12 +261,18 @@ case class NatLog(x: Number) extends Logarithm(x) {
   def maybeFactor: Option[Factor] = Some(com.phasmidsoftware.number.core.inner.NatLog)
 }
 
+/**
+  * Companion object for the `NatLog` class, providing predefined constants and utility methods.
+  *
+  * The object contains common values associated with natural logarithmic operations
+  * and other relevant constants that can be used with `Logarithm` instances.
+  */
 object NatLog {
 
   /**
     * Represents the zero value of the `Logarithm` class.
     *
-    * This is a predefined constant which corresponds to an `Logarithm` of zero value.
+    * This is a predefined constant that corresponds to a `Logarithm` of zero value.
     * It is used as the additive identity in operations involving Logarithms.
     */
   val one: Logarithm = NatLog(WholeNumber.zero)
@@ -291,7 +295,7 @@ object Logarithm {
 
   /**
     * Provides an implicit `Show` instance for the `Logarithm` class, enabling conversion
-    * of an `Logarithm` instance to a string representation using its `render` method.
+    * of a `Logarithm` instance to a string representation using its `render` method.
     *
     * This allows the `Logarithm` class to integrate seamlessly with libraries or frameworks
     * requiring a `Show` typeclass instance for displaying or logging purposes.
@@ -308,14 +312,17 @@ object Logarithm {
     */
   implicit object LogarithmIsCommutativeMonoid extends CommutativeMonoid[Logarithm] {
     /**
-      * Provides the identity element for the `Logarithm` group, representing an Logarithm of zero value.
+      * Provides the identity element for the `Logarithm` group, representing a Logarithm of zero value.
       *
-      * @return an `Logarithm` instance with zero value, acting as the identity element in the group structure.
+      * @return a `Logarithm` instance with zero value, acting as the identity element in the group structure.
       */
     lazy val empty: Logarithm = NatLog(WholeNumber.zero)
 
     /**
       * Combines two `Logarithm` instances by adding their respective value.
+      * NOTE that this is the equivalent of multiplying the corresponding (exponential) values.
+      * This method is associative and commutative, meaning that the order of the arguments does not matter.
+      * The identity element is the zero value, which is the neutral element for the addition operation.
       *
       * @param x the first `Logarithm` to combine
       * @param y the second `Logarithm` to combine

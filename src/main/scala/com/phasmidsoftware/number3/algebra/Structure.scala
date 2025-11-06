@@ -2,11 +2,13 @@
  * Copyright (c) 2023. Phasmid Software
  */
 
-package com.phasmidsoftware.number3.core
+package com.phasmidsoftware.number3.algebra
 
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.Factor
 import com.phasmidsoftware.number3.algebra
 import com.phasmidsoftware.number3.algebra.{Real, Valuable}
+import com.phasmidsoftware.number3.core.*
 
 import scala.reflect.ClassTag
 
@@ -67,23 +69,12 @@ trait Structure extends Valuable {
   def memberOf(set: NumberSet): Boolean = set.isMember(this)
 }
 
-object Structure {
-
-  //  def +[W: CommutativeGroup, Z: CommutativeGroup](w: W, z: Z): Structure =
-  //    implicitly[CommutativeGroup[W]].combine()
-
-  //  def conversion[T <: Structure](s: Structure, t: T): Option[Structure] = (s, t) match {
-  //    case (a, b) => Some(x)
-  //    case _ => None
-  //  }
-}
-
 /**
   * This is a placeholder for a Complex number to demonstrate where it should appear in the type hierarchy (it should extend Structure).
   *
   * @see com.phasmidsoftware.number.core.Complex
   */
-case class Complex(complex: com.phasmidsoftware.number.core.Complex) extends Valuable {
+case class Complex(complex: core.Complex) extends Valuable {
   /**
     * Method to render this `Valuable` for presentation to the user.
     *

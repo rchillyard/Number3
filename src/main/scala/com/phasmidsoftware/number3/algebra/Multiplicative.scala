@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
-import com.phasmidsoftware.number3.core.Structure
+import com.phasmidsoftware.number3.algebra.Structure
 
 /**
   * Defines the behavior for a multiplicative algebraic structure.

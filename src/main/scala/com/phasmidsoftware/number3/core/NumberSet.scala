@@ -4,7 +4,7 @@
 
 package com.phasmidsoftware.number3.core
 
-import com.phasmidsoftware.number3.algebra.RationalNumber
+import com.phasmidsoftware.number3.algebra.{RationalNumber, Structure}
 
 /**
   * Trait to define the set in which a Number has membership.

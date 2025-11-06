@@ -154,7 +154,6 @@ object Number {
     * It is a predefined constant in the `Number` object.
     */
   val two: Number = WholeNumber.two
-
   /**
     *
     */

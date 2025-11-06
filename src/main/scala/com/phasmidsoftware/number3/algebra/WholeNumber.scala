@@ -7,8 +7,8 @@ package com.phasmidsoftware.number3.algebra
 import cats.Show
 import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
+import com.phasmidsoftware.number3.algebra.Structure
 import com.phasmidsoftware.number3.algebra.WholeNumber.wholeNumberIsCommutativeGroup
-import com.phasmidsoftware.number3.core.Structure
 import spire.math.SafeLong
 
 import scala.language.implicitConversions
@@ -186,7 +186,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     case a: WholeNumber =>
       Some(this + a)
     case x: Scalar =>
-      (x doPlus this).asInstanceOf[Option[Scalar]]
+      x doPlus this
   }
 
   /**

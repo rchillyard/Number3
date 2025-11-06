@@ -233,6 +233,6 @@ class MillSpec extends AnyFlatSpec with should.Matchers with FuzzyEquality {
   private def checkMill(expected: Number, mill: Mill): Assertion = {
     val q: Option[Number] = mill.evaluate.map(_.value)
     q should matchPattern { case Some(_) => }
-    (q.get) should ===(expected)
+    q.get should ===(expected)
   }
 }

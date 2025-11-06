@@ -6,9 +6,9 @@ package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, NumberException, Real}
-import com.phasmidsoftware.number3.algebra.{Additive, Angle, CanPower, Multiplicative, Nat, Number, Scalar, Valuable}
+import com.phasmidsoftware.number3.algebra.{Additive, Angle, CanPower, Complex, Multiplicative, Nat, Number, Scalar, Structure, Valuable}
 import com.phasmidsoftware.number3.core.Context.{AnyLog, AnyRoot, AnyScalar}
-import com.phasmidsoftware.number3.core.{AnyContext, Context, ImpossibleContext, RestrictedContext, *}
+import com.phasmidsoftware.number3.core.{AnyContext, Context, ImpossibleContext, RestrictedContext}
 import com.phasmidsoftware.number3.expression.ExpressionFunction.{lift1, lift2}
 import com.phasmidsoftware.number3.misc.FP
 

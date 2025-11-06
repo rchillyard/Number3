@@ -8,7 +8,7 @@ import cats.Show
 import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number3.algebra.Angle.angleIsCommutativeGroup
-import com.phasmidsoftware.number3.core.Structure
+import com.phasmidsoftware.number3.algebra.Structure
 import com.phasmidsoftware.number3.misc.FP
 
 import scala.reflect.ClassTag
@@ -29,7 +29,7 @@ case class Angle private[algebra](radians: Number) extends Additive[Angle] with 
   /**
     * Represents the zero value of the `Angle` class.
     *
-    * This is a predefined constant which corresponds to an `Angle` of zero radians.
+    * This is a predefined constant that corresponds to an `Angle` of zero radians.
     * It is used as the additive identity in operations involving angles.
     */
   val zero: Angle = Angle.zero
@@ -186,10 +186,7 @@ case class Angle private[algebra](radians: Number) extends Additive[Angle] with 
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
   infix def doScaleInt(that: Int): Option[Angle] =
-    radians.doScaleInt(that).map {
-      case x =>
-        Angle.apply(x.asInstanceOf[RationalNumber])
-    }
+    radians.doScaleInt(that).map(x => Angle.apply(x.asInstanceOf[RationalNumber]))
 
   /**
     * Scales the current instance using the provided `Number`.
@@ -376,7 +373,7 @@ object Angle {
       */
     def combine(x: Angle, y: Angle): Angle = (x, y) match {
       case (Angle(x1: Number), Angle(x2: Number)) =>
-        Angle.create(FP.getOrThrow((x1 doPlus x2), new UnsupportedOperationException("Angle.combine")))
+        Angle.create(FP.getOrThrow(x1 doPlus x2, new UnsupportedOperationException("Angle.combine")))
       case _ =>
         throw new UnsupportedOperationException("Angle.combine")
     }

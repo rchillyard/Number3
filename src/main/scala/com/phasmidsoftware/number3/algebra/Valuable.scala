@@ -4,6 +4,7 @@ import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.{Constants, NumberExceptionWithCause}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField
+import com.phasmidsoftware.number3.mill.Renderable
 
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -17,14 +18,7 @@ import scala.util.{Failure, Success, Try}
   * NOTE: this trait has the same name as the `Valuable` typeclass in the `com.phasmidsoftware.number` package,
   * but it is not the same thing.
   */
-trait Valuable {
-
-  /**
-    * Method to render this `Valuable` for presentation to the user.
-    *
-    * @return a String
-    */
-  def render: String
+trait Valuable extends Renderable {
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no approximation.

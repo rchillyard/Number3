@@ -1,9 +1,7 @@
 package com.phasmidsoftware.number3.algebra
 
-import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber}
-import com.phasmidsoftware.number3.core.Structure
+import com.phasmidsoftware.number3.algebra.Structure
 
 import scala.reflect.ClassTag
 

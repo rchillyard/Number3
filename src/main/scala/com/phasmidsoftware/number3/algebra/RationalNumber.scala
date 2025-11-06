@@ -5,7 +5,7 @@ import cats.Show
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number3.algebra.RationalNumber.rationalNumberIsField
 import com.phasmidsoftware.number3.algebra.Real.realIsRing
-import com.phasmidsoftware.number3.core.Structure
+import com.phasmidsoftware.number3.algebra.Structure
 
 import scala.reflect.ClassTag
 

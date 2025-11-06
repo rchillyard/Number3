@@ -11,8 +11,8 @@ import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.{Constants, Field, Number}
-import com.phasmidsoftware.number3.algebra.{Additive, Angle, MultiplicativeWithInverse, Nat, NatLog, RationalNumber, Real, Scalar, Valuable, WholeNumber}
-import com.phasmidsoftware.number3.core.{AnyContext, Complex, Context}
+import com.phasmidsoftware.number3.algebra.{Additive, Angle, Complex, MultiplicativeWithInverse, Nat, NatLog, RationalNumber, Real, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number3.core.{AnyContext, Context}
 import com.phasmidsoftware.number3.expression.Expression.em
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
 
@@ -1477,7 +1477,7 @@ object Root {
   val negRootTwo = QuadraticRoot(Quadratic.rootTwoEquation, 1)
   /**
     * Represents the value one-half as a linear root, constructed from a linear equation
-    * with a negated half rational coefficient.
+    * with a negated half-rational coefficient.
     */
   val half = LinearRoot(LinearEquation(Rational.half.negate))
 }
