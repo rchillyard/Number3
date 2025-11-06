@@ -24,7 +24,7 @@ import scala.reflect.ClassTag
   *
   * @param radians the value of the angle in radians
   */
-case class Angle(radians: Number) extends Additive[Angle] with Radians {
+case class Angle private[algebra](radians: Number) extends Additive[Angle] with Radians {
 
   /**
     * Represents the zero value of the `Angle` class.
@@ -186,7 +186,10 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
   infix def doScaleInt(that: Int): Option[Angle] =
-    radians.doScaleInt(that).map(x => Angle.apply(x.asInstanceOf[RationalNumber]))
+    radians.doScaleInt(that).map {
+      case x =>
+        Angle.apply(x.asInstanceOf[RationalNumber])
+    }
 
   /**
     * Scales the current instance using the provided `Number`.
@@ -229,20 +232,74 @@ case class Angle(radians: Number) extends Additive[Angle] with Radians {
   */
 object Angle {
   /**
+    * Converts a `Value` into an `Angle` instance based on its structure.
+    *
+    * @param value the input `Value` which may represent different numeric types;
+    *              `Right(x)` is treated as a whole number,
+    *              `Left(Right(x))` is treated as a rational number,
+    *              `Left(Left(Some(x)))` is treated as a real number,
+    *              and `Left(Left(None))` represents an invalid or undefined angle.
+    * @return an `Angle` instance corresponding to the structure of the input `Value`;
+    *         returns `Angle.nan` if the input represents an undefined value.
+    */
+  def apply(value: Value): Angle = Radian.modulate(value) match {
+    case Right(x) =>
+      new Angle(WholeNumber(x))
+    case Left(Right(x)) =>
+      new Angle(RationalNumber(x))
+    case Left(Left(Some(x))) =>
+      new Angle(Real(x))
+    case Left(Left(None)) =>
+      Angle.nan
+  }
+
+  /**
+    * Converts the given integer value to an `Angle` instance.
+    *
+    * @param x the input integer value to be converted into an angle
+    * @return an `Angle` instance corresponding to the given integer value
+    */
+  def apply(x: Int): Angle =
+    apply(Value.fromInt(x))
+
+  /**
+    * Converts the given long value to an `Angle` instance.
+    *
+    * @param x the input long value to be converted into an angle
+    * @return an `Angle` instance corresponding to the given long value
+    */
+  def apply(x: Long): Angle =
+    apply(Rational(x))
+
+  /**
+    * Converts the given rational value into an `Angle`.
+    *
+    * @param rational the `Rational` value representing the input to be converted into an `Angle`
+    * @return an `Angle` instance corresponding to the given `Rational` value
+    */
+  def apply(rational: Rational): Angle =
+    apply(Value.fromRational(rational))
+
+  /**
     * Converts the given rational number to an `Angle` instance by performing modulation and necessary computations.
     *
     * @param r the input `RationalNumber` representing the rational value to be converted into an angle
     * @return an `Angle` instance corresponding to the given rational value
     */
-  def apply(r: RationalNumber): Angle =
-    new Angle(
-      Radian.modulate(Value.fromRational(r.r)) match {
-        case Right(x) => RationalNumber(x)
-        case Left(Right(x)) => RationalNumber(x)
-        case Left(Left(Some(x))) => RationalNumber(x)
-        case Left(Left(None)) => RationalNumber.zero // TODO - this should be an error
-      }
-    )
+  def apply(r: RationalNumber): Angle = Angle(r.r)
+
+  /**
+    * Converts the given whole number into an `Angle` instance.
+    *
+    * @param r the input `WholeNumber` to be converted into an angle
+    * @return an `Angle` instance corresponding to the given whole number
+    */
+  def apply(r: WholeNumber): Angle = Angle(r.x.toBigInt)
+
+  def create(s: Scalar): Angle = s match {
+    case number: WholeNumber => Angle(number)
+    case radians: RationalNumber => Angle(radians)
+  }
 
   /**
     * Represents the additive identity for angles.
@@ -283,6 +340,7 @@ object Angle {
   val piBy2Times3: Angle = Angle(RationalNumber(Rational(3, 2)))
   val twoPi: Angle = Angle(RationalNumber(Rational.two))
   val negPi: Angle = Angle(RationalNumber(Rational.negOne))
+  val nan: Angle = Angle(RationalNumber(Rational.NaN))
 
   /**
     * Provides an implicit `Show` instance for the `Angle` class, enabling conversion
@@ -317,8 +375,8 @@ object Angle {
       * @return a new `Angle` representing the sum of the radians of the two provided `Angle` instances
       */
     def combine(x: Angle, y: Angle): Angle = (x, y) match {
-      case (Angle(x1@RationalNumber(_)), Angle(x2@RationalNumber(_))) =>
-        Angle(RationalNumber(x1.r + x2.r))
+      case (Angle(x1: Number), Angle(x2: Number)) =>
+        Angle.create(FP.getOrThrow((x1 doPlus x2), new UnsupportedOperationException("Angle.combine")))
       case _ =>
         throw new UnsupportedOperationException("Angle.combine")
     }
@@ -333,6 +391,8 @@ object Angle {
       * @return a new `Angle` instance representing the additive inverse of the input
       */
     def inverse(a: Angle): Angle = a.radians match {
+      case WholeNumber(x) =>
+        Angle(-x.toBigInt)
       case RationalNumber(r) =>
         Angle(RationalNumber(r.negate))
       case Real(x, f) =>

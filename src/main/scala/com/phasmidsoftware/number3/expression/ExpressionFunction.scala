@@ -137,7 +137,11 @@ sealed abstract class ExpressionMonoFunction(val name: String, val f: Valuable =
     * @param x the parameter to the function.
     * @return the result of f(x).
     */
-  def apply(x: Valuable): Valuable = f(x)
+  def apply(x: Valuable): Valuable =
+    if (x.isExact)
+      applyExact(x).getOrElse(f(x))
+    else
+      f(x)
 
   /**
     * Generate helpful debugging information about this ExpressionMonoFunction.

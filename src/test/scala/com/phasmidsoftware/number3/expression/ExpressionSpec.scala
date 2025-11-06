@@ -42,7 +42,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate 1 * -1" in {
     val x: Expression = Expression(1) * -1
-    x.evaluateAsIs shouldBe Some(Real(-1))
+    x.evaluateAsIs shouldBe Some(WholeNumber(-1))
   }
   it should "evaluate i * 2" in {
     val x: Expression = ConstI * 2
@@ -179,15 +179,15 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
   it should "evaluate *" in {
     val x = Expression(3) * 2
-    x shouldEqual Valuable(6)
+    x.materialize shouldEqual Valuable(6)
   }
   it should "evaluate /" in {
     val x = Expression(6) / 2
-    x shouldEqual Valuable(3)
+    x.materialize shouldEqual Valuable(3)
   }
   it should "evaluate ∧ 2" in {
     val x = Expression(6) ∧ 2
-    x shouldEqual Valuable(36)
+    x.materialize shouldEqual Valuable(36)
   }
   it should "evaluate sqrt 36" in {
     val x: Expression = Expression(36).sqrt
@@ -201,7 +201,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "evaluate atan" in {
     val zero: Expression = com.phasmidsoftware.number3.expression.Zero
     zero.atan(Valuable.one).materialize shouldBe (Angle.piBy2)
-    One.atan(0).materialize shouldBe Some(Angle.zero)
+    One.atan(0).materialize shouldBe Angle.zero
     One.atan(Valuable.root3).evaluateAsIs shouldBe Some(Angle.piBy3)
     One.atan(One).evaluateAsIs shouldBe Some(Valuable.piBy4)
   }
