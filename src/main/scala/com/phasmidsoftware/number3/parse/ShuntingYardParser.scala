@@ -65,7 +65,7 @@ object ShuntingYardParser extends BaseMillParser {
       * @return a Try[Mill].
       */
     def toMill: Try[Mill] = switch match {
-      case ShuntingYard(values, Nil) => Try(Mill(values: _*))
+      case ShuntingYard(values, Nil) => Try(Mill(values *))
       case x => scala.util.Failure(MillException(s"toMill: logic error with switch value (usually mis-matched parentheses): $x"))
     }
 

@@ -374,8 +374,6 @@ object Angle {
     def combine(x: Angle, y: Angle): Angle = (x, y) match {
       case (Angle(x1: Number), Angle(x2: Number)) =>
         Angle.create(FP.getOrThrow(x1 doPlus x2, new UnsupportedOperationException("Angle.combine")))
-      case _ =>
-        throw new UnsupportedOperationException("Angle.combine")
     }
 
     /**

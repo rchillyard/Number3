@@ -12,8 +12,8 @@ import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number3.algebra.{Angle, Valuable}
 import com.phasmidsoftware.number3.expression
-import com.phasmidsoftware.number3.expression.Expression.em.DyadicTriple
-import com.phasmidsoftware.number3.expression.Expression.{ExpressionOps, matchSimpler}
+import com.phasmidsoftware.number3.expression.Expression.em.{DyadicTriple, complementaryTermsEliminatorBiFunction}
+import com.phasmidsoftware.number3.expression.Expression.{ExpressionOps, em, matchSimpler, zero}
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -1335,6 +1335,15 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val idealExpectedExpression = BiFunction(ConstPi ∧ 2, MinusOne, Sum)
     val interimExpectedExpression = Aggregate(Sum, Seq(-1, BiFunction(ConstPi, 2, Power)))
     actual.get shouldBe interimExpectedExpression
+  }
+
+  behavior of "complementaryTermsEliminatorBiFunction"
+  it should "match 1 and -1 in addition" in {
+    val x: Expression = 1
+    val y: Expression = -1
+    val z: em.MatchResult[Expression] = em.complementaryTermsEliminatorBiFunction(BiFunction(x, y, Sum))
+    z.successful shouldBe true
+    z.get shouldBe zero
   }
 }
 

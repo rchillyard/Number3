@@ -10,8 +10,8 @@ import com.phasmidsoftware.number.core.Number.one
 import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
-import com.phasmidsoftware.number.core.{Constants, Field, Number}
-import com.phasmidsoftware.number3.algebra.{Additive, Angle, Complex, MultiplicativeWithInverse, Nat, NatLog, RationalNumber, Real, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number.core.{Constants, Field, Number, NumberException}
+import com.phasmidsoftware.number3.algebra.{Additive, Angle, Complex, MultiplicativeWithInverse, Nat, NatLog, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number3.core.{AnyContext, Context}
 import com.phasmidsoftware.number3.expression.Expression.em
 import com.phasmidsoftware.number3.expression.Literal.someLiteral
@@ -193,10 +193,12 @@ sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option
     * @return `Some(Valuable)` if the Valuable qualifies within the given context, otherwise `None`.
     */
   def evaluate(context: Context): Option[Valuable] = value match {
-    case nat: Nat => Some(nat)
-    case scalar: com.phasmidsoftware.number3.algebra.Scalar =>
-      Option.when(scalar.maybeFactor.isDefined && context.valuableQualifies(scalar))(value)
-    case _ => ???
+    case nat: Nat =>
+      Some(nat)
+    case structure: Structure =>
+      Option.when(structure.maybeFactor.isDefined && context.valuableQualifies(structure))(value)
+    case _ =>
+      throw NumberException(s"evaluate: cannot evaluate $value in $context")
   }
 
   /**

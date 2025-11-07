@@ -16,6 +16,13 @@ import scala.util.Try
 abstract class BaseMillParser extends BaseNumberParser {
 
   /**
+    * Token is something that results in a value: either
+    * a Number (itself); or
+    * a non-empty sequence of String each of which is an anadic (no operand) operator.
+    */
+  type Token = Either[String, Number]
+
+  /**
     * Parse the string w as a RPN expression.
     * The elements of the input include numbers, and various operators.
     *
@@ -62,29 +69,13 @@ abstract class BaseMillParser extends BaseNumberParser {
   }
 
   /**
-    * DyadicTerm is a Term defined by a Term t, followed by a MonadicTerm.
-    *
-    * @param t  a Term, typically a Number or another term.
-    * @param op a MonadicTerm.
-    */
-  private case class DyadicTerm(t: Term, op: MonadicTerm) extends Term {
-    override def toString: String = s"$t $op"
-  }
-
-  /**
-    * Token is something that results in a value: either
-    * a Number (itself); or
-    * a non-empty sequence of String each of which is an anadic (no operand) operator.
-    */
-  type Token = Either[String, Number]
-
-  /**
     * A Parser[Mill].
     * This matches on a space-separated list of terms.
     *
     * @return a Parser[Mill].
     */
-  def mill: Parser[Mill] = repSepSp(term) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems): _*))
+  def mill: Parser[Mill] =
+    repSepSp(term) :| "mill" ^^ (items => Mill(items.flatMap(_.toItems) *))
 
   /**
     * A term is either of the form:
@@ -94,17 +85,19 @@ abstract class BaseMillParser extends BaseNumberParser {
     *
     * @return a Parser[Term]
     */
-  def term: Parser[Term] = (dyadicTerm | monadicTerm | anadicTerm) :| "term"
+  def term: Parser[Term] =
+    (dyadicTerm | monadicTerm | anadicTerm) :| "term"
 
   /**
     * anadicTerm: an operator or Number which increases depth of the stack.
     *
     * @return a Parser[AnadicTerm]
     */
-  def anadicTerm: Parser[AnadicTerm] = (maybeNumber ?| anadicOperator) :| "anadicTerm" ^^ {
-    case Left(x) => AnadicTerm(Left(x))
-    case Right(w) => AnadicTerm(Right(w))
-  }
+  def anadicTerm: Parser[AnadicTerm] =
+    (maybeNumber ?| anadicOperator) :| "anadicTerm" ^^ {
+      case Left(x) => AnadicTerm(Left(x))
+      case Right(w) => AnadicTerm(Right(w))
+    }
 
   /**
     * MonadicTerm: an operator or Number which maintains the depth of the stack.
@@ -112,24 +105,40 @@ abstract class BaseMillParser extends BaseNumberParser {
     *
     * @return a Parser[MonadicTerm].
     */
-  def monadicTerm: Parser[MonadicTerm] = (trim(monadicOperator) ~ trim(repSepSp(neutralOperator1)) ~ term) :| "monadicTerm" ^^ {
-    case y ~ os ~ x => MonadicTerm(x, os, y)
+  def monadicTerm: Parser[MonadicTerm] =
+    (trim(monadicOperator) ~ trim(repSepSp(neutralOperator1)) ~ term) :| "monadicTerm" ^^ {
+      case y ~ os ~ x => MonadicTerm(x, os, y)
+    }
+
+  def dyadicTerm: Parser[Term] =
+    (trim(dyadicOperator) ~ trim(repSepSp(neutralOperator2)) ~ trim(term) ~ term) :| "dyadicTerm" ^^ {
+      case z ~ os ~ y ~ x => DyadicTerm(x, MonadicTerm(y, os, z))
+    }
+
+  def dyadicOperator: Parser[String] =
+    ("+" | "*" | "×" | "^" | "∧" | "-" | "−" | "–" | "/" | "÷") :| "dyadicOperator"
+
+  def monadicOperator: Parser[String] =
+    """(?i)chs|inv|v|ln|exp|sin|cos""".r :| "monadicOperator"
+
+  def anadicOperator: Parser[String] =
+    """rcl""".r :| "anadicOperator"
+
+  def neutralOperator2: Parser[String] =
+    ("""<>""".r | neutralOperator1) :| "neutralOperator2"
+
+  def neutralOperator1: Parser[String] =
+    """clr|sto""".r :| "neutralOperator1"
+
+  /**
+    * DyadicTerm is a Term defined by a Term t, followed by a MonadicTerm.
+    *
+    * @param t  a Term, typically a Number or another term.
+    * @param op a MonadicTerm.
+    */
+  private case class DyadicTerm(t: Term, op: MonadicTerm) extends Term {
+    override def toString: String = s"$t $op"
   }
-
-  def dyadicTerm: Parser[Term] = (trim(dyadicOperator) ~ trim(repSepSp(neutralOperator2)) ~ trim(term) ~ term) :| "dyadicTerm" ^^ {
-    case z ~ os ~ y ~ x => DyadicTerm(x, MonadicTerm(y, os, z))
-  }
-
-  def dyadicOperator: Parser[String] = ("+" | "*" | "×" | "^" | "∧" | "-" | "−" | "–" | "/" | "÷") :| "dyadicOperator"
-
-  def monadicOperator: Parser[String] = """(?i)chs|inv|v|ln|exp|sin|cos""".r :| "monadicOperator"
-
-  def anadicOperator: Parser[String] = """rcl""".r :| "anadicOperator"
-
-  def neutralOperator2: Parser[String] = ("""<>""".r | neutralOperator1) :| "neutralOperator2"
-
-  def neutralOperator1: Parser[String] = """clr|sto""".r :| "neutralOperator1"
-
 }
 
 object MillParser extends BaseMillParser

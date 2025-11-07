@@ -6,7 +6,7 @@ package com.phasmidsoftware.number3.core
 
 import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number3.algebra.{Nat, Scalar, Valuable}
+import com.phasmidsoftware.number3.algebra.{Nat, Structure, Valuable}
 
 /**
   * Represents a trait for specifying in which evaluation-contexts a particular expression may be evaluated.
@@ -40,8 +40,8 @@ trait Context {
   def valuableQualifies(v: Valuable): Boolean = v match {
     case nat: Nat =>
       true
-    case scalar: Scalar =>
-      scalar.maybeFactor.exists(factorQualifies)
+    case structure: Structure =>
+      structure.maybeFactor.exists(factorQualifies)
     case _ =>
       throw NumberException(s"Context.valuableQualifies: $v")
   }

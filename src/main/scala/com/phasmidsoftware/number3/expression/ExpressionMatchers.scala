@@ -5,6 +5,7 @@
 package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.matchers.{MatchLogger, ~}
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.{Field, Real}
 import com.phasmidsoftware.number.misc.Bumperator
@@ -84,18 +85,30 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     *         or returns information about a failure to match.
     */
   def matchComplementaryExpressions: Matcher[DyadicTriple, Expression] = Matcher("matchComplementaryExpressions") {
-    case Sum ~ x ~ UniFunction(y, Negate) if x == y => Match(Zero) // TESTME
-    case Sum ~ UniFunction(x, Negate) ~ y if x == y => Match(Zero) // TESTME
-    case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if x == y => Match(w) // TESTME
-    case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == z => Match(y) // TESTME
-    case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if w == y => Match(x) // TESTME
-    case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == y => Match(z) // TESTME
-    case Product ~ x ~ UniFunction(y, Reciprocal) if x == y => Match(One)
-    case Product ~ UniFunction(x, Reciprocal) ~ y if x == y => Match(One) // TESTME
-    case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if x == y => Match(w) // TESTME
-    case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w => Match(z) // TESTME
-    case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if w == y => Match(x) // TESTME
-    case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z => Match(w) // TESTME
+    case Sum ~ x ~ UniFunction(y, Negate) if x == y =>
+      Match(Zero) // TESTME
+    case Sum ~ UniFunction(x, Negate) ~ y if x == y =>
+      Match(Zero) // TESTME
+    case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if x == y =>
+      Match(w) // TESTME
+    case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == z =>
+      Match(y) // TESTME
+    case Sum ~ BiFunction(w, x, Sum) ~ UniFunction(y, Negate) if w == y =>
+      Match(x) // TESTME
+    case Sum ~ UniFunction(x, Negate) ~ BiFunction(y, z, Sum) if x == y =>
+      Match(z) // TESTME
+    case Product ~ x ~ UniFunction(y, Reciprocal) if x == y =>
+      Match(One)
+    case Product ~ UniFunction(x, Reciprocal) ~ y if x == y =>
+      Match(One) // TESTME
+    case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if x == y =>
+      Match(w) // TESTME
+    case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == w =>
+      Match(z) // TESTME
+    case Product ~ BiFunction(w, x, Product) ~ UniFunction(y, Reciprocal) if w == y =>
+      Match(x) // TESTME
+    case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z =>
+      Match(w) // TESTME
     case f ~ x ~ y =>
       complementaryFields(f, x, y) match {
         case Some(z) => Match(z)
@@ -107,6 +120,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     * Determines if two expressions are complementary based on a given binary function.
     * TODO find other method that does something similar
     * TODO move this method into Expression
+    * CONSIDER this method makes no sense to me!
     *
     * @param f The binary function to evaluate the expressions.
     * @param x The first expression to evaluate.
@@ -115,11 +129,12 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   private def complementaryFields(f: ExpressionBiFunction, x: Expression, y: Expression): Option[Expression] =
     if x.maybeFactor == y.maybeFactor then { // TODO logic here is same as for value in BiFunction
-      val fo = f.evaluateAsIs(x, y)
+      val fo: Option[Valuable] = f.evaluateAsIs(x, y)
+      // CONSIDER if `fo` is a defined `Valuable`, then why wouldn't we just return it (wrapped in `Literal`)?
       (fo, f.maybeIdentityL) match {
         case (Some(field1), Some(field2)) if field1 == field2 =>
           someLiteral(field1)
-        case (Some(com.phasmidsoftware.number.core.Real(com.phasmidsoftware.number.core.Number.zeroR)), Some(field2: Monotone)) if field2.isZero =>
+        case (Some(core.Real(core.Number.zeroR)), Some(field2: Monotone)) if field2.isZero =>
           someLiteral(field2)
         case _ =>
           None

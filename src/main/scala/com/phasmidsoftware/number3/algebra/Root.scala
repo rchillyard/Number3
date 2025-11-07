@@ -6,7 +6,8 @@ package com.phasmidsoftware.number3.algebra
 
 import cats.Show
 import cats.kernel.CommutativeGroup
-import com.phasmidsoftware.number.core.inner.{Factor, Rational}
+import com.phasmidsoftware.number.core.NumberException
+import com.phasmidsoftware.number.core.inner.{CubeRoot, Factor, Rational, SquareRoot}
 import com.phasmidsoftware.number3.algebra.Structure
 import com.phasmidsoftware.number3.misc.FP
 
@@ -175,8 +176,10 @@ case class Root(n: Int, base: Number) extends Monotone with MultiplicativeWithPo
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
-  def maybeFactor: Option[Factor] = {
-    Some(???) // FIXME
+  def maybeFactor: Option[Factor] = n match {
+    case 2 => Some(SquareRoot)
+    case 3 => Some(CubeRoot)
+    case _ => throw NumberException(s"Root.maybeFactor: no factor for $n")
   }
 
   /**
