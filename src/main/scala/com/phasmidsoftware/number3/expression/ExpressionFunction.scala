@@ -4,6 +4,7 @@
 
 package com.phasmidsoftware.number3.expression
 
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.*
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, NumberException, Real}
 import com.phasmidsoftware.number3.algebra.{Additive, Angle, CanPower, Complex, Multiplicative, Nat, Number, Scalar, Structure, Valuable}
@@ -487,7 +488,7 @@ case object Log extends ExpressionBiFunction("log", lift2(Real.log), false, None
       case (Real(x@ExactNumber(_, NatLog)), Constants.e) => // XXX not strictly necessary as this will be handled by the default case
         Some(Valuable(Real(x.make(PureNumber))))
       case (Real(x@ExactNumber(_, Euler)), Constants.e) =>
-        Some(Valuable(ComplexPolar(com.phasmidsoftware.number.core.Number.one, x.make(Radian).simplify)))
+        Some(Valuable(ComplexPolar(core.Number.one, x.make(Radian).simplify)))
       case _ if a == b =>
         Some(Valuable.one)
       case _ =>
@@ -530,7 +531,7 @@ case object Ln extends ExpressionMonoFunction("ln", lift1(x => x.ln)) {
     case Valuable.zero =>
       Some(Valuable.negInfinity)
     case Valuable.minusOne =>
-      Some(Valuable(-ComplexPolar(com.phasmidsoftware.number.core.Number.pi, com.phasmidsoftware.number.core.Number.piBy2)))
+      Some(Valuable(-ComplexPolar(core.Number.pi, core.Number.piBy2)))
     case _ =>
       None
   }
@@ -638,9 +639,9 @@ case object Reciprocal extends ExpressionMonoFunction("rec", lift1(x => x.invert
           Real(ExactNumber(x, f)))
         Valuable(real)
       )
-    case Valuable(Real(ExactNumber(v, f@com.phasmidsoftware.number.core.inner.Logarithmic(_)))) =>
+    case Valuable(Real(ExactNumber(v, f@core.inner.Logarithmic(_)))) =>
       Some(Valuable(Real(ExactNumber(Value.negate(v), f)))) // TESTME
-    case Valuable(Real(ExactNumber(v, f@com.phasmidsoftware.number.core.inner.NthRoot(_)))) =>
+    case Valuable(Real(ExactNumber(v, f@core.inner.NthRoot(_)))) =>
       Value.inverse(v).map(x =>
         Valuable(Real(ExactNumber(x, f))))
     case _ =>

@@ -6,6 +6,7 @@ package com.phasmidsoftware.number3.algebra
 
 import algebra.CommutativeMonoid
 import cats.Show
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number3.algebra.Logarithm.LogarithmIsCommutativeMonoid
@@ -258,7 +259,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
     *
     * @return an `Option` containing a `Factor` if available, otherwise `None`
     */
-  def maybeFactor: Option[Factor] = Some(com.phasmidsoftware.number.core.inner.NatLog)
+  def maybeFactor: Option[Factor] = Some(core.inner.NatLog)
 }
 
 /**

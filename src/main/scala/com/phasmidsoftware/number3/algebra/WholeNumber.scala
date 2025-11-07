@@ -185,7 +185,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Multiplic
   infix def doPlus(that: Scalar): Option[Scalar] = that match {
     case a: WholeNumber =>
       Some(this + a)
-    case x: Scalar =>
+    case x =>
       x doPlus this
   }
 

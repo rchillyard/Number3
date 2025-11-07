@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number3.core
 
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Solution}
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number.core.{Complex, Field, Number, Numerical, Real}
@@ -8,7 +9,7 @@ import org.scalactic.Equality
 
 trait FuzzyEquality {
 
-  type OldNumberLike = com.phasmidsoftware.number.core.NumberLike
+  type OldNumberLike = core.NumberLike
 
   /**
     * An implicit equality implementation for instances of `Structure`.

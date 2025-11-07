@@ -1,8 +1,10 @@
 package com.phasmidsoftware.number3.algebra
 
 import com.phasmidsoftware.flog.Loggable
+import com.phasmidsoftware.number.core
+import com.phasmidsoftware.number.core.algebraic.Algebraic
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
-import com.phasmidsoftware.number.core.{Constants, NumberExceptionWithCause}
+import com.phasmidsoftware.number.core.{Constants, NumberException, NumberExceptionWithCause}
 import com.phasmidsoftware.number.parse.NumberParser
 import com.phasmidsoftware.number3.expression.ExpressionFunction.valuableToField
 import com.phasmidsoftware.number3.mill.Renderable
@@ -103,12 +105,14 @@ object Valuable {
     * @return a `Valuable` representation of the input `Field` as a `Scalar`.
     * @throws IllegalArgumentException if the provided `Field` is not of type `Real`.
     */
-  def apply(field: com.phasmidsoftware.number.core.Field): Valuable =
+  def apply(field: core.Field): Valuable =
     field match {
-      case com.phasmidsoftware.number.core.Real(n) =>
+      case core.Real(n) =>
         Scalar(n)
-      // TODO add other field types such as Complex, Algebraic, etc.
-      case _ => throw new IllegalArgumentException(s"Valuable.apply: field is not a Number: $field")
+      case c: core.Complex =>
+        Complex(c)
+      case a: Algebraic =>
+        throw new NumberException(s"Valuable.apply: Algebraic not yet implemented: $field")
     }
 
   /**
@@ -118,7 +122,7 @@ object Valuable {
     * @param v the `Valuable` instance to be converted into an `Option[Field]`
     * @return `Some(Field)` if the conversion is successful, or `None` if it fails
     */
-  def unapply(v: Valuable): Option[com.phasmidsoftware.number.core.Field] =
+  def unapply(v: Valuable): Option[core.Field] =
     Try(valuableToField(v)).toOption
 
   /**

@@ -206,12 +206,12 @@ sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option
     *
     * @return Some(Real) if the Valuable can be approximated as a Real number, otherwise None.
     */
-  def approximation: Option[com.phasmidsoftware.number.core.Real] = value match {
+  def approximation: Option[core.Real] = value match {
     case r: Real =>
       Some(newRealToOldReal(r)) // TESTME
     case algebraic: Algebraic =>
       algebraic.solve.asField match {
-        case r: com.phasmidsoftware.number.core.Real =>
+        case r: core.Real =>
           Some(r)
         case _ =>
           None // TESTME

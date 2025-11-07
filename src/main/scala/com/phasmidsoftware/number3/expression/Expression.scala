@@ -379,8 +379,8 @@ object Expression {
     * @param x the number to be converted into an Expression
     * @return an Expression representing the input number
     */
-  implicit def convert(x: com.phasmidsoftware.number.core.Number): Expression =
-    apply(Valuable(com.phasmidsoftware.number.core.Real(x)))
+  implicit def convert(x: core.Number): Expression =
+    apply(Valuable(core.Real(x)))
 
   /**
     * The following constants are helpful in getting an expression started.
