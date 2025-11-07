@@ -1,6 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
-import cats.kernel.CommutativeGroup
+import algebra.ring.CommutativeRing
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -38,12 +38,18 @@ class WholeNumberSpec extends AnyFlatSpec with Matchers {
   }
 
   behavior of "CommutativeGroup[WholeNumber]"
-  private val ac: CommutativeGroup[WholeNumber] = implicitly[CommutativeGroup[WholeNumber]]
+  private val ac: CommutativeRing[WholeNumber] = implicitly[CommutativeRing[WholeNumber]]
 
-  it should "combine" in {
-    ac.combine(zero, one) shouldBe one
+  it should "plus" in {
+    ac.plus(zero, one) shouldBe one
+    ac.plus(one, zero) shouldBe one
   }
-  it should "inverse" in {
-    ac.inverse(one) shouldBe WholeNumber(-1)
+  it should "times" in {
+    ac.times(zero, one) shouldBe zero
+    ac.times(one, one) shouldBe one
+    ac.times(one, zero) shouldBe zero
+  }
+  it should "negate" in {
+    ac.negate(one) shouldBe WholeNumber(-1)
   }
 }

@@ -194,6 +194,9 @@ sealed abstract class ExpressionBiFunction(
                                             val maybeIdentityR: Option[Valuable]
                                           ) extends ExpressionFunction[(Valuable, Valuable)] {
 
+  //  val flog = Flog[ExpressionBiFunction]
+  //  import flog._
+
   /**
     * Indicates whether the binary operation represented by this instance commutes,
     * meaning the result remains unchanged for arbitrary swapping of inputs.

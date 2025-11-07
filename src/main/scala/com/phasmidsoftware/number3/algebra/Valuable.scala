@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
+import com.phasmidsoftware.flog.Loggable
 import com.phasmidsoftware.number.core.inner.{Factor, Rational}
 import com.phasmidsoftware.number.core.{Constants, NumberExceptionWithCause}
 import com.phasmidsoftware.number.parse.NumberParser
@@ -128,4 +129,8 @@ object Valuable {
     * @return a `Valuable` instance parsed from the provided string.
     */
   implicit def toValuable(w: String): Valuable = apply(w)
+
+  implicit object LoggableValuable extends Loggable[Valuable] {
+    def toLog(t: Valuable): String = t.toString
+  }
 }

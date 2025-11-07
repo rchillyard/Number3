@@ -1,8 +1,7 @@
 package com.phasmidsoftware.number3.algebra
 
 import com.phasmidsoftware.number.core
-import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber}
+import com.phasmidsoftware.number.core.{ExactNumber, Fuzziness, FuzzyNumber, NumberException, inner}
 
 /**
   * Represents a `Scalar`, which is a `Monotone` that is linear with other scalar quantities and
@@ -37,7 +36,7 @@ trait Scalar extends Monotone with CanAdd[Scalar] {
     * @return an `Option[Rational]` containing the `Rational` representation of this `Number`
     *         if it can be converted, or `None` if the conversion is not possible.
     */
-  def toRational: Option[Rational]
+  def toRational: Option[inner.Rational]
 
   /**
     * Represents the scaleFactor of a scalar value as a `Double`.
@@ -54,7 +53,7 @@ trait Scalar extends Monotone with CanAdd[Scalar] {
     * @return an `Option[Factor]` containing the factor representation of this object,
     *         or `None` if factorization is not applicable or unavailable.
     */
-  def maybeFactor: Option[Factor]
+  def maybeFactor: Option[inner.Factor]
 
   /**
     * Provides an approximation of this number, if applicable.
@@ -96,13 +95,15 @@ object Scalar {
     * Converts the number into an appropriate scalar representation,
     * either exact or fuzzy, depending on the properties of the input.
     *
+    * CONSIDER moving this up into Monotone.
+    *
     * @param x the `core.Number` to be converted into a `Scalar`.
     *          It can be an `ExactNumber` or a `FuzzyNumber`, each with specific
     *          properties such as value, factor, and optional fuzziness.
     * @return the resulting `Scalar` based on the input number's properties, which
     *         encapsulates its exact value, factor, and optional fuzziness.
     */
-  def apply(x: core.Number): Scalar = x match {
+  def apply(x: core.Number): Monotone = x match {
     case ExactNumber(value, factor) =>
       createScalar(value, factor, None)
     case FuzzyNumber(value, factor, fuzz) =>
@@ -124,7 +125,7 @@ object Scalar {
     *               or imprecision in the numerical value.
     * @return the resulting `Scalar` based on the input values, factor, and optional fuzziness.
     */
-  def createScalar(value: Value, factor: Factor, fuzz: Option[Fuzziness[Double]]): Scalar = {
+  def createScalar(value: inner.Value, factor: inner.Factor, fuzz: Option[Fuzziness[Double]]): Monotone = {
     val number = (value, fuzz) match {
       case (Right(x), None) =>
         WholeNumber(x)
@@ -140,14 +141,21 @@ object Scalar {
         Real(Double.NaN, fuzz)
     }
     factor match {
-      case PureNumber =>
+      case inner.PureNumber =>
         number
-      case Radian =>
+      case inner.Radian =>
         Angle(number)
-      case logarithmic: Logarithmic =>
-        ??? // TODO implement this
-      case power: InversePower =>
-        ??? // TODO implement this
+      case inner.NatLog =>
+        NatLog(number)
+      case inner.InversePower(r) =>
+        r.maybeInt match {
+          case Some(n) =>
+            Root(n, number)
+          case _ =>
+            throw new NumberException(s"Scalar.createScalar: unsupported inverse power $factor")
+        }
+      case _ =>
+        throw NumberException(s"Scalar.createScalar: unsupported factor $factor")
     }
   }
 }

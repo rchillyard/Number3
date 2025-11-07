@@ -4,11 +4,11 @@
 
 package com.phasmidsoftware.number3.algebra
 
+import algebra.ring.CommutativeRing
 import cats.Show
-import cats.kernel.CommutativeGroup
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
 import com.phasmidsoftware.number3.algebra.Structure
-import com.phasmidsoftware.number3.algebra.WholeNumber.wholeNumberIsCommutativeGroup
+import com.phasmidsoftware.number3.algebra.WholeNumber.wholeNumberIsCommutativeRing
 import spire.math.SafeLong
 
 import scala.language.implicitConversions
@@ -22,7 +22,7 @@ import scala.reflect.ClassTag
   *
   * @param x a SafeLong value representing the whole number
   */
-case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
+case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Multiplicative[WholeNumber] with Number {
 
   /**
     * Compares the current `WholeNumber` instance with another `Number` to determine their exact order.
@@ -71,7 +71,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     * results in the same element. For any element `x`, `x + zero` and `zero + x` should
     * equal `x`.
     */
-  val zero: WholeNumber = wholeNumberIsCommutativeGroup.empty
+  val zero: WholeNumber = wholeNumberIsCommutativeRing.empty
 
   /**
     * Converts this `Number` into its corresponding `Rational` representation, if possible.
@@ -153,7 +153,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     * @return a new `WholeNumber` instance representing the additive inverse of the current WholeNumber.
     */
   def unary_- : WholeNumber =
-    wholeNumberIsCommutativeGroup.inverse(this)
+    wholeNumberIsCommutativeRing.negate(this)
 
   /**
     * Adds the specified `T` to this `T` instance.
@@ -162,7 +162,7 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     * @return a new `T` representing the sum of this `T` and the given `T`
     */
   def +(t: WholeNumber): WholeNumber =
-    wholeNumberIsCommutativeGroup.combine(this, t)
+    wholeNumberIsCommutativeRing.plus(this, t)
 
   /**
     * Subtracts the specified `T` from this `T` instance.
@@ -195,6 +195,31 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Number {
     * @return Some(PureNumber)
     */
   def maybeFactor: Option[Factor] = Some(PureNumber)
+
+  /**
+    * Represents the multiplicative identity element of the structure.
+    *
+    * The `one` value serves as the neutral element for the multiplication operation, meaning
+    * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
+    */
+  def one: WholeNumber = WholeNumber.one
+
+  /**
+    * Multiplies the specified `T` by this `T` instance.
+    *
+    * @param t an instance of `T` to be multiplied by this `T`
+    * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
+    */
+  def *(t: WholeNumber): Multiplicative[WholeNumber] =
+    wholeNumberIsCommutativeRing.times(this, t)
+
+  /**
+    * Divides this `T` instance by the specified `T`.
+    *
+    * @param t an instance of `T` to be the divisor
+    * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
+    */
+  def /(t: WholeNumber): Multiplicative[WholeNumber] = ???
 }
 
 /**
@@ -242,23 +267,13 @@ object WholeNumber {
     * the `combine` operation is associative and commutative, an identity element exists, and
     * each element has an additive inverse.
     */
-  implicit object wholeNumberIsCommutativeGroup extends CommutativeGroup[WholeNumber] {
+  implicit object wholeNumberIsCommutativeRing extends CommutativeRing[WholeNumber] {
     /**
       * Provides the identity element for the `WholeNumber` group, representing a WholeNumber of zero.
       *
       * @return the `WholeNumber` instance zero.
       */
     def empty: WholeNumber = WholeNumber.zero
-
-    /**
-      * Combines two `WholeNumber` instances by adding their respective SafeLong values.
-      *
-      * @param x the first `WholeNumber` to combine
-      * @param y the second `WholeNumber` to combine
-      * @return a new `WholeNumber` representing the sum of the SafeLong values of the two provided `WholeNumber` instances
-      */
-    def combine(x: WholeNumber, y: WholeNumber): WholeNumber =
-      WholeNumber(x.x + y.x)
 
     /**
       * Computes the additive inverse of the given `WholeNumber`.
@@ -269,7 +284,44 @@ object WholeNumber {
       * @param x the `WholeNumber` instance to be inverted
       * @return a new `WholeNumber` instance representing the additive inverse of the input
       */
-    def inverse(x: WholeNumber): WholeNumber =
-      WholeNumber(-x.x)
+    def negate(x: WholeNumber): WholeNumber = WholeNumber(-x.x)
+
+    /**
+      * Returns the zero value of the `WholeNumber` type.
+      *
+      * @return The zero value representing a `WholeNumber` with the value of 0.
+      */
+    def zero: WholeNumber = WholeNumber.zero
+
+    /**
+      * Adds two `WholeNumber` instances together.
+      *
+      * This method computes the sum of the two provided `WholeNumber` objects 
+      * and returns a new `WholeNumber` representing the result.
+      *
+      * @param x the first `WholeNumber` operand
+      * @param y the second `WholeNumber` operand
+      * @return a new `WholeNumber` instance representing the sum of `x` and `y`
+      */
+    def plus(x: WholeNumber, y: WholeNumber): WholeNumber = WholeNumber(x.x + y.x)
+
+    /**
+      * Returns the constant representing the number one as a `WholeNumber`.
+      *
+      * @return a `WholeNumber` instance representing the numeric value of one.
+      */
+    def one: WholeNumber = WholeNumber.one
+
+    /**
+      * Multiplies two `WholeNumber` instances.
+      *
+      * This method computes the product of the two provided `WholeNumber` objects
+      * and returns a new `WholeNumber` representing the result.
+      *
+      * @param x the first `WholeNumber` operand
+      * @param y the second `WholeNumber` operand
+      * @return a new `WholeNumber` instance representing the product of `x` and `y`
+      */
+    def times(x: WholeNumber, y: WholeNumber): WholeNumber = WholeNumber(x.x * y.x)
   }
 }
