@@ -6,6 +6,7 @@ package com.phasmidsoftware.number3.algebra
 
 import cats.Show
 import cats.kernel.CommutativeGroup
+import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{Factor, Radian, Rational, Value}
 import com.phasmidsoftware.number3.algebra.Angle.angleIsCommutativeGroup
 import com.phasmidsoftware.number3.algebra.Structure
@@ -186,7 +187,7 @@ case class Angle private[algebra](radians: Number) extends Additive[Angle] with 
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
   infix def doScaleInt(that: Int): Option[Angle] =
-    radians.doScaleInt(that).map(x => Angle.apply(x.asInstanceOf[RationalNumber]))
+    radians.doScaleInt(that).map(x => Angle.create(x))
 
   /**
     * Scales the current instance using the provided `Number`.
@@ -293,9 +294,17 @@ object Angle {
     */
   def apply(r: WholeNumber): Angle = Angle(r.x.toBigInt)
 
-  def create(s: Scalar): Angle = s match {
-    case number: WholeNumber => Angle(number)
-    case radians: RationalNumber => Angle(radians)
+  def create(s: Monotone): Angle = s match {
+    case number: WholeNumber =>
+      Angle(number)
+    case radians: RationalNumber =>
+      Angle(radians)
+    case Real(x, f) =>
+      Angle(Real(x, f))
+    case Angle(r) =>
+      throw NumberException(s"Angle.create: $r is already an Angle")
+    case _ =>
+      throw NumberException(s"Angle.create: not supported for $s")
   }
 
   /**

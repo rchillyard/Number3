@@ -4,10 +4,11 @@
 
 package com.phasmidsoftware.number3.expression
 
+import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner.PureNumber
-import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Number, Real}
-import com.phasmidsoftware.number3.algebra.Valuable
+import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Field, Number, Real}
+import com.phasmidsoftware.number3.algebra.{Structure, Valuable}
 import com.phasmidsoftware.number3.core.{Context, ImpossibleContext, RestrictedContext}
 import com.phasmidsoftware.number3.expression.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
@@ -413,6 +414,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     *         It provides either the simplified `Expression` or indicates that no simplification was possible.
     */
   def simplifyComposite: em.AutoMatcher[Expression] = em.Matcher[Expression, Expression]("BiFunction: simplifyComposite") {
+    case BiFunction(a, b, Sum) if a == b =>
+      em.Match(BiFunction(a, Two, Product))
     case BiFunction(a, b, Product) if a == b =>
       em.Match(BiFunction(a, Two, Power))
     case BiFunction(r: Root, x, f) =>
@@ -440,6 +443,9 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     case BiFunction(UniFunction(a, Negate), b, Product) if a == b => // TESTME
       val xSq = Expression.simplifyConstant(BiFunction(a, Two, Power)).getOrElse(BiFunction(a, Two, Power))
       em.Match(UniFunction(xSq, Negate))
+    // CONSIDER carefully reinstating this. But for now, it adds failed tests!
+    //    case BiFunction(a, b, Product) =>
+    //      matchProduct
     // NOTE this case is definitely required
     case b@BiFunction(_, _, _) =>
       ((em.complementaryTermsEliminatorBiFunction |
@@ -553,6 +559,14 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         case _ =>
           em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for Algebraics and $f", this) // TESTME
       }
+    // NOTE not sure why we need to add this but it did make a difference.
+    case (a, b, Product) =>
+      val qqq: Option[Expression] = for {
+        w <- a.evaluateAsIs
+        q <- a.maybeFactor
+        z <- b.evaluate(RestrictedContext(q))
+      } yield Literal(Valuable(ExpressionFunction.valuableToField(w) * ExpressionFunction.valuableToField(z)))
+      em.matchIfDefined(qqq)(this)
     case _ =>
       em.Miss[Expression, Expression](s"BiFunction: matchLiteral: ", BiFunction(l, x, f)) // TESTME
   }
@@ -779,6 +793,20 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
       case _ =>
         em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $a $f $x (not Atomic)", this) // TESTME
     }
+
+  private def matchProduct: em.MatchResult[Expression] = {
+    val z: Option[Field] = for {
+      x <- evaluateAsScalar(a)
+      y <- evaluateAsScalar(b)
+    } yield x * y
+    val product: Option[Expression] = z match {
+      case Some(z: Valuable) => Some(Literal(z))
+    }
+    em.matchIfDefined(product)(BiFunction(a, b, Product))
+  }
+
+  private def evaluateAsScalar[T <: Structure](x: Expression): Option[core.Field] =
+    x.evaluate(RestrictedContext(PureNumber)).map(ExpressionFunction.valuableToField)
 }
 
 object BiFunction {

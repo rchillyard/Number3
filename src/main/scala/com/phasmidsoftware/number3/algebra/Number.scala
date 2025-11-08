@@ -94,7 +94,7 @@ trait Number extends Scalar with Ordered[Scalar] with CanScale[Number] {
   def *(n: Int): Option[Number] =
     Range(1, n).foldLeft[Option[Number]](Some(this)) { // CONSIDER putting "Range(1,n)" back to "1 until n".
       case (Some(a), _) =>
-        (this doPlus a).asInstanceOf[Option[Number]] // TODO check that this is OK
+        (this doPlus a).asInstanceOf[Option[Number]] // TODO check that this is OK and if not, fix it.
       case (None, _) => None
     }
 

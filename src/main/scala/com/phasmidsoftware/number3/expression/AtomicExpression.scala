@@ -361,27 +361,27 @@ case class Literal(override val value: Valuable, override val maybeName: Option[
     * @return an `Option` containing an `ValueExpression` if the evaluation succeeds,
     *         or `None` if the evaluation fails.
     */
-  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = (f, value) match {
-    case (Negate, r: Additive[?]) =>
-      someLiteral((-r).asInstanceOf[Valuable])
-    case (Reciprocal, r: MultiplicativeWithInverse[?]) =>
-      someLiteral(r.inverse.asInstanceOf[Valuable])
-    // TODO implement all of these cases
-    //    case (Reciprocal, a: Algebraic) =>
-    //      someLiteral(a.invert)
-    //    case (Reciprocal, c: Complex) =>
-    //      someLiteral(c.complex.invert) // TODO refactor this
-    //    case (Ln, r@Real(x,None)) =>
-    //      someLiteral(r.ln)
-    //    case (Exp, r@Real(x,None)) =>
-    //      someLiteral(r.exp)
-    //    case (Sine, r@Real(x,None)) =>
-    //      someLiteral(r.sin)
-    //    case (Cosine, r@Real(x,None)) =>
-    //      someLiteral(r.cos)
-    // TODO implement for other functions
-    case _ =>
-      None
+  def monadicFunction(f: ExpressionMonoFunction): Option[ValueExpression] = Literal.someLiteral(doMonoFunction(f))
+
+  private def doMonoFunction(f: ExpressionMonoFunction): Valuable = {
+    (f, value) match {
+      case (Negate, r: Additive[?]) =>
+        ((-r).asInstanceOf[Valuable])
+      case (Reciprocal, r: MultiplicativeWithInverse[?]) =>
+        (r.inverse.asInstanceOf[Valuable])
+      //      case (Reciprocal, a: Algebraic) =>
+      //            (a.invert)
+      case (Reciprocal, c: Complex) =>
+        Complex(c.complex.invert.asInstanceOf[core.Complex])
+      case (Ln, r@Real(x, None)) =>
+        Valuable(ExpressionFunction.valuableToField(r).ln)
+      case (Exp, r@Real(x, None)) =>
+        Valuable(ExpressionFunction.valuableToField(r).exp)
+      case (Sine, r@Real(x, None)) =>
+        Valuable(ExpressionFunction.valuableToField(r).sin)
+      case (Cosine, r@Real(x, None)) =>
+        Valuable(ExpressionFunction.valuableToField(r).cos)
+    }
   }
 }
 

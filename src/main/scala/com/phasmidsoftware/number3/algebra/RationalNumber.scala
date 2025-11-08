@@ -108,10 +108,23 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @param that the `Number` multiplier used to scale the current instance
     * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
     */
-  def scale(that: Scalar): Option[Number] = that.toRational match {
+  def scale(that: Scalar): Option[RationalNumber] = that.toRational match {
     case Some(n@Rational(_, _)) => Some(RationalNumber(r * n))
     case _ => None
   }
+
+  /**
+    * Scales the current instance of type `T` using the given `Number` multiplier.
+    *
+    * This method performs a scaling operation by multiplying the current instance
+    * with the provided `Number`. The result of the scaling operation is returned
+    * as an `Option`, allowing for cases where the operation might not be valid or
+    * possible.
+    *
+    * @param that the `Number` multiplier used to scale the current instance
+    * @return an `Option[T]` containing the scaled instance of type `T`, or `None` if the operation cannot be performed
+    */
+  override def doScale(that: Number): Option[RationalNumber] = doScale(that)
 
   /**
     * Scales the instance of type T by the given integer multiplier.
@@ -124,7 +137,7 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
   def doScaleInt(that: Int): Option[RationalNumber] =
-    doScale(RationalNumber(Rational(that))).asInstanceOf[Option[RationalNumber]]
+    doScale(RationalNumber(Rational(that)))
 
   /**
     * Determines the sign of the scalar value represented by this instance.

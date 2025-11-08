@@ -56,7 +56,8 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Multiplic
     */
   def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
     case _: RationalNumber =>
-      Some(RationalNumber(Rational(x.toBigInt)).asInstanceOf[T])
+      val number = RationalNumber(Rational(x.toBigInt))
+      Some(number.asInstanceOf[T])
     case _: Real =>
       Some(Real(x.toDouble, None).asInstanceOf[T])
     case _ =>

@@ -109,6 +109,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Match(x) // TESTME
     case Product ~ UniFunction(x, Reciprocal) ~ BiFunction(w, z, Product) if x == z =>
       Match(w) // TESTME
+    case Power ~ BiFunction(w, x, Power) ~ z if x * z == One =>
+      Match(w)
     case f ~ x ~ y =>
       complementaryFields(f, x, y) match {
         case Some(z) => Match(z)

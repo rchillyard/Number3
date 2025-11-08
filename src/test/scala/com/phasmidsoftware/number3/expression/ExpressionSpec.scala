@@ -11,6 +11,7 @@ import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic
 import com.phasmidsoftware.number.core.inner.{NatLog, SquareRoot}
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, ExactNumber, GeneralNumber, NumberException, Real}
 import com.phasmidsoftware.number3.algebra.*
+import com.phasmidsoftware.number3.algebra.RationalNumber.half
 import com.phasmidsoftware.number3.core.FuzzyEquality
 import com.phasmidsoftware.number3.expression
 import com.phasmidsoftware.number3.expression.Expression.{ExpressionOps, em, pi}
@@ -300,7 +301,7 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   it should "be more than 1 for other expression" in {
     (ConstE * 2).depth shouldBe 2
     (ConstE * 2 / 2).depth shouldBe 3
-    val expression = Expression(7).sqrt ∧ 2
+    val expression = (Expression(7).sqrt ∧ 2).simplify
     expression.depth shouldBe 2
   }
 
@@ -406,6 +407,13 @@ class ExpressionSpec extends AnyFlatSpec with should.Matchers with BeforeAndAfte
   }
 
   behavior of "simplifyComposite"
+  it should "evaluate 1/2 * 2" in {
+    import Expression.ExpressionOps
+    val expression: Expression = Literal(half) * 2
+    val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]
+    val y: em.MatchResult[Expression] = x.simplifyComposite(x)
+    y shouldBe em.Match(One)
+  }
   it should "evaluate e * e" in {
     val expression: Expression = ConstE * ConstE
     val x: CompositeExpression = expression.asInstanceOf[CompositeExpression]

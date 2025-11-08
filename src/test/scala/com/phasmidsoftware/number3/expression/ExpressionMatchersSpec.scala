@@ -12,8 +12,8 @@ import com.phasmidsoftware.number.core.inner.{PureNumber, Rational}
 import com.phasmidsoftware.number.core.{ComplexPolar, Constants, Field, FuzzyNumber}
 import com.phasmidsoftware.number3.algebra.{Angle, Valuable}
 import com.phasmidsoftware.number3.expression
-import com.phasmidsoftware.number3.expression.Expression.em.{DyadicTriple, complementaryTermsEliminatorBiFunction}
-import com.phasmidsoftware.number3.expression.Expression.{ExpressionOps, em, matchSimpler, zero}
+import com.phasmidsoftware.number3.expression.Expression.em.DyadicTriple
+import com.phasmidsoftware.number3.expression.Expression.{ExpressionOps, matchSimpler, zero}
 import org.scalactic.Equality
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
@@ -155,7 +155,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     val x: Expression = Valuable.pi
     p(Sum ~ Two ~ Zero) shouldBe em.Match(Two)
     p(Sum ~ Zero ~ Two) shouldBe em.Match(Two)
-    p(Sum ~ Two ~ Two) shouldBe em.Match(Power ~ Two ~ Two)
+    p(Sum ~ Two ~ Two) shouldBe em.Match(Literal(4))
     p(Sum ~ One ~ Two) shouldBe em.Match(Literal(3))
     p(Sum ~ One ~ Literal(root2)) should matchPattern { case em.Miss(_, _) => }
   }
@@ -166,7 +166,7 @@ class ExpressionMatchersSpec extends AnyFlatSpec with should.Matchers with Befor
     p(Product ~ Zero ~ One) shouldBe em.Match(Zero)
     p(Product ~ Two ~ One) shouldBe em.Match(Two)
     p(Product ~ One ~ Two) shouldBe em.Match(Two)
-    p(Product ~ Two ~ Two) shouldBe em.Match(Power ~ Two ~ Two)
+    p(Product ~ Two ~ Two) shouldBe em.Match(BiFunction(Two, Two, Power))
     p(Product ~ Two ~ Literal(3)) shouldBe em.Match(Literal(6))
   }
   it should "handle Power" in {

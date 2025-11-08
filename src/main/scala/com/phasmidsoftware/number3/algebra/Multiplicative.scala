@@ -79,5 +79,9 @@ trait MultiplicativeWithPower[T <: Structure] extends Multiplicative[T] {
     * @return a new `MultiplicativeWithPower[T]` instance representing this instance raised to the `n`th power
     */
   def power(n: Int): MultiplicativeWithPower[T] =
-    (1 until n).foldLeft(this)((r, s) => (r * this.asInstanceOf[T]).asInstanceOf[MultiplicativeWithPower[T]])
+    (1 until n).foldLeft(this) {
+      (r, s) =>
+        // TODO sort out these class casts.
+        (r * this.asInstanceOf[T]).asInstanceOf[MultiplicativeWithPower[T]]
+    }
 }
