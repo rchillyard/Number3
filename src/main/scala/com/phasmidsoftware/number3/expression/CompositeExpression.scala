@@ -8,7 +8,8 @@ import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.algebraic.{Algebraic, Algebraic_Quadratic, Quadratic, Solution}
 import com.phasmidsoftware.number.core.inner.PureNumber
 import com.phasmidsoftware.number.core.{ComplexCartesian, ComplexPolar, Field, Number, Real}
-import com.phasmidsoftware.number3.algebra.{Structure, Valuable}
+import com.phasmidsoftware.number3.algebra
+import com.phasmidsoftware.number3.algebra.{MultiplicativeWithRationalPower, RationalNumber, Structure, Valuable}
 import com.phasmidsoftware.number3.core.{Context, ImpossibleContext, RestrictedContext}
 import com.phasmidsoftware.number3.expression.Expression.em.{DyadicTriple, MonadicDuple}
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
@@ -83,7 +84,7 @@ sealed trait CompositeExpression extends Expression {
     expr =>
       expr.evaluateAsIs match {
         case Some(f) =>
-          em.Match(Expression(f)).map(_.simplify)
+          em.MatchCheck(Expression(f))(expr).map(_.simplify)
         case _ =>
           em.Miss("matchSimpler: cannot be simplified", expr)
       }
@@ -189,21 +190,19 @@ case class UniFunction(x: Expression, f: ExpressionMonoFunction) extends Composi
   // NOTE that the equivalent method for BiFunction is as follows
   //  context.qualifyingValuable(f.evaluate(a, b)(context))
 
-
   /**
-    * Provides an approximation of the result of applying the function `f` to the
-    * `approximation` of the expression `x`, if one exists.
+    * Provides an approximation of this number, if applicable.
     *
-    * @return an `Option` containing the approximated result as a `Real` if the
-    *         approximation is successfully computed; otherwise, `None`.
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[Real] =
-    x.approximation map (Valuable(_)) map f match {
-      case Some(r: Real) =>
-        Some(r)
-      case _ =>
-        None // TESTME
-    }
+  def approximation(force: Boolean): Option[algebra.Real] =
+    x.approximation(force) map (x => f.apply(x).asInstanceOf[algebra.Real])
 
   /**
     * Simplifies the components of this `Expression` by transforming it using the `matchSimpler`
@@ -352,8 +351,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         val eo: Option[Expression] = so map (s => Literal(Valuable(Algebraic(s))))
         em.matchIfDefined(eo)(b)
 
-
-      // NOTE I'm confused by own logic here. I don't know why we need this.
+      // NOTE I'm confused by my own logic here. I don't know why we need this.
       case BiFunction(x, y, f) =>
         val matcher: em.Matcher[Seq[Expression], BiFunction] =
           em.sequence(matchSimpler) & em.lift { xs => val Seq(newX, newY) = xs; BiFunction(newX, newY, f) }
@@ -490,19 +488,18 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
     s"BiFunction{$a $f $b}"
 
   /**
-    * Computes the approximation of the `BiFunction` if approximations for both components (`a` and `b`) exist,
-    * and applies the function `f` to these approximations. If the resulting value is a valid `Real`, it is returned.
-    * Otherwise, `None` is returned.
+    * Provides an approximation of this number, if applicable.
     *
-    * @return an `Option[Real]` representing the computed approximation if possible; otherwise, `None`.
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[Real] =
-    (for x <- a.approximation; y <- b.approximation yield f(Valuable(x), Valuable(y))) match {
-      case Some(r: Real) =>
-        Some(r)
-      case _ =>
-        None // TESTME
-    }
+  def approximation(force: Boolean): Option[algebra.Real] =
+    for x <- a.approximation(true); y <- b.approximation(true) yield f(x, y).asInstanceOf[algebra.Real]
 
   /**
     * Regular hashCode method.
@@ -567,6 +564,8 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
         z <- b.evaluate(RestrictedContext(q))
       } yield Literal(Valuable(ExpressionFunction.valuableToField(w) * ExpressionFunction.valuableToField(z)))
       em.matchIfDefined(qqq)(this)
+    case (Literal(a: MultiplicativeWithRationalPower[Structure],_), Literal(b: RationalNumber,_), Power) =>
+          em.matchIfDefined(a.power(b.r).map(x => Literal(x)))(this)
     case _ =>
       em.Miss[Expression, Expression](s"BiFunction: matchLiteral: ", BiFunction(l, x, f)) // TESTME
   }
@@ -747,7 +746,7 @@ case class BiFunction(a: Expression, b: Expression, f: ExpressionBiFunction) ext
           case Some(y: Real) if y.isExact =>
             (y.x.toNominalRational, f) match {
               case (Some(x), Power) =>
-                em.Match(r.power(x))
+                em.MatchCheck(r.power(x))(x)
               case (_, _) =>
                 em.Miss[Expression, Expression](s"BiFunction: simplifyTrivial: no trivial simplification for $r $f $x (not Rational)", this) // TESTME
             }
@@ -870,8 +869,10 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
   def simplifyTrivial: em.AutoMatcher[Expression] =
     em.Matcher[Expression, Expression]("BiFunction: simplifyTrivial") {
       // Remove identity values
-      case Aggregate(f, xs) =>
-        em.Match(Aggregate(f, xs filterNot (x => f.maybeIdentityL.contains(x))))
+      case a@Aggregate(f, xs) =>
+        val nonIdentity = xs filterNot (x => f.maybeIdentityL.contains(x))
+        // NOTE we ensure that it only returns a Match when the result is smaller than the original
+        em.MatchResult(nonIdentity.size < xs.size, a, Aggregate(f, nonIdentity))
     }
 
   /**
@@ -947,24 +948,20 @@ case class Aggregate(function: ExpressionBiFunction, xs: Seq[Expression]) extend
     xs.map(_.depth).max + 1
 
   /**
-    * Attempts to compute an approximate value by applying the aggregate function over its components.
-    * If all components can be approximated successfully and the aggregate function produces a valid result,
-    * the final approximation is returned. If any component fails to be approximated, the result will be `None`.
+    * Provides an approximation of this number, if applicable.
     *
-    * @return an `Option[Real]` where `Some(Real)` represents the successfully computed approximation,
-    *         or `None` if the approximation could not be determined.
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[Real] = { // TESTME
+  def approximation(force: Boolean): Option[algebra.Real] = { // TESTME
     val identity: Valuable = function.maybeIdentityL.getOrElse(Valuable.zero) // NOTE should never require the default
-    val maybeFields: Seq[Option[Valuable]] = for {
-      x <- xs
-    } yield x.approximation.map(Valuable(_))
-    FP.sequence(maybeFields) map (xs => xs.foldLeft[Valuable](identity)(function.apply)) match {
-      case Some(r: Real) =>
-        Some(r)
-      case _ =>
-        None
-    }
+    val vos: Seq[Option[algebra.Real]] = xs map (x => x.approximation(force))
+    FP.sequence(vos) map (xs => xs.foldLeft[Valuable](identity)(function.apply).asInstanceOf[algebra.Real])
   }
 
   /**

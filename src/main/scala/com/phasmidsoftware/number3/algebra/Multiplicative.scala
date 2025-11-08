@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
+import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number3.algebra.Structure
 
@@ -29,14 +30,6 @@ trait Multiplicative[T <: Structure] {
     * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
     */
   def *(t: T): Multiplicative[T]
-
-  /**
-    * Divides this `T` instance by the specified `T`.
-    *
-    * @param t an instance of `T` to be the divisor
-    * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
-    */
-  def /(t: T): Multiplicative[T]
 }
 
 /**
@@ -60,6 +53,21 @@ trait MultiplicativeWithInverse[T <: Structure] extends Multiplicative[T] {
     * @return a new `Multiplicative[T]` representing the multiplicative inverse of this instance
     */
   def inverse: Multiplicative[T]
+
+  /**
+    * Divides this `T` instance by the specified `T`.
+    *
+    * @param t an instance of `T` to be the divisor
+    * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
+    */
+  def /(t: T): Multiplicative[T] =
+    t match {
+      case m: MultiplicativeWithInverse[T] =>
+        this * m.inverse.asInstanceOf[T]
+      case _ =>
+        throw NumberException(s"MultiplicativeWithInverse./: cannot divide $this by $t")
+    }
+
 }
 
 /**

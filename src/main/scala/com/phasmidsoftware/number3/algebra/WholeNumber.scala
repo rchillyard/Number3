@@ -115,7 +115,8 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Multiplic
     * @param that the integer multiplier used to scale the instance
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
-  def doScaleInt(that: Int): Option[Monotone] = ???
+  def doScaleInt(that: Int): Option[Monotone] =
+    Some(WholeNumber(x * that))
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -226,13 +227,6 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Multiplic
   def *(t: WholeNumber): Multiplicative[WholeNumber] =
     wholeNumberIsCommutativeRing.times(this, t)
 
-  /**
-    * Divides this `T` instance by the specified `T`.
-    *
-    * @param t an instance of `T` to be the divisor
-    * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
-    */
-  def /(t: WholeNumber): Multiplicative[WholeNumber] = ???
 }
 
 /**

@@ -11,10 +11,9 @@ import com.phasmidsoftware.number.core.algebraic.*
 import com.phasmidsoftware.number.core.algebraic.Algebraic.{phi, psi}
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational, Value}
 import com.phasmidsoftware.number.core.{Constants, Field, Number, NumberException}
-import com.phasmidsoftware.number3.algebra.{Additive, Angle, Complex, MultiplicativeWithInverse, Nat, NatLog, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
+import com.phasmidsoftware.number3.algebra.{Additive, Angle, Complex, Monotone, MultiplicativeWithInverse, Nat, NatLog, RationalNumber, Real, Scalar, Structure, Valuable, WholeNumber}
 import com.phasmidsoftware.number3.core.{AnyContext, Context}
 import com.phasmidsoftware.number3.expression.Expression.em
-import com.phasmidsoftware.number3.expression.Literal.someLiteral
 
 import java.util.Objects
 import scala.language.implicitConversions
@@ -137,7 +136,18 @@ case object Noop extends AtomicExpression {
       em.Miss[Expression, Expression]("AtomicExpression: simplifyAtomic: Noop", this)
   )
 
-  def approximation: Option[core.Real] = None
+  /**
+    * Provides an approximation of this number, if applicable.
+    *
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
+    */
+  def approximation(force: Boolean): Option[Real] = None
 }
 
 /**
@@ -202,17 +212,25 @@ sealed abstract class ValueExpression(val value: Valuable, val maybeName: Option
   }
 
   /**
-    * Attempts to approximate the current Valuable expression as a Real number.
+    * Provides an approximation of this number, if applicable.
     *
-    * @return Some(Real) if the Valuable can be approximated as a Real number, otherwise None.
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[core.Real] = value match {
+  def approximation(force: Boolean): Option[Real] = value match {
     case r: Real =>
-      Some(newRealToOldReal(r)) // TESTME
+      Some(r) // TESTME
+    case m: Monotone =>
+      m.approximation(force)
     case algebraic: Algebraic =>
       algebraic.solve.asField match {
         case r: core.Real =>
-          Some(r)
+          Some(Valuable(r).asInstanceOf[Real])
         case _ =>
           None // TESTME
       }
@@ -381,6 +399,8 @@ case class Literal(override val value: Valuable, override val maybeName: Option[
         Valuable(ExpressionFunction.valuableToField(r).sin)
       case (Cosine, r@Real(x, None)) =>
         Valuable(ExpressionFunction.valuableToField(r).cos)
+      case _ =>
+        throw NumberException(s"monadicFunction: cannot apply $f to $value")
     }
   }
 }
@@ -807,12 +827,17 @@ abstract class AbstractTranscendental(val name: String, val expression: Expressi
   def evaluate(context: Context): Option[Valuable] = expression.evaluate(context)
 
   /**
-    * Computes and returns an approximate numerical value for this Approximatable.
-    * All `Valuables`, `PowerSeries` and `Expressions` that implement this method should work except for complex quantities.
+    * Provides an approximation of this number, if applicable.
     *
-    * @return if possible, returns a `Real` representing the approximation of this expression.
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[core.Real] = expression.approximation
+  def approximation(force: Boolean): Option[Real] = expression.approximation(force)
 
   /**
     * Determines if the provided object is equal to the current instance.
@@ -994,6 +1019,19 @@ trait Root extends AtomicExpression {
     * @throws ExpressionException if the square root computation is not supported for the current `Expression`.
     */
   def squareRoot(plus: Boolean): Expression
+
+  /**
+    * Provides an approximation of this number, if applicable.
+    *
+    * This method attempts to compute an approximate representation of the number
+    * in the form of a `Real`, which encapsulates uncertainty or imprecision
+    * in its value. If no meaningful approximation is possible for the number, it
+    * returns `None`.
+    *
+    * @return an `Option[Real]` containing the approximate representation
+    *         of this `Number`, or `None` if no approximation is available.
+    */
+  def approximation(force: Boolean): Option[Real] = None // TODO Implement me
 }
 
 /**

@@ -93,7 +93,8 @@ abstract class Logarithm(val value: Number) extends Additive[Logarithm] with Tra
     * @param that the integer multiplier used to scale the instance
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
-  def doScaleInt(that: Int): Option[Monotone] = ???
+  def doScaleInt(that: Int): Option[Monotone] =
+    throw NumberException("Logarithm.doScaleInt: not supported")
 
   /**
     * Determines if the current number is equal to zero.
@@ -216,7 +217,7 @@ case class NatLog(x: Number) extends Logarithm(x) {
           case Real(value, fuzz) =>
             Real(math.log(value), fuzz)
           case _ =>
-            ???
+            throw NumberException(s"NatLog.transformation: $value not supported")
         }
       Some(result.asInstanceOf[T])
     }

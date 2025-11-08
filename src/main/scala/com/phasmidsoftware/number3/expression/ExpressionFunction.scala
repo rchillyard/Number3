@@ -6,7 +6,7 @@ package com.phasmidsoftware.number3.expression
 
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.inner.*
-import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, NumberException, Real}
+import com.phasmidsoftware.number.core.{ComplexPolar, Constants, ExactNumber, Field, FuzzyNumber, NumberException, Real}
 import com.phasmidsoftware.number3.algebra.{Additive, Angle, CanPower, Complex, Multiplicative, Nat, Number, Scalar, Structure, Valuable}
 import com.phasmidsoftware.number3.core.Context.{AnyLog, AnyRoot, AnyScalar}
 import com.phasmidsoftware.number3.core.{AnyContext, Context, ImpossibleContext, RestrictedContext}
@@ -82,20 +82,25 @@ object ExpressionFunction {
       complex
     case nat: Nat =>
       intToField(nat.asInt, PureNumber)
+    case com.phasmidsoftware.number3.algebra.Real(x, fo) =>
+      core.Real(FuzzyNumber(Value.fromDouble(Some(x)), PureNumber, fo))
     case number: Number =>
       number.toRational match {
         case Some(rational) => rationalToFIeld(rational, PureNumber)
-        case None => ??? // TODO implement by approximation
+        case None => // TODO implement by approximation
+          throw NumberException(s"ExpressionFunction:valuableToField: Cannot convert Number $v to a Field")
       }
     case Angle(radians) =>
       radians.toRational match {
         case Some(rational) => rationalToFIeld(rational, Radian)
-        case None => ??? // TODO implement by approximation
+        case None => // TODO implement by approximation
+          throw NumberException(s"ExpressionFunction:valuableToField: Cannot convert Angle $v to a Field")
       }
     case com.phasmidsoftware.number3.algebra.NatLog(x) =>
       x.toRational match {
         case Some(rational) => rationalToFIeld(rational, PureNumber)
-        case None => ??? // TODO implement by approximation
+        case None => // TODO implement by approximation
+          throw NumberException(s"ExpressionFunction:valuableToField: Cannot convert NatLog $v to a Field")
       }
     case _ =>
       throw NumberException(s"ExpressionFunction:valuableToField: Cannot convert $v to a Field")

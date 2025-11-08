@@ -4,12 +4,13 @@
 
 package com.phasmidsoftware.number3.expression
 
-import com.phasmidsoftware.matchers.{LogOff, MatchLogger}
+import com.phasmidsoftware.flog.{Flog, Loggable}
+import com.phasmidsoftware.matchers.{LogDebug, LogOff, MatchLogger}
 import com.phasmidsoftware.number.core
 import com.phasmidsoftware.number.core.*
 import com.phasmidsoftware.number.core.Number.convertInt
 import com.phasmidsoftware.number.core.inner.{Factor, PureNumber, Rational}
-import com.phasmidsoftware.number3.algebra.{RationalNumber, Scalar, Valuable, WholeNumber}
+import com.phasmidsoftware.number3.algebra.{Valuable, *}
 import com.phasmidsoftware.number3.core.{AnyContext, Context}
 import com.phasmidsoftware.number3.expression.Expression.em.ExpressionTransformer
 import com.phasmidsoftware.number3.expression.Expression.{em, matchSimpler}
@@ -26,7 +27,7 @@ import scala.language.implicitConversions
   * NOTE there are only two subtypes of Expression: AtomicExpression and CompositeExpression
   * We do not use "sealed" because this module would grow much too large.
   */
-trait Expression extends NumberLike with Approximatable {
+trait Expression extends NumberLike with Approximate {
 
   /**
     * Method to determine if this Expression cannot be simplified on account of it being atomic.
@@ -98,7 +99,11 @@ trait Expression extends NumberLike with Approximatable {
     */
   def materialize: Valuable = {
     val simplified = simplify
-    recover(simplified.evaluateAsIs orElse simplified.approximation.map(Valuable(_)))(ExpressionException(s"materialize: logic error on $this"))
+    val asIs = simplified.evaluateAsIs
+    val approximation1 = simplified.approximation(true)
+    val maybeValuable1 = approximation1
+    val maybeValuable = asIs orElse maybeValuable1
+    recover(maybeValuable)(ExpressionException(s"materialize: logic error on $this"))
   }
 
   /**

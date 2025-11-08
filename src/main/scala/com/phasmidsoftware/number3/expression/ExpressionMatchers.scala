@@ -44,6 +44,13 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
     */
   abstract class ExpressionMatcher[+R] extends Matcher[Expression, R]
 
+  def MatchCheck[R](r: R)(o: R): Match[R] =
+    if r == o then {
+      System.err.println(s"Match is unchanged: ${r}");
+      Match(r)
+    } else
+      Match(r)
+
   /**
     * Type alias for a pair of expressions (purpose of this is solely for brevity).
     */
@@ -228,6 +235,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
       Match(Aggregate(Sum, Seq((w * y).simplify, (w * z).simplify, (x * y).simplify, (x * z).simplify)))
     case BiFunction(BiFunction(w, x, f), BiFunction(y, z, g), h) if f == g && g == h =>
       Match(Aggregate(f, Seq(w, x, y, z)))
+    case BiFunction(BiFunction(w, x, Power), y, Power) =>
+      Match(Aggregate(Power, Seq(w, x * y)))
     case BiFunction(BiFunction(w, x, f), y, h) if f == h =>
       Match(Aggregate(f, Seq(w, x, y)))
     case BiFunction(x, BiFunction(y, z, f), h) if f == h =>
@@ -289,7 +298,7 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
           throw new IllegalArgumentException("complementaryTermsEliminatorAggregate: Power function not supported")
       }
       val sortFunction: Expression => Double =
-        x => invertFunction(x.approximation.flatMap(_.maybeDouble) getOrElse Double.NaN)
+        x => invertFunction(x.approximation(true).flatMap(_.maybeDouble) getOrElse Double.NaN)
 
       // NOTE we should handle the very rare cases where the final get fails
       // NOTE this ordering is really only appropriate when f is Sum.
@@ -298,8 +307,8 @@ class ExpressionMatchers(using val matchLogger: MatchLogger) extends MatchersExt
         case Success(sorted) =>
           val list = Bumperator[Expression](sorted) { (x, y) => isComplementary(f, x, y) }.toList
           if list.length < xs.length then
-            // CONSIDER write=ing instead `Match(CompositeExpression(f, list))` But be careful!
-            Match(Aggregate(f, list))
+            // CONSIDER write=ing instead `MatchCheck(CompositeExpression(f, list))` But be careful!
+            MatchCheck(Aggregate(f, list))(a)
           else
             Miss(s"complementaryTermsEliminatorAggregate: $a", a)
         case Failure(x) =>

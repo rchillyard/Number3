@@ -14,7 +14,7 @@ import scala.reflect.ClassTag
   *
   * Multidimensional mathematical quantities such as Complex cannot be represented by a `Monotone` object.
   */
-trait Monotone extends Structure with CanScaleWhole[Monotone] {
+trait Monotone extends Structure with CanScaleWhole[Monotone] with Approximate {
 
   /**
     * Method to determine if this `Structure` object is exact.
@@ -22,7 +22,7 @@ trait Monotone extends Structure with CanScaleWhole[Monotone] {
     *
     * @return true if this `Structure` object is exact in the context of no factor, else false.
     */
-  def isExact: Boolean = approximation.isEmpty
+  def isExact: Boolean = approximation().isEmpty
 
   /**
     * Attempts to yield a factor for the instance, if available.
@@ -45,7 +45,7 @@ trait Monotone extends Structure with CanScaleWhole[Monotone] {
     * @return an `Option[Real]` containing the approximate representation
     *         of this `Number`, or `None` if no approximation is available.
     */
-  def approximation: Option[Real]
+  def approximation(force: Boolean = false): Option[Real] = convert(Real.zero)
 
   /**
     * Determines if the current number is equal to zero.

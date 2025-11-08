@@ -253,7 +253,8 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     * @param that the integer multiplier used to scale the instance
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
-  def doScaleInt(that: Int): Option[Monotone] = ???
+  def doScaleInt(that: Int): Option[Monotone] =
+    Some(copy(value = that * value))
 
   /**
     * Scale this Real by the given scalar, provided that it is exact.

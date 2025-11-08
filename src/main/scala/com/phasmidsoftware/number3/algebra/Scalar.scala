@@ -56,19 +56,6 @@ trait Scalar extends Monotone with CanAdd[Scalar] {
   def maybeFactor: Option[inner.Factor]
 
   /**
-    * Provides an approximation of this number, if applicable.
-    *
-    * This method attempts to compute an approximate representation of the number
-    * in the form of a `Real`, which encapsulates uncertainty or imprecision
-    * in its value. If no meaningful approximation is possible for the number, it
-    * returns `None`.
-    *
-    * @return an `Option[Real]` containing the approximate representation
-    *         of this `Number`, or `None` if no approximation is available.
-    */
-  def approximation: Option[Real]
-
-  /**
     * Determines if the current number is equal to zero.
     *
     * @return true if the number is zero, false otherwise

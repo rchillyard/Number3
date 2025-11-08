@@ -6,7 +6,6 @@ package com.phasmidsoftware.number3.algebra
 
 import cats.Show
 import cats.kernel.CommutativeGroup
-import com.phasmidsoftware.number.core.Field.convertRationalToField
 import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{CubeRoot, Factor, Rational, SquareRoot}
 import com.phasmidsoftware.number3.algebra
@@ -48,7 +47,15 @@ case class Root(n: Int, base: Number) extends Monotone with MultiplicativeWithPo
     * @param t an instance of `T` to be multiplied by this `T`
     * @return a new `Multiplicative[T]` representing the product of this `T` and the given `T`
     */
-  def *(t: Root): Multiplicative[Root] = ???
+  def *(t: Root): Multiplicative[Root] =
+    (t, base) match {
+      // TODO need to match on types, not use isInstanceOf, etc.
+      case (Root(m, x), y) if m == n && x.isInstanceOf[Multiplicative[Scalar]] && y.isInstanceOf[Scalar] =>
+        val z: Multiplicative[Scalar] = x.asInstanceOf[Multiplicative[Scalar]] * y.asInstanceOf[Scalar]
+        copy(base = z.asInstanceOf[Number])
+      case _ =>
+        throw NumberException(s"Root.*: cannot multiply $this by $t")
+    }
 
   /**
     * Divides this `T` instance by the specified `T`.
@@ -56,7 +63,8 @@ case class Root(n: Int, base: Number) extends Monotone with MultiplicativeWithPo
     * @param t an instance of `T` to be the divisor
     * @return a new `Multiplicative[T]` representing the quotient of this `T` and `t`
     */
-  def /(t: Root): Multiplicative[Root] = ???
+  def /(t: Root): Multiplicative[Root] =
+    throw NumberException(s"Root./: not supported for $this by $t")
 
   /**
     * Compares the current `Root` instance with another `Number` to determine their exact order.
@@ -160,7 +168,7 @@ case class Root(n: Int, base: Number) extends Monotone with MultiplicativeWithPo
     * @return an Option containing the scaled result of type T, or None if the operation is invalid
     */
   infix def doScaleInt(that: Int): Option[Root] =
-    ???
+    doScale(WholeNumber(that))
 
   /**
     * Scales the current instance using the provided `Number`.
@@ -173,7 +181,15 @@ case class Root(n: Int, base: Number) extends Monotone with MultiplicativeWithPo
     * @return an `Option[T]` containing the result of the scaling operation if successful, or `None` if the operation cannot be performed
     */
   infix def doScale(that: Number): Option[Root] =
-    ???
+    (that, base) match {
+      // TODO need to match on types, not use isInstanceOf, etc.
+      case (x, y) if x.isInstanceOf[Multiplicative[Scalar]] && y.isInstanceOf[Scalar] =>
+        val z: Multiplicative[Scalar] = x.asInstanceOf[Multiplicative[Scalar]] * y.asInstanceOf[MultiplicativeWithPower[Scalar]].power(n).asInstanceOf[Scalar]
+        Some(copy(base = z.asInstanceOf[Number]))
+      case _ =>
+        throw NumberException(s"Root.doScale: cannot scale $this by $that")
+    }
+
 
   /**
     * Computes the potential factor associated with this instance.
@@ -256,7 +272,7 @@ object Root {
       */
     def combine(x: Root, y: Root): Root = (x, y) match {
       case (Root(n1, x1: Number), Root(n2, x2: Number)) =>
-        ??? // use utilities in the Factor class.
+        throw NumberException(s"Root.combine: cannot combine $x and $y")
     }
 
     /**
@@ -268,6 +284,7 @@ object Root {
       * @param a the `Root` instance to be inverted
       * @return a new `Root` instance representing the multiplicative inverse of the input
       */
-    def inverse(a: Root): Root = ???
+    def inverse(a: Root): Root =
+      throw NumberException(s"Root.inverse: cannot invert $a")
   }
 }
