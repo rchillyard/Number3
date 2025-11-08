@@ -1,5 +1,6 @@
 package com.phasmidsoftware.number3.algebra
 
+import com.phasmidsoftware.number.core.inner.Rational
 import com.phasmidsoftware.number3.algebra.Structure
 
 /**
@@ -84,4 +85,25 @@ trait MultiplicativeWithPower[T <: Structure] extends Multiplicative[T] {
         // TODO sort out these class casts.
         (r * this.asInstanceOf[T]).asInstanceOf[MultiplicativeWithPower[T]]
     }
+}
+
+/**
+  * Extends the `Multiplicative` algebraic structure by providing the capability to
+  * raise instances to rational powers.
+  *
+  * This trait enables operations combining multiplication and exponentiation
+  * with rational exponents for any type `T` that extends `Structure`.
+  *
+  * @tparam T the type parameter representing the algebraic structure, which must extend `Structure`
+  */
+trait MultiplicativeWithRationalPower[T <: Structure] extends Multiplicative[T] {
+  /**
+    * Raises the current instance of type `T` to the rational power `n`.
+    * This operation extends the `Multiplicative` structure by allowing
+    * instances to be exponentiated with rational exponents.
+    *
+    * @param n the rational exponent to which the current instance is raised
+    * @return an `Option` containing the result of the exponentiation if applicable, or `None` if the operation is undefined
+    */
+  def power(n: Rational): Option[T]
 }

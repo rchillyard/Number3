@@ -29,7 +29,7 @@ import scala.util.{Failure, Success, Try}
   * @param value the central numeric value of the fuzzy number
   * @param fuzz  the optional fuzziness associated with the numeric value
   */
-case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive[Real] with Multiplicative[Real] with Number {
+case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive[Real] with MultiplicativeWithRationalPower[Real] with Number {
 
   /**
     * Determines whether this `Valuable` is exact, i.e., has no fuzz.
@@ -291,6 +291,17 @@ case class Real(value: Double, fuzz: Option[Fuzziness[Double]]) extends Additive
     */
   private[algebra] lazy val scaleByPi: Real =
     Real(value * Real.pi.value, Some(Fuzziness.doublePrecision))
+
+  /**
+    * Raises the current instance of type `T` to the rational power `n`.
+    * This operation extends the `Multiplicative` structure by allowing
+    * instances to be exponentiated with rational exponents.
+    *
+    * @param n the rational exponent to which the current instance is raised
+    * @return an `Option` containing the result of the exponentiation if applicable, or `None` if the operation is undefined
+    */
+  def power(r: Rational): Option[Real] =
+    Some(Real(math.pow(value, r.toDouble), fuzz.map(Fuzziness.scaleTransform(r.toDouble))))
 }
 
 /**

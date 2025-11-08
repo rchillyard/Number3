@@ -75,6 +75,18 @@ case class WholeNumber(x: SafeLong) extends Additive[WholeNumber] with Multiplic
   val zero: WholeNumber = wholeNumberIsCommutativeRing.empty
 
   /**
+    * Converts this `WholeNumber` into an `Int` representation, if possible.
+    *
+    * This method first converts the `WholeNumber` to its `Rational` representation and then 
+    * attempts to extract the corresponding integer value. If the `WholeNumber` cannot be 
+    * represented as an exact integer, the result is `None`.
+    *
+    * @return an `Option[Int]` containing the integer representation of this `WholeNumber`
+    *         if it can be exactly represented as an `Int`, or `None` otherwise.
+    */
+  def toInt: Option[Int] = toRational.flatMap(z => z.maybeInt)
+
+  /**
     * Converts this `Number` into its corresponding `Rational` representation, if possible.
     *
     * @return an `Option[Rational]` containing the `Rational` representation of this `Number`

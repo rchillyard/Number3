@@ -8,6 +8,7 @@ import com.phasmidsoftware.number3.algebra.Real.realIsRing
 import com.phasmidsoftware.number3.algebra.Structure
 
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
   * Represents a rational number and provides arithmetic operations
@@ -28,7 +29,7 @@ import scala.reflect.ClassTag
   *              rational value `r`.
   * @param r the underlying rational value
   */
-case class RationalNumber(r: Rational) extends Additive[RationalNumber] with MultiplicativeWithInverse[RationalNumber] with Number {
+case class RationalNumber(r: Rational) extends Additive[RationalNumber] with MultiplicativeWithRationalPower[RationalNumber] with Number {
 
   /**
     * Represents the additive identity element for the type `T`.
@@ -112,6 +113,15 @@ case class RationalNumber(r: Rational) extends Additive[RationalNumber] with Mul
     case Some(n@Rational(_, _)) => Some(RationalNumber(r * n))
     case _ => None
   }
+
+  /**
+    * Raises this `RationalNumber` to the specified power represented by a `Rational`.
+    *
+    * @param p the `Rational` exponent to which this `RationalNumber` is to be raised
+    * @return a `MultiplicativeWithPower[RationalNumber]` representing the result of raising this `RationalNumber` to the power of `p`
+    */
+  def power(p: Rational): Option[RationalNumber] =
+    r.power(p).map(RationalNumber(_)).toOption
 
   /**
     * Scales the current instance of type `T` using the given `Number` multiplier.

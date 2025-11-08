@@ -28,14 +28,6 @@ import scala.reflect.ClassTag
 case class Angle private[algebra](radians: Number) extends Additive[Angle] with Radians {
 
   /**
-    * Represents the zero value of the `Angle` class.
-    *
-    * This is a predefined constant that corresponds to an `Angle` of zero radians.
-    * It is used as the additive identity in operations involving angles.
-    */
-  val zero: Angle = Angle.zero
-
-  /**
     * Compares the current `Angle` instance with another `Number` to determine their exact order.
     *
     * If the provided `Number` is an `Angle`, this method compares their underlying radian values.
@@ -76,6 +68,14 @@ case class Angle private[algebra](radians: Number) extends Additive[Angle] with 
     * @return true if the number is zero, false otherwise
     */
   def isZero: Boolean = radians.isZero
+
+  /**
+    * Represents the zero value of the `Angle` class.
+    *
+    * This is a predefined constant that corresponds to an `Angle` of zero radians.
+    * It is used as the additive identity in operations involving angles.
+    */
+  val zero: Angle = Angle.zero
 
   /**
     * Determines the sign of the scalar value represented by this instance.
@@ -294,6 +294,18 @@ object Angle {
     */
   def apply(r: WholeNumber): Angle = Angle(r.x.toBigInt)
 
+  /**
+    * Creates an `Angle` instance based on the input `Monotone` value.
+    *
+    * Converts the input `Monotone` into an `Angle`, handling various types of numerical structures.
+    * If the input is already an `Angle`, or if the type is unsupported, an exception is thrown.
+    *
+    * @param s the input `Monotone` to be converted into an `Angle`; can represent a whole number,
+    *          rational number, or real number. Passing an existing `Angle` or unsupported type
+    *          results in an exception.
+    * @return an `Angle` instance corresponding to the input `Monotone` value
+    * @throws NumberException if the input is already an `Angle` or is of an unsupported type
+    */
   def create(s: Monotone): Angle = s match {
     case number: WholeNumber =>
       Angle(number)

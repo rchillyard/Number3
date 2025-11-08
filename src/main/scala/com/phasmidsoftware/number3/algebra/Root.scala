@@ -6,8 +6,10 @@ package com.phasmidsoftware.number3.algebra
 
 import cats.Show
 import cats.kernel.CommutativeGroup
+import com.phasmidsoftware.number.core.Field.convertRationalToField
 import com.phasmidsoftware.number.core.NumberException
 import com.phasmidsoftware.number.core.inner.{CubeRoot, Factor, Rational, SquareRoot}
+import com.phasmidsoftware.number3.algebra
 import com.phasmidsoftware.number3.algebra.Structure
 import com.phasmidsoftware.number3.misc.FP
 
@@ -38,7 +40,7 @@ case class Root(n: Int, base: Number) extends Monotone with MultiplicativeWithPo
     * The `one` value serves as the neutral element for the multiplication operation, meaning
     * that for any instance `t` of type `T`, the equation `one * t = t * one = t` holds true.
     */
-  def one: Root = ???
+  def one: Root = Root(1, Real.one)
 
   /**
     * Multiplies the specified `T` by this `T` instance.
@@ -84,10 +86,12 @@ case class Root(n: Int, base: Number) extends Monotone with MultiplicativeWithPo
     *
     * @return an `Option` containing the converted value of type `T` if successful, or `None` if the conversion is not possible.
     */
-  def convert[T <: Structure : ClassTag](t: T): Option[T] = t match {
-    case _: Real =>
-      ???
-    case _ =>
+  def convert[T <: Structure : ClassTag](t: T): Option[T] = base match {
+    case x: MultiplicativeWithRationalPower[?] =>
+      x.power(Rational(n).invert).flatMap(_.convert(t))
+    case x: WholeNumber =>
+      x.convert(RationalNumber.zero).flatMap(_.convert(t))
+    case x =>
       None
   }
 
